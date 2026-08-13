@@ -278,14 +278,26 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
   opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:88%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.3);}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* Install banner */
-#install{position:absolute;left:14px;right:14px;bottom:14px;background:#12312f;color:#fff;border-radius:18px;padding:16px;
-  display:none;z-index:30;box-shadow:0 12px 40px rgba(0,0,0,.35);}
-#install.show{display:block;animation:fade .3s;}
-#install h4{font-size:15px;margin-bottom:5px;}
-#install p{margin:0 0 12px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.4;}
-#install .install-actions{display:flex;gap:10px;}
-#install .btn{padding:12px;font-size:14px;}
+/* Install button on onboarding */
+.btn-install{background:#fff;color:var(--teal-900);font-weight:800;}
+
+/* Install sheet (bottom sheet with guide) */
+#sheetOverlay{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:50;display:none;}
+#sheetOverlay.show{display:block;animation:fade .2s;}
+#sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;z-index:51;
+  padding:10px 20px calc(env(safe-area-inset-bottom) + 22px);transform:translateY(105%);transition:transform .28s cubic-bezier(.32,.72,.33,1);}
+#sheet.show{transform:none;}
+#sheet .grab{width:44px;height:5px;border-radius:99px;background:#e2e0da;margin:6px auto 14px;}
+#sheet h3{font-size:19px;font-weight:800;margin-bottom:4px;}
+#sheet .sheet-sub{font-size:13.5px;color:var(--muted);margin:0 0 16px;line-height:1.45;}
+.step-row{display:flex;gap:13px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);}
+.step-row:last-of-type{border-bottom:none;}
+.step-num{width:30px;height:30px;border-radius:50%;background:var(--peach-100);color:#8a5227;font-weight:800;font-size:14px;
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:1px;}
+.step-row .tx{font-size:14.5px;line-height:1.45;color:var(--ink);}
+.step-row .tx b{font-weight:700;}
+.step-row .tx svg{vertical-align:-3px;margin:0 2px;}
+.sheet-close{margin-top:16px;}
 </style>
 </head>
 <body>
@@ -302,6 +314,10 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
     <div class="ob-actions">
       <button class="btn btn-peach" onclick="enterApp()">Konzultace zdarma</button>
       <button class="btn btn-outline" onclick="enterApp()">Mám již účet</button>
+      <button class="btn btn-install" id="obInstallBtn" onclick="openInstallSheet()">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
+        Přidat aplikaci na plochu
+      </button>
     </div>
   </div>
 
@@ -497,6 +513,15 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
             <div class="toggle on" id="quietToggle" onclick="this.classList.toggle('on')"></div>
           </div>
         </div>
+        <div class="list-card" style="margin-top:14px;" id="installCardProfil">
+          <div class="list-item" onclick="openInstallSheet()">
+            <div class="li-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b06a34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
+            </div>
+            <div class="li-body"><h4>Přidat na plochu</h4><p>Návod, jak mít appku jako běžnou aplikaci.</p></div>
+            <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+          </div>
+        </div>
         <div class="section-label" style="margin-top:22px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div class="ver">Verze 0.2.0 (prototyp)</div>
@@ -605,14 +630,14 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
     </button>
   </div>
 
-  <!-- INSTALL BANNER -->
-  <div id="install">
-    <h4>Přidat na plochu</h4>
-    <p id="installText">Mějte Práva řidiče vždy po ruce jako běžnou appku.</p>
-    <div class="install-actions">
-      <button class="btn btn-peach" id="installBtn" onclick="doInstall()">Přidat</button>
-      <button class="btn btn-outline" onclick="document.getElementById('install').classList.remove('show')">Později</button>
-    </div>
+  <!-- INSTALL SHEET -->
+  <div id="sheetOverlay" onclick="closeInstallSheet()"></div>
+  <div id="sheet">
+    <div class="grab"></div>
+    <h3>Přidat na plochu</h3>
+    <p class="sheet-sub" id="sheetSub">Appka pak poběží celoobrazovkově jako běžná aplikace — bez adresního řádku.</p>
+    <div id="sheetSteps"></div>
+    <button class="btn btn-dark sheet-close" id="sheetAction" onclick="closeInstallSheet()">Rozumím</button>
   </div>
 
   <div id="toast"></div>
@@ -917,23 +942,63 @@ function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.
 
 /* ============ PWA INSTALL ============ */
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredPrompt=e; });
+window.addEventListener('appinstalled',()=>{ closeInstallSheet(); toast('Hotovo! Appku najdete na ploše.'); hideInstallUI(); });
 function isIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); }
-function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone; }
-function maybeShowInstall(){
-  if(isStandalone())return;
-  setTimeout(()=>{
-    if(isIOS()){ document.getElementById('installText').textContent='Klepněte na Sdílet a zvolte „Přidat na plochu".'; document.getElementById('installBtn').style.display='none'; }
-    document.getElementById('install').classList.add('show');
-  },1600);
+function isIOSChrome(){ return isIOS() && /crios/i.test(navigator.userAgent); }
+function isAndroid(){ return /android/i.test(navigator.userAgent); }
+function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true; }
+function hideInstallUI(){ const b=document.getElementById('obInstallBtn'); if(b)b.style.display='none'; }
+
+const SHARE_ICON='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0b74e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+const MENU_ICON='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>';
+const PLUS_ICON='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
+
+function installSteps(){
+  if(isIOSChrome()) return [
+    'Klepněte na ikonu <b>Sdílet</b> '+SHARE_ICON+' vpravo vedle adresního řádku.',
+    'Sjeďte dolů a klepněte na '+PLUS_ICON+' <b>Přidat na plochu</b>.',
+    'Vpravo nahoře potvrďte <b>Přidat</b>.'
+  ];
+  if(isIOS()) return [
+    'Klepněte na ikonu <b>Sdílet</b> '+SHARE_ICON+' dole uprostřed lišty Safari.',
+    'Sjeďte dolů a klepněte na '+PLUS_ICON+' <b>Přidat na plochu</b>.',
+    'Vpravo nahoře potvrďte <b>Přidat</b>.'
+  ];
+  if(isAndroid()) return [
+    'Klepněte na menu '+MENU_ICON+' <b>⋮</b> vpravo nahoře v Chromu.',
+    'Zvolte <b>Přidat na plochu</b> (nebo <b>Instalovat aplikaci</b>).',
+    'Potvrďte <b>Přidat / Instalovat</b>.'
+  ];
+  return [
+    'V Chromu klepněte na ikonu <b>instalace</b> vpravo v adresním řádku (monitor se šipkou).',
+    'Nebo menu <b>⋮</b> → <b>Uložit a sdílet</b> → <b>Instalovat stránku jako aplikaci</b>.'
+  ];
 }
-function doInstall(){
-  if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;}); }
-  else toast('Použijte menu prohlížeče → Přidat na plochu.');
-  document.getElementById('install').classList.remove('show');
+function openInstallSheet(){
+  if(isStandalone()){ toast('Appka už je nainstalovaná — spouštíte ji z plochy. ✓'); return; }
+  if(deferredPrompt){ // Android/desktop: nativní dialog rovnou
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.finally(()=>{ deferredPrompt=null; });
+    return;
+  }
+  const steps=installSteps();
+  document.getElementById('sheetSteps').innerHTML=steps.map((s,i)=>
+    `<div class="step-row"><div class="step-num">${i+1}</div><div class="tx">${s}</div></div>`).join('');
+  document.getElementById('sheetOverlay').classList.add('show');
+  document.getElementById('sheet').classList.add('show');
+}
+function closeInstallSheet(){
+  document.getElementById('sheetOverlay').classList.remove('show');
+  document.getElementById('sheet').classList.remove('show');
+}
+function maybeShowInstall(){
+  if(isStandalone()){ hideInstallUI(); return; }
+  setTimeout(()=>{ openInstallSheet(); },1200);
 }
 
 /* ============ INIT ============ */
 renderPoints(); renderServices(); renderChips(); renderUnread(); renderProfileLinks();
+if(isStandalone()){ hideInstallUI(); const c=document.getElementById('installCardProfil'); if(c)c.style.display='none'; }
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 </script>
 </body>
