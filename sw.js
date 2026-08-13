@@ -1,5 +1,5 @@
 /* Práva řidiče — service worker (offline cache + push) */
-const CACHE = 'pravaridice-v8';
+const CACHE = 'pravaridice-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -25,7 +25,12 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).catch(() => caches.match('./index.html')));
+    // no-store: obejit HTTP cache -> po commitu se vzdy natahne cerstva verze
+    e.respondWith(fetch(req, { cache: 'no-store' }).then(r => {
+      const copy = r.clone();
+      caches.open(CACHE).then(c => c.put('./index.html', copy)).catch(()=>{});
+      return r;
+    }).catch(() => caches.match('./index.html')));
     return;
   }
   e.respondWith(caches.match(req).then(hit => hit || fetch(req)));

@@ -545,7 +545,7 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 0.2.0 (prototyp)</div>
+        <div class="ver">Verze 0.3.1 · build 10</div>
       </div>
     </div>
 
@@ -691,10 +691,11 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
   <div id="sheetOverlay" onclick="closeInstallSheet()"></div>
   <div id="sheet">
     <div class="grab"></div>
-    <h3>Přidat na plochu</h3>
-    <p class="sheet-sub" id="sheetSub">Appka pak poběží celoobrazovkově jako běžná aplikace — bez adresního řádku.</p>
+    <h3>Uložte si nás na plochu</h3>
+    <p class="sheet-sub" id="sheetSub">Děkujeme, že používáte Práva řidiče. S aplikací na ploše nás budete mít vždy po ruce — na celou obrazovku a s upozorněními na váš bodový stav.</p>
     <div id="sheetSteps"></div>
     <button class="btn btn-dark sheet-close" id="sheetAction" onclick="closeInstallSheet()">Rozumím</button>
+    <button class="btn btn-outline-dark" style="margin-top:8px;" onclick="closeInstallSheet()">Později</button>
   </div>
 
   <div id="toast"></div>
@@ -807,7 +808,7 @@ function go(id){ state.history.push(state.screen); state.screen=id; showScreen(i
 function back(to){ state.history=[]; state.screen=to; state.tab=to; showScreen(to); document.getElementById('nav').style.display='flex';
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===to)); }
 function backAuto(){ const prev=state.history.pop()||'prehled'; if(TABS.includes(prev)) back(prev); else { state.screen=prev; showScreen(prev); } }
-function enterApp(){ document.getElementById('onboard').style.display='none'; maybeShowInstall(); }
+function enterApp(){ document.getElementById('onboard').style.display='none'; }
 
 /* ============ PŘEHLED ============ */
 function renderPoints(){
@@ -1223,16 +1224,33 @@ function installSteps(){
     'Nebo menu <b>⋮</b> → <b>Uložit a sdílet</b> → <b>Instalovat stránku jako aplikaci</b>.'
   ];
 }
-function openInstallSheet(){
-  if(isStandalone()){ toast('Appka už je nainstalovaná — spouštíte ji z plochy. ✓'); return; }
-  if(deferredPrompt){ // Android/desktop: nativní dialog rovnou
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.finally(()=>{ deferredPrompt=null; });
-    return;
-  }
-  const steps=installSteps();
+function renderSteps(steps){
   document.getElementById('sheetSteps').innerHTML=steps.map((s,i)=>
     `<div class="step-row"><div class="step-num">${i+1}</div><div class="tx">${s}</div></div>`).join('');
+}
+function openInstallSheet(){
+  if(isStandalone()){ toast('Appka už je nainstalovaná — spouštíte ji z plochy. ✓'); return; }
+  const action=document.getElementById('sheetAction');
+  if(isAndroid()||deferredPrompt){
+    // Android: velké tlačítko -> nativní instalační dialog
+    renderSteps([]);
+    action.textContent='Přidat na plochu';
+    action.onclick=()=>{
+      if(deferredPrompt){
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.finally(()=>{ deferredPrompt=null; closeInstallSheet(); });
+      } else { // prompt není k dispozici -> ruční kroky
+        renderSteps(installSteps());
+        action.textContent='Rozumím';
+        action.onclick=closeInstallSheet;
+      }
+    };
+  } else {
+    // iPhone: návod krok za krokem
+    renderSteps(installSteps());
+    action.textContent='Rozumím';
+    action.onclick=closeInstallSheet;
+  }
   document.getElementById('sheetOverlay').classList.add('show');
   document.getElementById('sheet').classList.add('show');
 }
@@ -1242,7 +1260,7 @@ function closeInstallSheet(){
 }
 function maybeShowInstall(){
   if(isStandalone()){ hideInstallUI(); return; }
-  setTimeout(()=>{ openInstallSheet(); },1200);
+  setTimeout(()=>{ openInstallSheet(); },900);
 }
 
 /* ============ INIT ============ */
@@ -1253,7 +1271,8 @@ document.getElementById('notifInfo').style.display=state.notif?'flex':'none';
 if(state.promoOk) document.getElementById('planTitle').textContent='Zdarma (promo kód)';
 document.getElementById('guideCount').textContent = ALL_TOPICS.length+' právních témat v '+GUIDE.length+' oblastech';
 if(isStandalone()){ document.documentElement.classList.add('standalone'); hideInstallUI(); const c=document.getElementById('installCardProfil'); if(c)c.style.display='none'; }
-if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+else { maybeShowInstall(); }
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(()=>{}); }
 </script>
 </body>
 </html>
