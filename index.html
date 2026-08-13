@@ -43,7 +43,7 @@ html,body{margin:0;padding:0;}
 html,body{height:100%;}
 body{
   font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  background:var(--bg);
+  background:#ffffff;
   color:var(--ink);
   display:flex;justify-content:center;align-items:center;
   position:fixed;inset:0;overflow:hidden;overscroll-behavior:none;
@@ -279,6 +279,62 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
   opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:88%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.3);}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
+/* ===== ÚZKÉ DISPLEJE (zvětšené zobrazení iPhonu, ≤360 px) — vše se vejde bez scrollu ===== */
+@media(max-width:360px){
+  .pad{padding:9px 10px 8px;}
+  .title-lg{font-size:19px;}
+  .eyebrow{font-size:10px;margin-bottom:4px;}
+  .card{padding:10px 12px;border-radius:16px;}
+  .card+.card{margin-top:8px;}
+  .status-card{padding:11px 12px 10px;border-radius:16px;}
+  .counter{gap:18px;margin:4px 0 0;}
+  .counter .num{font-size:38px;}
+  .round-btn{width:38px;height:38px;font-size:19px;}
+  .counter .sub{font-size:11px;}
+  .progress{margin:7px 0 6px;height:6px;}
+  .status-note{font-size:11.5px;margin-bottom:8px;}
+  .chip-btn{padding:9px 6px;font-size:12px;border-radius:11px;gap:6px;}
+  .risk-pill{font-size:11px;padding:5px 9px;}
+  .shield{width:36px;height:36px;border-radius:10px;}
+  .consult-card{padding:9px 10px;border-radius:14px;}
+  .consult-card h3{font-size:14.5px;}
+  .consult-card p{font-size:11.5px;margin:0 0 8px;}
+  .btn-sm{padding:10px 12px;font-size:13px;}
+  .list-card{border-radius:14px;}
+  .list-item{padding:7px 10px;gap:10px;}
+  .li-icon{width:30px;height:30px;border-radius:9px;}
+  .li-body h4{font-size:13px;}
+  .li-body p{font-size:11px;}
+  .section-label{font-size:10px;margin:3px 2px 6px;}
+  .stat-card{padding:9px 11px;border-radius:13px;}
+  .stat-card .val{font-size:13px;}
+  .stat-card .lbl{font-size:10px;}
+  .police-card{padding:9px 11px;border-radius:13px;margin-top:7px;}
+  .police-card h4{font-size:13px;}
+  .police-card p{font-size:11px;}
+  .police-card .lbl{font-size:10px;}
+  .search-box{padding:8px 11px;margin-top:7px;border-radius:12px;}
+  .search-input input{font-size:13px;}
+  .chips{margin-top:7px;gap:5px;}
+  .chip{padding:5px 9px;font-size:11.5px;}
+  .msg-hero{padding:11px;border-radius:14px;}
+  .msg-hero h3{font-size:15px;}
+  .msg-hero p{font-size:11.5px;margin-bottom:9px;}
+  .notice{padding:9px 11px;border-radius:12px;}
+  .notice h4{font-size:13px;}
+  .notice p{font-size:12px;}
+  .count-pill{font-size:11px;padding:5px 9px;}
+  .toggle{width:44px;height:26px;}
+  .toggle::after{width:20px;height:20px;}
+  .toggle.on::after{left:21px;}
+  .alert-line{padding:8px 10px;font-size:11px;margin-top:9px;}
+  .title-md{font-size:15px;}
+  .ver{font-size:10px;margin-top:6px;}
+  #nav{padding:5px 4px calc(env(safe-area-inset-bottom) + 5px);}
+  .nav-btn svg{width:21px;height:21px;}
+  .nav-btn span{font-size:10px;}
+}
+
 /* ===== STANDALONE (z plochy) — MUSÍ být na konci CSS kvůli kaskádě ===== */
 #view{overscroll-behavior:contain;}
 @media(display-mode: standalone){
@@ -297,7 +353,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 #sheetOverlay{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:50;display:none;}
 #sheetOverlay.show{display:block;animation:fade .2s;}
 #sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;z-index:51;
-  padding:10px 20px calc(env(safe-area-inset-bottom) + 22px);transform:translateY(105%);transition:transform .28s cubic-bezier(.32,.72,.33,1);}
+  padding:10px 20px calc(env(safe-area-inset-bottom) + 22px);transform:translateY(105%);transition:transform .28s cubic-bezier(.32,.72,.33,1);display:none;}
 #sheet.show{transform:none;}
 #sheet .grab{width:44px;height:5px;border-radius:99px;background:#e2e0da;margin:6px auto 14px;}
 #sheet h3{font-size:19px;font-weight:800;margin-bottom:4px;}
@@ -548,7 +604,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 0.3.4 · build 13</div>
+        <div class="ver">Verze 0.4.0 · build 14</div>
       </div>
     </div>
 
@@ -802,24 +858,11 @@ function showScreen(id){
   document.getElementById('view').scrollTop=0;
   fitScreen(); requestAnimationFrame(fitScreen);
 }
-/* Hlavní záložky: přesně vyplnit obrazovku (zmenšit i zvětšit), scroll vypnout */
+/* Hlavní záložky: scroll vypnout, když se obsah vejde (layout řeší čisté CSS) */
 function fitScreen(){
   const v=document.getElementById('view');
-  const scr=document.querySelector('.screen.active');
-  if(!scr) return;
-  const pad=scr.querySelector('.pad');
   const isTab=TABS.includes(state.screen);
-  if(pad) pad.style.zoom='';
-  if(isTab && pad){
-    const natural=v.scrollHeight;
-    const target=v.clientHeight-6;
-    const maxZ = window.innerWidth<460 ? 1.12 : 1;
-    const z=Math.max(0.72, Math.min(maxZ, target/natural));
-    if(Math.abs(z-1)>0.005) pad.style.zoom=z;
-    v.style.overflowY = (v.scrollHeight>v.clientHeight+10) ? 'auto' : 'hidden';
-  } else {
-    v.style.overflowY='auto';
-  }
+  v.style.overflowY = (isTab && v.scrollHeight<=v.clientHeight+10) ? 'hidden' : 'auto';
 }
 window.addEventListener('resize', ()=>requestAnimationFrame(fitScreen));
 function tab(name){
@@ -1275,12 +1318,16 @@ function openInstallSheet(){
     action.textContent='Rozumím';
     action.onclick=closeInstallSheet;
   }
+  const sh=document.getElementById('sheet');
   document.getElementById('sheetOverlay').classList.add('show');
-  document.getElementById('sheet').classList.add('show');
+  sh.style.display='block';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>sh.classList.add('show')));
 }
 function closeInstallSheet(){
+  const sh=document.getElementById('sheet');
   document.getElementById('sheetOverlay').classList.remove('show');
-  document.getElementById('sheet').classList.remove('show');
+  sh.classList.remove('show');
+  setTimeout(()=>{ if(!sh.classList.contains('show')) sh.style.display='none'; }, 320);
 }
 function maybeShowInstall(){
   if(isStandalone()){ hideInstallUI(); return; }
