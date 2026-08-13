@@ -43,7 +43,7 @@ html,body{margin:0;padding:0;}
 html,body{height:100%;}
 body{
   font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  background:#0b1416;
+  background:var(--bg);
   color:var(--ink);
   display:flex;justify-content:center;align-items:center;
   position:fixed;inset:0;overflow:hidden;overscroll-behavior:none;
@@ -56,7 +56,7 @@ body{
   background:var(--bg);overflow:hidden;display:flex;flex-direction:column;
   box-shadow:0 30px 80px rgba(0,0,0,.5);
 }
-@media(min-width:460px) and (min-height:700px){#phone{border-radius:44px;border:10px solid #05090a;height:min(892px,96vh);}}
+@media(min-width:460px) and (min-height:700px){body{background:#0b1416;}#phone{border-radius:44px;border:10px solid #05090a;height:min(892px,96vh);}}
 
 .statusbar{height:0;}
 /* Screen scroll area */
@@ -548,7 +548,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 0.3.3 · build 12</div>
+        <div class="ver">Verze 0.3.4 · build 13</div>
       </div>
     </div>
 
@@ -802,7 +802,7 @@ function showScreen(id){
   document.getElementById('view').scrollTop=0;
   fitScreen(); requestAnimationFrame(fitScreen);
 }
-/* Hlavní záložky: nikdy nescrollovat — když se obsah nevejde, přesně se zmenší */
+/* Hlavní záložky: přesně vyplnit obrazovku (zmenšit i zvětšit), scroll vypnout */
 function fitScreen(){
   const v=document.getElementById('view');
   const scr=document.querySelector('.screen.active');
@@ -811,10 +811,11 @@ function fitScreen(){
   const isTab=TABS.includes(state.screen);
   if(pad) pad.style.zoom='';
   if(isTab && pad){
-    if(v.scrollHeight>v.clientHeight+1){
-      const z=Math.max(0.72, (v.clientHeight-10)/v.scrollHeight);
-      pad.style.zoom=z;
-    }
+    const natural=v.scrollHeight;
+    const target=v.clientHeight-6;
+    const maxZ = window.innerWidth<460 ? 1.12 : 1;
+    const z=Math.max(0.72, Math.min(maxZ, target/natural));
+    if(Math.abs(z-1)>0.005) pad.style.zoom=z;
     v.style.overflowY = (v.scrollHeight>v.clientHeight+10) ? 'auto' : 'hidden';
   } else {
     v.style.overflowY='auto';
@@ -831,7 +832,7 @@ function go(id){ state.history.push(state.screen); state.screen=id; showScreen(i
 function back(to){ state.history=[]; state.screen=to; state.tab=to; showScreen(to); document.getElementById('nav').style.display='flex';
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===to)); }
 function backAuto(){ const prev=state.history.pop()||'prehled'; if(TABS.includes(prev)) back(prev); else { state.screen=prev; showScreen(prev); } }
-function enterApp(){ document.getElementById('onboard').style.display='none'; }
+function enterApp(){ document.getElementById('onboard').style.display='none'; fitScreen(); requestAnimationFrame(fitScreen); }
 
 /* ============ PŘEHLED ============ */
 function renderPoints(){
@@ -1288,7 +1289,10 @@ function maybeShowInstall(){
 
 /* ============ INIT ============ */
 loadState();
-setTimeout(()=>fitScreen(),350); setTimeout(()=>fitScreen(),1200);
+[300,900,2000].forEach(t=>setTimeout(fitScreen,t));
+window.addEventListener('load',fitScreen);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>fitScreen());
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeout(fitScreen,80); });
 renderPoints(); renderServices(); renderChips(); renderUnread(); renderProfileLinks();
 document.getElementById('notifToggle').classList.toggle('on',state.notif);
 document.getElementById('notifInfo').style.display=state.notif?'flex':'none';
