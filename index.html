@@ -50,13 +50,16 @@ body{
   -webkit-font-smoothing:antialiased;
   touch-action:manipulation;
 }
-/* Phone frame (collapses to fullscreen on real mobile) */
+/* Mobil: appka natvrdo pres cele okno (zadne pocitani vysek) */
 #phone{
-  position:relative;width:100%;max-width:412px;height:100%;
+  position:fixed;inset:0;
   background:var(--bg);overflow:hidden;display:flex;flex-direction:column;
-  box-shadow:0 30px 80px rgba(0,0,0,.5);
 }
-@media(min-width:460px) and (min-height:700px){body{background:#0b1416;}#phone{border-radius:44px;border:10px solid #05090a;height:min(892px,96vh);}}
+@media(min-width:460px) and (min-height:700px){
+  body{background:#0b1416;}
+  #phone{position:relative;inset:auto;width:100%;max-width:412px;height:min(892px,96vh);
+    border-radius:44px;border:10px solid #05090a;box-shadow:0 30px 80px rgba(0,0,0,.5);}
+}
 
 .statusbar{height:0;}
 /* Screen scroll area */
@@ -200,7 +203,7 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .ver{text-align:center;color:var(--muted);font-size:11px;margin-top:8px;}
 
 /* ============ BOTTOM NAV ============ */
-#nav{display:flex;background:#fff;border-top:1px solid var(--line);padding:8px 6px calc(env(safe-area-inset-bottom) + 8px);flex:0 0 auto;}
+#nav{display:flex;background:#fff;border-top:1px solid var(--line);padding:7px 6px calc(env(safe-area-inset-bottom) + 4px);flex:0 0 auto;}
 .nav-btn{flex:1;background:none;border:none;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;color:#9aa3a0;padding:4px 0;}
 .nav-btn span{font-size:11px;font-weight:600;}
 .nav-btn.active{color:var(--teal-800);}
@@ -279,6 +282,25 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
   opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:88%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.3);}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
+/* ===== VYPLNĚNÍ OBRAZOVKY: hlavní záložky roztáhnou obsah přes celou výšku ===== */
+#s-prehled,#s-sluzby,#s-pruvodce,#s-zpravy,#s-profil{height:100%;}
+#s-prehled.active,#s-sluzby.active,#s-pruvodce.active,#s-zpravy.active,#s-profil.active{display:flex;flex-direction:column;}
+#s-prehled .pad,#s-sluzby .pad,#s-pruvodce .pad,#s-zpravy .pad,#s-profil .pad{
+  display:flex;flex-direction:column;flex:1;min-height:0;box-sizing:border-box;}
+#s-sluzby .list-card,#s-profil #profileLinks{min-height:0;}
+#s-sluzby .list-item,#s-profil #profileLinks .list-item{min-height:0;}
+#s-prehled .pad{justify-content:space-between;}
+#s-prehled .pad > *{margin-top:0 !important;}
+#s-prehled .pad > * + *{margin-top:8px !important;}
+#s-sluzby .list-card{flex:1;display:flex;flex-direction:column;}
+#s-sluzby .list-item{flex:1;align-items:center;}
+#s-profil #profileLinks{flex:1;display:flex;flex-direction:column;}
+#s-profil #profileLinks .list-item{flex:1;align-items:center;}
+#s-zpravy .section-label{margin-top:auto;padding-top:10px;}
+#s-pruvodce #guideResults{flex:1;}
+#s-pruvodce .search-box{margin-top:auto;}
+#s-pruvodce .police-card{margin-top:9px;margin-bottom:9px;}
+
 /* ===== ÚZKÉ DISPLEJE (zvětšené zobrazení iPhonu, ≤360 px) — vše se vejde bez scrollu ===== */
 @media(max-width:360px){
   .pad{padding:9px 10px 8px;}
@@ -330,7 +352,7 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
   .alert-line{padding:8px 10px;font-size:11px;margin-top:9px;}
   .title-md{font-size:15px;}
   .ver{font-size:10px;margin-top:6px;}
-  #nav{padding:5px 4px calc(env(safe-area-inset-bottom) + 5px);}
+  #nav{padding:5px 4px calc(env(safe-area-inset-bottom) + 3px);}
   .nav-btn svg{width:21px;height:21px;}
   .nav-btn span{font-size:10px;}
 }
@@ -604,7 +626,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 0.4.0 · build 14</div>
+        <div class="ver">Verze 0.4.1 · build 15</div>
       </div>
     </div>
 
