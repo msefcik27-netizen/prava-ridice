@@ -40,20 +40,23 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
+html,body{height:100%;}
 body{
   font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   background:#0b1416;
   color:var(--ink);
-  display:flex;justify-content:center;align-items:center;min-height:100vh;
+  display:flex;justify-content:center;align-items:center;
+  height:100vh;height:100dvh;overflow:hidden;overscroll-behavior:none;
   -webkit-font-smoothing:antialiased;
 }
 /* Phone frame (collapses to fullscreen on real mobile) */
 #phone{
-  position:relative;width:100%;max-width:412px;height:min(892px,100vh);
+  position:relative;width:100%;max-width:412px;
+  height:100vh;height:100dvh;
   background:var(--bg);overflow:hidden;display:flex;flex-direction:column;
   box-shadow:0 30px 80px rgba(0,0,0,.5);
 }
-@media(min-width:460px){#phone{border-radius:44px;border:10px solid #05090a;height:892px;}}
+@media(min-width:460px) and (min-height:700px){#phone{border-radius:44px;border:10px solid #05090a;height:min(892px,96vh);height:min(892px,96dvh);}}
 .statusbar{height:0;}
 /* Screen scroll area */
 #view{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
