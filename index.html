@@ -294,24 +294,20 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
   opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:88%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.3);}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* ===== VYPLNĚNÍ OBRAZOVKY: hlavní záložky roztáhnou obsah přes celou výšku ===== */
+/* ===== ROZLOŽENÍ OBRAZOVEK: karty přirozeně pod sebou, jednotná mezera ===== */
 #s-prehled,#s-sluzby,#s-pruvodce,#s-zpravy,#s-profil{height:100%;}
 #s-prehled.active,#s-sluzby.active,#s-pruvodce.active,#s-zpravy.active,#s-profil.active{display:flex;flex-direction:column;}
 #s-prehled .pad,#s-sluzby .pad,#s-pruvodce .pad,#s-zpravy .pad,#s-profil .pad{
-  display:flex;flex-direction:column;flex:1;min-height:0;box-sizing:border-box;}
-#s-sluzby .list-card,#s-profil #profileLinks{min-height:0;}
-#s-sluzby .list-item,#s-profil #profileLinks .list-item{min-height:0;}
-#s-prehled .pad{justify-content:space-between;}
-#s-prehled .pad > *{margin-top:0 !important;}
-#s-prehled .pad > * + *{margin-top:8px !important;}
-#s-sluzby .list-card{flex:1;display:flex;flex-direction:column;}
-#s-sluzby .list-item{flex:1;align-items:center;}
-#s-profil #profileLinks{flex:1;display:flex;flex-direction:column;}
-#s-profil #profileLinks .list-item{flex:1;align-items:center;}
-#s-zpravy .section-label{margin-top:auto;padding-top:10px;}
-#s-pruvodce #guideResults{flex:1;}
-#s-pruvodce .search-box{margin-top:auto;}
-#s-pruvodce .police-card{margin-top:9px;margin-bottom:9px;}
+  display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;box-sizing:border-box;}
+/* vlastní odsazení uvnitř tabů řeší gap */
+#s-prehled .pad > *,#s-sluzby .pad > *,#s-pruvodce .pad > *,#s-zpravy .pad > *,#s-profil .pad > *{
+  margin-top:0 !important;margin-bottom:0 !important;}
+/* nadpisy sekcí přisedají k obsahu pod sebou */
+#s-prehled .pad .section-label,#s-sluzby .pad .section-label,#s-pruvodce .pad .section-label,
+#s-zpravy .pad .section-label,#s-profil .pad .section-label{margin:2px 2px -4px !important;}
+#s-pruvodce .pad .eyebrow{margin-bottom:-6px !important;}
+#s-pruvodce .pad h1{margin-bottom:-4px !important;}
+.ver{margin-top:2px !important;}
 
 /* ===== ÚZKÉ DISPLEJE (zvětšené zobrazení iPhonu, ≤360 px) — vše se vejde bez scrollu ===== */
 @media(max-width:360px){
@@ -661,7 +657,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 1.3.0 · build 37</div>
+        <div class="ver">Verze 1.3.1 · build 38</div>
       </div>
     </div>
 
