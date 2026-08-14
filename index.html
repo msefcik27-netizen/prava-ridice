@@ -69,6 +69,8 @@ body{
 .screen{display:none;min-height:100%;}
 .screen.active{display:block;animation:fade .22s ease;}
 @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+@keyframes slideL{from{opacity:.3;transform:translateX(46px);}to{opacity:1;transform:none;}}
+@keyframes slideR{from{opacity:.3;transform:translateX(-46px);}to{opacity:1;transform:none;}}
 .pad{padding:14px 14px 22px;}
 .safe-top{padding-top:calc(env(safe-area-inset-top) + 10px);}
 
@@ -637,7 +639,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 0.5.1 · build 21</div>
+        <div class="ver">Verze 0.5.2 · build 22</div>
       </div>
     </div>
 
@@ -898,7 +900,7 @@ let state = {tab:'prehled', screen:'prehled', points:6, notif:true, unread:1, fi
 let deferredPrompt=null;
 
 /* ============ NAV (zásobník obrazovek) ============ */
-const TABS=['prehled','sluzby','pruvodce','zpravy','profil'];
+const TABS=['prehled','pruvodce','sluzby','zpravy','profil'];
 /* Spodní systémový pruh přebírá pozadí stránky -> ladíme ho s aktuální obrazovkou */
 function updateChromeBg(){
   if(window.innerWidth>=460) return; // desktop rámeček neměnit
@@ -962,8 +964,14 @@ if(isIOS()){
   }
 }
 function tab(name){
+  const prev=TABS.indexOf(state.screen), next=TABS.indexOf(name);
   state.tab=name; state.screen=name; state.history=[];
   showScreen(name);
+  if(prev>-1 && next>-1 && prev!==next){
+    const scr=document.getElementById('s-'+name);
+    scr.style.animation='none'; void scr.offsetWidth;
+    scr.style.animation=(next>prev?'slideL':'slideR')+' .22s ease';
+  }
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
   document.getElementById('nav').style.display='flex';
 }
@@ -1529,6 +1537,26 @@ updateChromeBg();
 if(isStandalone()){ document.documentElement.classList.add('standalone'); hideInstallUI(); const c=document.getElementById('installCardProfil'); if(c)c.style.display='none'; }
 else { maybeShowInstall(); }
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(()=>{}); }
+// Swipe mezi hlavními záložkami (jen na tabech, ne na podobrazovkách)
+(function(){
+  const v=document.getElementById('view');
+  let x0=0,y0=0,t0=0,on=false;
+  v.addEventListener('touchstart',e=>{
+    if(!TABS.includes(state.screen)){ on=false; return; }
+    const t=e.touches[0]; x0=t.clientX; y0=t.clientY; t0=Date.now(); on=true;
+  },{passive:true});
+  v.addEventListener('touchend',e=>{
+    if(!on) return; on=false;
+    const t=e.changedTouches[0];
+    const dx=t.clientX-x0, dy=t.clientY-y0, dt=Date.now()-t0;
+    if(Math.abs(dx)<55 || Math.abs(dx)<Math.abs(dy)*1.4 || dt>650) return;
+    const i=TABS.indexOf(state.screen);
+    const ni = dx<0 ? i+1 : i-1;
+    if(ni<0 || ni>=TABS.length) return;
+    tab(TABS[ni]);
+  },{passive:true});
+})();
+
 // iOS: zakazat tazeni cele stranky — scrolluje jen obsah (#view) a sheet
 document.addEventListener('touchmove', function(e){
   if(!e.target.closest('#view, #sheet, textarea, input')) e.preventDefault();
