@@ -656,7 +656,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 1.0.0 · build 32</div>
+        <div class="ver">Verze 1.1.0 · build 33</div>
       </div>
     </div>
 
@@ -866,51 +866,58 @@ const SVC_ICONS = {
 const WEB='https://www.pravaridice.cz';
 const GUIDE=[
  {id:'vybodovani',n:'Vybodování',ic:'card',topics:[
-  {t:'Co se stane při 12 bodech',c:'Vybodování',d:'Automatický zákaz řízení na 12 měsíců a povinné dopravně psychologické vyšetření.',
-   b:'Po dosažení 12 bodů následuje automatický zákaz řízení na 12 měsíců bez možnosti zkrácení a povinné dopravně psychologické vyšetření. Klíčové je jednat okamžitě — na reakci máte jen 5 dní.',u:WEB+'/vybodovani'},
-  {t:'Námitky proti vybodování — lhůta 5 dní',c:'Vybodování',d:'Jak a kdy podat námitky, aby měly šanci uspět.',
-   b:'Od doručení oznámení běží pouhých 5 dní na podání námitek. Šablonovitá podání většinou neuspějí — advokát v námitkovém řízení hledá procesní a formální vady v udělených pokutách.',u:WEB+'/vybodovani'},
-  {t:'Jak funguje bodový systém',c:'Vybodování',d:'Začínáte s 0 body a za přestupky se přičítají.',
-   b:'Řidič začíná s 0 body, za přestupky se body přičítají. Hranice je 12 bodů — po jejím dosažení přichází ztráta řidičského oprávnění.',u:WEB+'/vybodovani'},
-  {t:'Vrácení řidičáku po vybodování',c:'Vybodování',d:'Podmínky a postup po uplynutí zákazu.',
-   b:'Podrobný postup vrácení oprávnění po vybodování najdete na webu — včetně podmínek přezkoušení a psychologického vyšetření.',u:WEB+'/vybodovani'}]},
+  {t:'Co se stane při 12 bodech',c:'Vybodování',d:'Automatický zákaz řízení na 12 měsíců, který nelze zkrátit.',
+   b:'Po dosažení 12 bodů přijdete o řidičské oprávnění na 12 měsíců. Tento trest nelze zkrátit a po nabytí právní moci je nevratný. Klíčové je jednat okamžitě — na reakci máte jen 5 dní.',u:WEB+'/vybodovani'},
+  {t:'Námitky proti vybodování — lhůta 5 dní',c:'Vybodování',d:'Od doručení oznámení běží pouhých 5 dní.',
+   b:'Od doručení oznámení o dosažení 12 bodů běží pouhých 5 dní na podání námitek. Šablonovitá podání většinou neuspějí — advokát prošetřuje procesní a formální vady při udělení jednotlivých pokut. Jakmile se vady najdou, body se z karty řidiče odmažou.',u:WEB+'/vybodovani'},
+  {t:'Vrácení řidičáku po vybodování',c:'Vybodování',d:'Dopravně psychologické vyšetření a přezkoušení v autoškole.',
+   b:'Po uplynutí dvanáctiměsíčního zákazu musíte absolvovat dopravně psychologické vyšetření a projít přezkoušením v autoškole. Náklady na přezkoušení se pohybují kolem 25 000 Kč.',u:WEB+'/vybodovani'},
+  {t:'Jak funguje bodový systém',c:'Vybodování',d:'Začínáte s 0 body, za přestupky se přičítají.',
+   b:'Řidič začíná s 0 body a za přestupky se body přičítají. Hranice je 12 bodů. Pozor: už 6 bodů je rizikových — jediný šestibodový přestupek pak znamená vybodování.',u:WEB+'/vybodovani'}]},
+ {id:'rychlost',n:'Rychlost a přestupky',ic:'gauge',topics:[
+  {t:'Překročení rychlosti — kompletní sazebník',c:'Přestupky',d:'Všechna pásma: pokuty, body, zákazy (od 1. 1. 2024).',
+   b:'Do 10 km/h: pokuta 2 000–5 000 Kč ve správním řízení (na místě do 1 500 Kč), 0 bodů.\nO 10 km/h a více: 2 000–5 000 Kč (na místě 1 500–2 000 Kč), 2 body.\nO 20 km/h v obci / 30 km/h mimo obec: 4 000–10 000 Kč (na místě 2 500–3 500 Kč), 4 body.\nO 40 km/h v obci / 50 km/h mimo obec: 7 000–25 000 Kč, 6 bodů, zákaz řízení 6–18 měsíců — blokově vyřídit nelze, vždy jde do správního řízení.',u:WEB+'/co-hrozi-za-prekroceni-rychlosti'},
+  {t:'Bloková pokuta, nebo správní řízení?',c:'Přestupky',d:'Kdy podepsat na místě a kdy se bránit.',
+   b:'Blok podepište, když přestupek uznáváte, je bagatelní a bez bodů.\nOdmítněte, pokud: nesouhlasíte se skutkovým stavem, hrozí body nebo zákaz řízení, sankce je nepřiměřeně vysoká, nebo byl postup policie chybný.\nPodpisem nabývá blok právní moci okamžitě a odvolání neexistuje. Přezkum je možný jen do 6 měsíců od podpisu (prekluzivní lhůta) a lze napadnout jen zákonné vady bloku, ne samotný přestupek.\nVe správním řízení máte právo se vyjádřit, navrhovat důkazy a nechat se zastoupit — pozor, sankce ale může být i vyšší.',u:WEB+'/blokova-pokuta-nebo-spravni-rizeni-jak-se-rozhodnout-a-kdy-se-vyplati-bojo'},
+  {t:'Telefon za jízdy a zákaz předjíždění',c:'Přestupky',d:'Držení telefonu 4 body, předjíždění 6 bodů.',
+   b:'Držení telefonu při řízení: pokuta až 10 000 Kč a 4 body.\nPorušení zákazu předjíždění: pokuta až 25 000 Kč a 6 bodů.',u:WEB+'/jine-prestupky'}]},
+ {id:'ridicak',n:'Řidičák a zákaz řízení',ic:'card',topics:[
+  {t:'Zadržení řidičáku na místě — kdy a co dál',c:'Přestupky',d:'§ 118b zák. 361/2000 Sb., šest situací a lhůta 5 pracovních dnů.',
+   b:'Policie zadrží řidičský průkaz na místě podle § 118b odst. 1a–1e při: překročení rychlosti o 40 km/h v obci nebo 50 km/h mimo obec, pozitivní zkoušce na alkohol, pozitivním orientačním testu na drogy, odmítnutí vyšetření, řízení v době zákazu a při nehodě se zraněním nebo smrtí.\nPolicista vám předá potvrzení o zadržení. Zadržený průkaz máte povinnost odevzdat příslušnému úřadu do 5 pracovních dnů; policista jej předá úřadu nejpozději následující pracovní den.\nÚřad zahájí řízení o oprávněnosti zadržení. Pokud vám je následně uložen zákaz řízení, doba zadržení se do něj započítává.',u:WEB+'/zabaveni-ridicskeho-prukazu'},
+  {t:'Řízení v zákazu — § 337 TZ',c:'Trestné činy',d:'Maření výkonu úředního rozhodnutí: až 2 roky vězení.',
+   b:'Jako trestný čin maření výkonu úředního rozhodnutí (§ 337 odst. 1a) hrozí odnětí svobody až na 2 roky, zákaz řízení 1–10 let, 4 body a peněžitý trest.\nJako přestupek řízení bez řidičského oprávnění (§ 125c) hrozí zákaz až 3 roky, pokuta až 75 000 Kč a 4 body.\nObhajoba hledá chyby policie i úřadu, podává odpor proti příkazům, jedná o nejnižších sazbách a usiluje o podmíněné zastavení trestního stíhání. Po polovině zákazu lze jednat o podmíněném vrácení oprávnění.',u:WEB+'/rizeni-v-zakazu-rizeni'},
+  {t:'Žádost o vrácení oprávnění',c:'Přestupky',d:'Po polovině zákazu lze žádat o upuštění od zbytku.',
+   b:'Po uplynutí poloviny trestu zákazu řízení lze za stanovených podmínek žádat o podmíněné upuštění od výkonu zbytku. Advokát podává návrh a zastupuje vás při jednání.',u:WEB+'/zabaveni-ridicskeho-prukazu'}]},
  {id:'alkohol',n:'Alkohol za volantem',ic:'glass',topics:[
   {t:'Do 0,30 ‰ — co hrozí',c:'Přestupky',d:'Pokuta 7–25 tis. Kč, zákaz 6–18 měsíců, bez bodů.',
-   b:'Při hladině do 0,30 ‰ hrozí pokuta 7 000–25 000 Kč a zákaz řízení na 6–18 měsíců. Body se nepřičítají.',u:WEB+'/rizeni-pod-vlivem-alkoholu'},
-  {t:'0,31–0,99 ‰ — přestupek',c:'Přestupky',d:'Odebrání průkazu, pokuta 7–25 tis. Kč, zákaz 6–18 měsíců, 6 bodů.',
-   b:'V pásmu 0,31–0,99 ‰ jde o přestupek: odebrání řidičského průkazu, pokuta 7 000–25 000 Kč, zákaz řízení 6–18 měsíců a 6 bodů.',u:WEB+'/rizeni-pod-vlivem-alkoholu'},
-  {t:'Od 1,00 ‰ — trestný čin',c:'Trestné činy',d:'Peněžitý trest, zákaz 1–10 let, až 3 roky vězení.',
-   b:'Od 1,00 ‰ se jedná o trestný čin ohrožení pod vlivem návykové látky. Hrozí peněžitý trest, zákaz řízení na 1–10 let a až 3 roky odnětí svobody.',u:WEB+'/rizeni-pod-vlivem-alkoholu'},
-  {t:'Obhajoba: vady měření a kalibrace',c:'Přestupky',d:'Jak advokát napadá postup policie a měřicí přístroje.',
-   b:'Obhajoba se opírá o hledání vad v postupu policie, ověřování kalibrace měřicích přístrojů a procesních chyb. U trestného činu je cílem zastavení stíhání nebo alternativní trest.',u:WEB+'/rizeni-pod-vlivem-alkoholu'}]},
+   b:'Při hladině do 0,30 ‰ hrozí pokuta 7 000–25 000 Kč a zákaz řízení na 6–18 měsíců. Body se nepřičítají a řidičský průkaz se zpravidla na místě neodebírá.',u:WEB+'/rizeni-pod-vlivem-alkoholu'},
+  {t:'0,31–0,99 ‰ — přestupek',c:'Přestupky',d:'Odebrání průkazu, pokuta 7–25 tis. Kč, zákaz 6–18 měs., 6 bodů.',
+   b:'V pásmu 0,31–0,99 ‰ jde o přestupek: odebrání řidičského průkazu na místě, pokuta 7 000–25 000 Kč, zákaz řízení 6–18 měsíců a 6 bodů. Věc se řeší ve správním řízení, rejstřík trestů zůstává čistý.',u:WEB+'/rizeni-pod-vlivem-alkoholu'},
+  {t:'Od 1,00 ‰ — trestný čin',c:'Trestné činy',d:'Zákaz 1–10 let, 6 bodů, záznam v rejstříku trestů.',
+   b:'Od 1,00 ‰ jde o trestný čin ohrožení pod vlivem návykové látky (§ 274 TZ): peněžitý trest nebo podmínka, odnětí svobody až 1 rok (při nehodě, ublížení na zdraví nebo recidivě až 3 roky), zákaz řízení 1–10 let, 6 bodů a záznam v rejstříku trestů. Po zákazu delším než 12 měsíců je povinná autoškola (~25 000 Kč).\nPodmíněné zastavení trestního stíhání se rovná čistému rejstříku — vyžaduje ale okamžitou právní pomoc.',u:WEB+'/rizeni-pod-vlivem-alkoholu'},
+  {t:'Měření a odchylka 0,24 ‰',c:'Přestupky',d:'Jak advokát napadá postup policie a měřicí přístroje.',
+   b:'Policie od naměřené hodnoty odečítá 0,24 ‰ — 0,04 ‰ jako odchylku přístroje a 0,20 ‰ jako fyziologickou hladinu etanolu. Obhajoba se opírá o hledání vad v postupu policie, ověřování kalibrace přístrojů a procesních chyb.',u:WEB+'/rizeni-pod-vlivem-alkoholu'}]},
  {id:'drogy',n:'Drogy a testy',ic:'pill',topics:[
-  {t:'Pozitivní test na drogy',c:'Trestné činy',d:'Obhajoba při pozitivním testu na návykové látky.',
-   b:'Pozitivní test na návykové látky může být přestupkem i trestným činem podle naměřených hodnot. Obhajoba se zaměřuje na prahové hodnoty a správnost odběru.',u:WEB+'/rizeni-pod-vlivem-drog'},
-  {t:'Odmítnutí testu na alkohol nebo drogy',c:'Trestné činy',d:'Jaké následky má odmítnutí zkoušky.',
-   b:'Odmítnutí je vždy přestupek (§ 125c/1d) bez záznamu v rejstříku trestů: pokuta 25 000–75 000 Kč, zákaz řízení 18–36 měsíců, 6 bodů a povinný psychoterapeutický program pro navrácení oprávnění.',u:WEB+'/odmitnuti-testu-na-alkohol-nebo-drogy'}]},
- {id:'rychlost',n:'Rychlost a přestupky',ic:'gauge',topics:[
-  {t:'Překročení rychlosti',c:'Přestupky',d:'Obhajoba u přestupku i správního řízení.',
-   b:'Sankce se odvíjí od pásma překročení a místa (obec/mimo obec). Obhajoba míří na správnost měření a procesní vady ve správním řízení.',u:WEB+'/prekroceni-rychlosti'},
-  {t:'Správní řízení o přestupku',c:'Přestupky',d:'Jak probíhá řízení a kdy se vyplatí bránit.',
-   b:'Ve správním řízení lze uplatnit námitky proti podkladům i postupu úřadu. Čím dříve se zapojí advokát, tím více možností obrany zůstává otevřených.',u:WEB+'/prekroceni-rychlosti'},
-  {t:'Jiné přestupky',c:'Přestupky',d:'Telefon za jízdy, jízda na červenou a další.',
-   b:'Přehled dalších přestupků a jejich sankcí najdete na webu pravaridice.cz.',u:WEB+'/jine-prestupky'}]},
- {id:'ridicak',n:'Řidičák a zákaz řízení',ic:'card',topics:[
-  {t:'Zadržení řidičáku na místě',c:'Přestupky',d:'Postup po zadržení dokladu policií a lhůty.',
-   b:'Policie může řidičský průkaz zadržet přímo na místě. Následuje řízení, ve kterém lze o průkaz bojovat — důležité je nezmeškat lhůty.',u:WEB+'/zabaveni-ridicskeho-prukazu'},
-  {t:'Řízení v zákazu řízení',c:'Trestné činy',d:'Obhajoba při řízení v době uloženého zákazu.',
-   b:'Řízení v době zákazu je trestný čin maření výkonu úředního rozhodnutí. Obhajoba se zaměřuje na okolnosti a formu zavinění.',u:WEB+'/rizeni-v-zakazu-rizeni'},
-  {t:'Žádost o vrácení oprávnění',c:'Přestupky',d:'Kdy a jak žádat o vrácení řidičáku.',
-   b:'Po uplynutí poloviny zákazu lze za podmínek žádat o upuštění od zbytku. Postup a podmínky najdete na webu.',u:WEB+'/zabaveni-ridicskeho-prukazu'},
-  {t:'Řízení od 17 let',c:'Přestupky',d:'Specifika mladých řidičů s mentorem.',
-   b:'Pro řidiče od 17 let platí zvláštní pravidla (řízení s mentorem). Podrobnosti na webu pravaridice.cz.',u:WEB+'/'}]},
+  {t:'Hranice přestupku a trestného činu',c:'Trestné činy',d:'THC, pervitin, kokain, morfin — konkrétní hodnoty v ng/ml.',
+   b:'Přestupek: THC 2–9,99 ng/ml, pervitin/amfetamin/MDMA/MDA 25–149,99 ng/ml, kokain 25–74,99 ng/ml, morfin 10–199,99 ng/ml — pokuta 7 000–25 000 Kč, zákaz 6–18 měsíců, 6 bodů, čistý rejstřík.\nTrestný čin: THC od 10 ng/ml, pervitin/amfetamin/MDMA/MDA od 150 ng/ml, kokain od 75 ng/ml, morfin od 200 ng/ml — zákaz 1–10 let, 6 bodů, záznam v rejstříku trestů.',u:WEB+'/rizeni-pod-vlivem-drog'},
+  {t:'Odmítnutí testu na alkohol nebo drogy',c:'Přestupky',d:'Vždy přestupek — bez záznamu v rejstříku trestů.',
+   b:'Odmítnutí je vždy přestupek (§ 125c/1d) bez záznamu v rejstříku trestů: pokuta 25 000–75 000 Kč, zákaz řízení 18–36 měsíců, 6 bodů a povinný psychoterapeutický program pro navrácení oprávnění.\nPři hladině nad 1 ‰ nebo hodnotách v pásmu trestného činu bývá odmítnutí strategicky výhodnější volbou — sankce jsou vyšší, ale bez trestněprávních následků.',u:WEB+'/odmitnuti-podrobeni-se-testu-na-alkohol-a-jine-navykove-latky'}]},
  {id:'nehody',n:'Dopravní nehody',ic:'crash',topics:[
-  {t:'Nehoda se zraněním nebo úmrtím',c:'Trestné činy',d:'Zastupování při nehodě s následkem na zdraví či životě.',
-   b:'U nehod s následkem na zdraví či životě hrozí trestní stíhání. Advokát zastupuje viníka i poškozeného od prvního výslechu.',u:WEB+'/zpusobeni-nehody-se-zranenim-nebo-umrtim'},
-  {t:'Odškodnění oběti dopravní nehody',c:'Přestupky',d:'Na co má poškozený nárok.',
-   b:'Poškozený má nárok na odškodnění újmy na zdraví, ušlého výdělku i dalších škod. Jak postupovat najdete na webu.',u:WEB+'/odskodneni-obeti-dopravni-nehody'},
-  {t:'Co dělat hned po nehodě',c:'Přestupky',d:'První kroky na místě nehody.',
-   b:'Zastavte, zajistěte místo, ověřte zranění, volejte 158/155 dle situace a nehýbejte s vozidly u vážné nehody. Detailní postup na webu.',u:WEB+'/'}]},
+  {t:'Nehoda s ublížením na zdraví',c:'Přestupky',d:'Pokuta až 50 000 Kč, zákaz až 3 roky.',
+   b:'U mírnější formy — zavinění nehody s ublížením na zdraví — hrozí pokuta až 50 000 Kč a zákaz řízení až 3 roky, bez bodů do karty řidiče.',u:WEB+'/zpusobeni-nehody-se-zranenim-nebo-umrtim'},
+  {t:'Nehoda s usmrcením nebo těžkou újmou',c:'Trestné činy',d:'Trestní stíhání, až 10 let odnětí svobody.',
+   b:'U nehody s usmrcením nebo těžkou újmou na zdraví jde o trestný čin: odnětí svobody až 10 let, zákaz řízení 1–10 let a 6 bodů. Čas je zásadní — advokát by měl vstoupit do věci ještě před prvním výslechem.',u:WEB+'/zpusobeni-nehody-se-zranenim-nebo-umrtim'},
+  {t:'Odškodnění oběti dopravní nehody',c:'Přestupky',d:'Nároky poškozeného z povinného ručení viníka.',
+   b:'Poškozený má nárok na finanční náhradu za zdravotní i psychickou újmu proti řidiči, který nehodu zavinil. Náhrada se v drtivé většině případů vyplácí z povinného ručení viníka — vlastní úrazové pojištění není nutné.',u:WEB+'/odskodneni-obeti-dopravni-nehody'},
+  {t:'Co dělat hned po nehodě',c:'Přestupky',d:'První kroky na místě — podrobný průvodce v aplikaci.',
+   b:'Zabezpečte místo, zkontrolujte zranění a podle situace volejte 155 nebo 158. Kompletní postup krok za krokem najdete na Přehledu v kartě „Stala se vám dopravní nehoda?".',u:WEB+'/zpusobeni-nehody-se-zranenim-nebo-umrtim'}]},
+ {id:'l17',n:'Řízení od 17 let',ic:'card',topics:[
+  {t:'Podmínky režimu L17',c:'Od 17 let',d:'Jízda pouze s mentorem, minimálně 1, maximálně 4 mentoři.',
+   b:'Mladý řidič absolvuje standardní výcvik v autoškole a zajistí si minimálně jednoho mentora (nejvýše čtyři). Řídit smí pouze pod dohledem mentora, který po celou dobu jízdy sedí na místě spolujezdce.',u:WEB+'/'},
+  {t:'Kdo může být mentor',c:'Od 17 let',d:'10 let praxe, 5 let bez zákazu, nula bodů.',
+   b:'Mentor musí mít řidičské oprávnění skupiny B minimálně 10 let, nesmí mít zákaz řízení posledních 5 let a musí mít nulový bodový stav.',u:WEB+'/'},
+  {t:'Sankce při porušení pravidel L17',c:'Od 17 let',d:'Bez mentora zabavení průkazu a zákaz 6–12 měsíců.',
+   b:'Řízení bez mentora: zabavení řidičského průkazu na místě, pokuta 2 000–5 000 Kč a zákaz řízení 6–12 měsíců.\nMentor není ve vozidle: bloková pokuta 2 500–3 500 Kč, ve správním řízení 4 000–10 000 Kč.\nMentor pod vlivem alkoholu či drog: bloková pokuta 4 500–5 500 Kč, ve správním řízení 7 000–25 000 Kč.\nZákaz řízení zaniká až jeho uplynutím, zkrátit jej nelze.',u:WEB+'/'}]},
 ];
 const ALL_TOPICS = GUIDE.flatMap(o=>o.topics.map(t=>({...t,oblast:o.n,oblastId:o.id})));
 const GUIDE_CATS = ['Vybodování','Přestupky','Trestné činy'];
@@ -1129,7 +1136,7 @@ const CAT_ORDER=[
  {n:'Přestupky',key:'Přestupky',ic:'gauge'},
  {n:'Trestné činy',key:'Trestné činy',ic:'ban'},
  {n:'Řízení v zahraničí',key:null,ic:'crash'},
- {n:'Řízení od 17 let',key:null,ic:'card'},
+ {n:'Řízení od 17 let',key:'Od 17 let',ic:'card'},
  {n:'Cyklisté',key:null,ic:'gauge'}];
 const CASTE=[
  {t:'Alkohol 0,31–0,99 ‰',s:'pokuta 7 000–25 000 Kč · 6 b. · zákaz 6–18 měs.',o:'alkohol',a:'0,31–0,99 ‰ — přestupek'},
