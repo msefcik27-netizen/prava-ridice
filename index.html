@@ -425,7 +425,6 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/></svg>
               </div>
               <div>
-                <div style="font-size:11px;font-weight:700;letter-spacing:.12em;color:rgba(255,255,255,.6);">DOBRÝ DEN</div>
                 <div style="font-size:19px;font-weight:800;">Váš bodový stav</div>
               </div>
             </div>
@@ -454,8 +453,8 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <!-- Konzultace card appears at 12 -->
         <div class="consult-card" id="consult12" style="display:none;margin-top:10px;">
           <div class="eyebrow">Konzultace zdarma</div>
-          <h3>Ihned nás kontaktujte</h3>
-          <p>Máte 12 z 12 bodů. Ozvěte se nám ihned — nezávazná konzultace je zdarma.</p>
+          <h3 id="c12t">Ihned nás kontaktujte</h3>
+          <p id="c12p">Máte 12 z 12 bodů. Ozvěte se nám ihned — nezávazná konzultace je zdarma.</p>
           <div class="consult-actions">
             <button class="btn btn-dark btn-sm" onclick="callUs()">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2.1z"/></svg>
@@ -496,13 +495,23 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
             <input type="file" accept="application/pdf,.pdf" hidden onchange="pdfPicked(this)"/>
           </label>
-          <div class="list-item" onclick="openExt('https://doprava.gov.cz/')">
+          <div class="list-item" onclick="openVozidla()">
             <div class="li-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b06a34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b06a34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14l-1.5-5a2 2 0 0 0-2-1.5h-7a2 2 0 0 0-2 1.5z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/><path d="M6.5 10.5h11"/></svg>
             </div>
             <div class="li-body">
-              <h4>Ověřit v Portálu dopravy</h4>
-              <p>Oficiální bodové konto (přihlášení identitou).</p>
+              <h4>Vozidla a STK</h4>
+              <p id="vehSub">Hlídejte STK, pojištění a dálniční známku.</p>
+            </div>
+            <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+          </div>
+          <div class="list-item" onclick="openExt('https://www.bouracka.cz/')">
+            <div class="li-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b06a34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+            </div>
+            <div class="li-body">
+              <h4>Stala se vám dopravní nehoda?</h4>
+              <p>Bouračka.cz — okamžitá pomoc po nehodě.</p>
             </div>
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
           </div>
@@ -528,7 +537,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           <div class="ic">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b06a34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/></svg>
           </div>
-          <div style="flex:1;"><div class="lbl">Vždy aktuální</div><div class="val" id="guideCount">Právní témata v 6 oblastech</div></div>
+          <div style="flex:1;"><div class="lbl">Vždy aktuální</div><div class="val">Právní témata podle oblastí</div></div>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
         </div>
         <div class="police-card" onclick="openCalc()">
@@ -588,7 +597,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="notice" id="notice1" onclick="markRead()">
           <div class="top">
             <h4><span class="unread-dot" id="noticeDot"></span> Vítáme vás v aplikaci</h4>
-            <span class="date">28. 5. 2026</span>
+            <span class="date">28. 5. 2026 <button onclick="delNotice(event)" style="background:none;border:none;color:#c3c3bd;font-size:15px;cursor:pointer;padding:2px 0 2px 8px;">✕</button></span>
           </div>
           <p>Beta verze přináší stav bodů, upozornění a první podobu předplatného. Vaše zpětná vazba pomáhá určit, co přidáme dál.</p>
         </div>
@@ -628,7 +637,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 0.4.5 · build 19</div>
+        <div class="ver">Verze 0.5.0 · build 20</div>
       </div>
     </div>
 
@@ -656,8 +665,16 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
       <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title">Nezávazná konzultace</div></div>
       <div class="pad">
         <div class="field">
+          <label>Jméno</label>
+          <input type="text" id="fName" autocapitalize="words" placeholder="Jan Novák" />
+        </div>
+        <div class="field">
+          <label>E-mail</label>
+          <input type="text" id="fMail" inputmode="email" autocapitalize="none" placeholder="jan.novak@email.cz" />
+        </div>
+        <div class="field">
           <label>Telefon <span class="req">*</span></label>
-          <input type="tel" id="fTel" inputmode="tel" placeholder="602 656 648" />
+          <input type="tel" id="fTel" inputmode="tel" placeholder="739 66 22 66" />
           <div class="hint">Zavoláme vám do 2 hodin v pracovní době.</div>
         </div>
         <div class="field">
@@ -725,6 +742,12 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
       <div class="pad" id="kontaktBody"></div>
     </div>
 
+    <!-- SUB: VOZIDLA -->
+    <div class="screen" id="s-vozidla">
+      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title">Vozidla a STK</div></div>
+      <div class="pad" id="vozidlaBody"></div>
+    </div>
+
     <!-- SUB: PŘEDPLATNÉ -->
     <div class="screen" id="s-predplatne">
       <div class="subhead"><button class="back-btn" onclick="back('profil')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title">Předplatné</div></div>
@@ -752,13 +775,13 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
       <span>Přehled</span>
     </button>
-    <button class="nav-btn" data-tab="sluzby" onclick="tab('sluzby')">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-      <span>Služby</span>
-    </button>
     <button class="nav-btn" data-tab="pruvodce" onclick="tab('pruvodce')">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
       <span>Průvodce</span>
+    </button>
+    <button class="nav-btn" data-tab="sluzby" onclick="tab('sluzby')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      <span>Služby</span>
     </button>
     <button class="nav-btn" data-tab="zpravy" onclick="tab('zpravy')">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -870,17 +893,31 @@ const DRINKS = [
 ];
 
 /* ============ STATE ============ */
-let state = {tab:'prehled', points:6, notif:true, unread:1, fileName:'', promoOk:false, guideChip:null,
+let state = {tab:'prehled', screen:'prehled', points:6, notif:true, unread:1, fileName:'', promoOk:false, guideChip:null,
   history:[], calc:{step:1, gender:'m', weight:80, hours:1.0, drinks:[], estimate:null}};
 let deferredPrompt=null;
 
 /* ============ NAV (zásobník obrazovek) ============ */
 const TABS=['prehled','sluzby','pruvodce','zpravy','profil'];
+/* Spodní systémový pruh přebírá pozadí stránky -> ladíme ho s aktuální obrazovkou */
+function updateChromeBg(){
+  if(window.innerWidth>=460) return; // desktop rámeček neměnit
+  let bg;
+  const sheetOpen=document.getElementById('sheet').classList.contains('show');
+  const onboardVisible=document.getElementById('onboard').style.display!=='none';
+  if(sheetOpen) bg='#ffffff';
+  else if(onboardVisible) bg='#10464b';
+  else if(TABS.includes(state.screen)) bg='#ffffff';
+  else bg='#f3f2ef';
+  document.body.style.background=bg;
+  document.documentElement.style.background=bg;
+}
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('s-'+id).classList.add('active');
   document.getElementById('view').scrollTop=0;
   fitScreen(); requestAnimationFrame(fitScreen);
+  updateChromeBg();
 }
 /* Hlavní záložky: scroll vypnout, když se obsah vejde (layout řeší čisté CSS) */
 function fitScreen(){
@@ -934,7 +971,7 @@ function go(id){ state.history.push(state.screen); state.screen=id; showScreen(i
 function back(to){ state.history=[]; state.screen=to; state.tab=to; showScreen(to); document.getElementById('nav').style.display='flex';
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===to)); }
 function backAuto(){ const prev=state.history.pop()||'prehled'; if(TABS.includes(prev)) back(prev); else { state.screen=prev; showScreen(prev); } }
-function enterApp(){ document.getElementById('onboard').style.display='none'; fitScreen(); requestAnimationFrame(fitScreen); }
+function enterApp(){ document.getElementById('onboard').style.display='none'; fitScreen(); requestAnimationFrame(fitScreen); updateChromeBg(); }
 
 /* ============ PŘEHLED ============ */
 function renderPoints(){
@@ -949,19 +986,26 @@ function renderPoints(){
   // progress + color
   const bar=document.getElementById('ptBar');
   bar.style.width=(p/12*100)+'%';
-  let col=getComputedStyle(document.documentElement).getPropertyValue('--green');
-  if(p>=11) col='var(--red)'; else if(p>=8) col='var(--orange)'; else if(p>=5) col='#e0b52c'; else col='var(--green)';
+  // pásma dle zadání: 0–5 / 6–7 / 8–11 / 12
+  let col;
+  if(p>=12) col='var(--red)'; else if(p>=8) col='var(--orange)'; else if(p>=6) col='#e0b52c'; else col='var(--green)';
   bar.style.background=col;
-  // risk pill
+  // badge: pro 0–5 se nezobrazuje
   const pill=document.getElementById('riskPill');
-  if(p>=11){pill.innerHTML='<span class="dot" style="background:var(--red)"></span> Rizikové';}
+  pill.style.display = p<=5 ? 'none' : 'inline-flex';
+  if(p>=12){pill.innerHTML='<span class="dot" style="background:var(--red)"></span> Rizikové';}
   else if(p>=8){pill.innerHTML='<span class="dot" style="background:var(--orange)"></span> Zvýšené';}
-  else if(p>=5){pill.innerHTML='<span class="dot" style="background:#e0b52c"></span> Sledujte';}
-  else{pill.innerHTML='<span class="dot" style="background:var(--green)"></span> Bez rizika';}
-  // 12 bodu: konzultacni vyzva NAHRADI kartu notifikaci; PDF/portal zustava videt
-  const twelve = p>=12;
-  document.getElementById('consult12').style.display = twelve ? 'block':'none';
-  document.getElementById('notifCard').style.display = twelve ? 'none':'block';
+  else if(p>=6){pill.innerHTML='<span class="dot" style="background:#e0b52c"></span> Sledujte';}
+  // od 8 bodu: urgentni kontakt NAHRADI kartu notifikaci; PDF/vozidla zustavaji
+  const urgent = p>=8;
+  document.getElementById('consult12').style.display = urgent ? 'block':'none';
+  document.getElementById('notifCard').style.display = urgent ? 'none':'block';
+  if(urgent){
+    document.getElementById('c12t').textContent = p>=12 ? 'Ihned nás kontaktujte' : 'Ozvěte se nám včas';
+    document.getElementById('c12p').textContent = p>=12
+      ? 'Máte 12 z 12 bodů. Ozvěte se nám ihned — nezávazná konzultace je zdarma.'
+      : 'Máte '+p+' z 12 bodů. Od 8 bodů doporučujeme situaci řešit — konzultace je zdarma.';
+  }
 }
 function changePoints(d){ state.points=Math.max(0,Math.min(12,state.points+d)); renderPoints(); saveState(); requestAnimationFrame(fitScreen); }
 function plural(n,one,few,many){ if(n===1)return one; if(n>=2&&n<=4)return few; return many; }
@@ -991,7 +1035,7 @@ function openService(id){
       <p class="muted" style="line-height:1.55;margin:0;">${s.d}</p>
     </div>
     <p class="muted small" style="line-height:1.6;">Popíšeme vám postup krok za krokem, jaké máte možnosti obhajoby a jaké lhůty je potřeba dodržet. Pro konkrétní situaci doporučujeme nezávaznou konzultaci — advokát odpovídá do 2 hodin.</p>
-    <button class="btn btn-dark" style="margin-top:8px;" onclick="go('konzultace')">Nezávazná konzultace</button>`;
+    <button class="btn btn-dark" style="margin-top:8px;" onclick="go('konzultace')">Konzultace zdarma</button>`;
   go('service-detail');
 }
 
@@ -1026,7 +1070,7 @@ function openOblasti(){
     `<div class="list-card">`+GUIDE.map(o=>`
       <div class="list-item" onclick="openOblast('${o.id}')">
         <div class="li-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b06a34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SVC_ICONS[o.ic]}</svg></div>
-        <div class="li-body"><h4>${o.n}</h4><p>${o.topics.length} ${plural(o.topics.length,'téma','témata','témat')}</p></div>
+        <div class="li-body"><h4>${o.n}</h4></div>
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
       </div>`).join('')+`</div>`;
   go('oblasti');
@@ -1054,7 +1098,7 @@ function openTopic(oblastId,title){
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
       </div>
     </div>
-    <button class="btn btn-dark" style="margin-top:14px;" onclick="go('konzultace')">Nezávazná konzultace zdarma</button>`;
+    <button class="btn btn-dark" style="margin-top:14px;" onclick="go('konzultace')">Konzultace zdarma</button>`;
   go('topic');
 }
 
@@ -1066,6 +1110,8 @@ function renderUnread(){
   document.getElementById('noticeDot').style.display=state.unread>0?'inline-block':'none';
 }
 function markRead(){ state.unread=0; renderUnread(); saveState(); }
+function delNotice(e){ e.stopPropagation(); state.noticeDel=true; state.unread=0; saveState();
+  document.getElementById('notice1').style.display='none'; renderUnread(); }
 
 /* ============ PROFIL ============ */
 function renderProfileLinks(){
@@ -1120,7 +1166,7 @@ function openRecenze(){
 function openPostup(){
   document.getElementById('postupBody').innerHTML=
    STEPS7.map((st,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="tx"><b>${st[0]}</b><br/><span style="color:var(--muted);font-size:13px;">${st[1]}</span></div></div>`).join('')+
-   `<button class="btn btn-dark" style="margin-top:16px;" onclick="go('konzultace')">Začít krokem 1 — kontaktujte nás</button>`;
+   `<button class="btn btn-dark" style="margin-top:16px;" onclick="go('konzultace')">Konzultace zdarma</button>`;
   go('postup');
 }
 function openKontakt(){
@@ -1148,9 +1194,12 @@ function fileAdded(inp){
 }
 function submitForm(){
   const tel=(document.getElementById('fTel').value||'').trim();
+  const mail=(document.getElementById('fMail').value||'').trim();
   if(tel.length<6){ toast('Zadejte prosím telefonní číslo.'); return; }
+  if(mail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ toast('Zkontrolujte prosím formát e-mailu.'); return; }
   if(!document.getElementById('fConsent').classList.contains('on')){ toast('Potvrďte prosím souhlas se zpracováním údajů.'); return; }
   document.getElementById('fTel').value=''; document.getElementById('fMsg').value='';
+  document.getElementById('fName').value=''; document.getElementById('fMail').value='';
   toast('Odesláno. Zavoláme vám do 2 hodin.');
   backAuto();
 }
@@ -1265,10 +1314,79 @@ function setEst(v){ state.calc.estimate=v; calcNext(); }
 function openExt(u){ toast('Otevírám: '+u.replace('https://','').replace(/\/$/,'')); try{window.open(u,'_blank');}catch(e){} }
 function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),2200); }
 
+/* ============ VOZIDLA A STK (082/093/101) ============ */
+function getVehicles(){ try{ return JSON.parse(localStorage.getItem('pr-vehicles')||'[]'); }catch(e){ return []; } }
+function setVehicles(v){ try{ localStorage.setItem('pr-vehicles',JSON.stringify(v)); }catch(e){} renderVehSub(); }
+function vehWorst(v){
+  let worst=null;
+  [['STK',v.stk],['pojištění',v.poj],['dálniční známka',v.znamka]].forEach(([n,d])=>{
+    if(!d) return;
+    const days=Math.ceil((new Date(d+'T00:00:00')-Date.now())/86400000);
+    if(!worst||days<worst.days) worst={n,days};
+  });
+  return worst;
+}
+function vehLabel(w){
+  if(!w) return null;
+  if(w.days<0) return {t:w.n.toUpperCase()+' — propadlé před '+Math.abs(w.days)+' dny',c:'var(--red)'};
+  if(w.days===0) return {t:w.n+' vyprší DNES',c:'var(--red)'};
+  if(w.days<=30) return {t:w.n+' vyprší za '+w.days+' '+plural(w.days,'den','dny','dní'),c:'var(--orange)'};
+  return {t:w.n+' platí ještě '+w.days+' dní',c:'var(--green)'};
+}
+function renderVehSub(){
+  const el=document.getElementById('vehSub'); if(!el) return;
+  const vs=getVehicles();
+  if(!vs.length){ el.textContent='Hlídejte STK, pojištění a dálniční známku.'; el.style.color=''; return; }
+  let worst=null, spz='';
+  vs.forEach(v=>{ const w=vehWorst(v); if(w && (!worst || w.days<worst.days)){ worst=w; spz=v.spz; } });
+  const l=vehLabel(worst);
+  if(l){ el.textContent=spz+': '+l.t; el.style.color=l.c; }
+  else { el.textContent=vs.length+' '+plural(vs.length,'vozidlo','vozidla','vozidel')+' bez termínů.'; el.style.color=''; }
+}
+function openVozidla(){ renderVozidla(); go('vozidla'); }
+function renderVozidla(){
+  const vs=getVehicles();
+  const rows=vs.map((v,i)=>{
+    const w=vehWorst(v), l=vehLabel(w);
+    return `<div class="card" style="margin-bottom:10px;">
+      <div class="row-between">
+        <div class="title-md" style="font-size:16px;">${v.spz}</div>
+        <button onclick="rmVehicle(${i})" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;">✕</button>
+      </div>
+      <div class="small muted" style="margin-top:4px;line-height:1.5;">
+        STK: ${v.stk||'—'} · Pojištění: ${v.poj||'—'} · Známka: ${v.znamka||'—'}</div>
+      ${l?`<div class="small" style="margin-top:6px;font-weight:700;color:${l.c};">${l.t}</div>`:''}
+    </div>`;
+  }).join('');
+  document.getElementById('vozidlaBody').innerHTML =
+    (vs.length?rows:'<div class="empty" style="margin-bottom:12px;">Zatím žádné vozidlo. Přidejte první níže.</div>')+
+    `<div class="card">
+      <div class="section-label" style="margin:0 0 8px;">Přidat vozidlo</div>
+      <div class="field" style="margin-bottom:10px;"><label>SPZ / název</label><input type="text" id="vSpz" autocapitalize="characters" placeholder="1AB 2345"/></div>
+      <div class="field" style="margin-bottom:10px;"><label>STK platí do</label><input type="date" id="vStk" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-family:inherit;font-size:15px;background:#fff;"/></div>
+      <div class="field" style="margin-bottom:10px;"><label>Pojištění platí do</label><input type="date" id="vPoj" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-family:inherit;font-size:15px;background:#fff;"/></div>
+      <div class="field" style="margin-bottom:12px;"><label>Dálniční známka do</label><input type="date" id="vZn" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-family:inherit;font-size:15px;background:#fff;"/></div>
+      <button class="btn btn-dark btn-sm" onclick="addVehicle()">Přidat vozidlo</button>
+    </div>
+    <div class="disclaimer" style="margin-top:12px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#77837f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span>Údaje se ukládají jen ve vašem telefonu. Push připomínky (měsíc a týden předem) doplní backend.</span></div>`;
+}
+function addVehicle(){
+  const spz=(document.getElementById('vSpz').value||'').trim().toUpperCase();
+  if(!spz){ toast('Zadejte prosím SPZ nebo název vozidla.'); return; }
+  const vs=getVehicles();
+  vs.push({spz, stk:document.getElementById('vStk').value||'', poj:document.getElementById('vPoj').value||'', znamka:document.getElementById('vZn').value||''});
+  setVehicles(vs); renderVozidla(); toast('Vozidlo přidáno.');
+}
+function rmVehicle(i){
+  const vs=getVehicles();
+  if(!confirm('Smazat vozidlo '+vs[i].spz+'? Tuto akci nelze vrátit.')) return;
+  vs.splice(i,1); setVehicles(vs); renderVozidla();
+}
+
 /* ============ TRVALÉ ULOŽENÍ (localStorage) ============ */
 const LSKEY='pravaridice-state';
-function saveState(){ try{ localStorage.setItem(LSKEY, JSON.stringify({p:state.points,n:state.notif,promo:state.promoOk,u:state.unread})); }catch(e){} }
-function loadState(){ try{ const d=JSON.parse(localStorage.getItem(LSKEY)||'null'); if(d){ if(typeof d.p==='number')state.points=d.p; if(typeof d.n==='boolean')state.notif=d.n; if(d.promo)state.promoOk=true; if(typeof d.u==='number')state.unread=d.u; } }catch(e){} }
+function saveState(){ try{ localStorage.setItem(LSKEY, JSON.stringify({p:state.points,n:state.notif,promo:state.promoOk,u:state.unread,nd:state.noticeDel})); }catch(e){} }
+function loadState(){ try{ const d=JSON.parse(localStorage.getItem(LSKEY)||'null'); if(d){ if(typeof d.p==='number')state.points=d.p; if(typeof d.n==='boolean')state.notif=d.n; if(d.promo)state.promoOk=true; if(typeof d.u==='number')state.unread=d.u; if(d.nd)state.noticeDel=true; } }catch(e){} }
 
 /* ============ NAČTENÍ BODŮ Z PDF VÝPISU ============ */
 function ensurePdfjs(){
@@ -1380,13 +1498,13 @@ function openInstallSheet(){
   const sh=document.getElementById('sheet');
   document.getElementById('sheetOverlay').classList.add('show');
   sh.style.display='block';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>sh.classList.add('show')));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{sh.classList.add('show'); updateChromeBg();}));
 }
 function closeInstallSheet(){
   const sh=document.getElementById('sheet');
   document.getElementById('sheetOverlay').classList.remove('show');
   sh.classList.remove('show');
-  setTimeout(()=>{ if(!sh.classList.contains('show')) sh.style.display='none'; }, 320);
+  setTimeout(()=>{ if(!sh.classList.contains('show')){ sh.style.display='none'; updateChromeBg(); } }, 320);
 }
 function maybeShowInstall(){
   if(isStandalone()){ hideInstallUI(); return; }
@@ -1405,7 +1523,9 @@ renderPoints(); renderServices(); renderChips(); renderUnread(); renderProfileLi
 document.getElementById('notifToggle').classList.toggle('on',state.notif);
 document.getElementById('notifInfo').style.display=state.notif?'flex':'none';
 if(state.promoOk) document.getElementById('planTitle').textContent='Zdarma (promo kód)';
-document.getElementById('guideCount').textContent = ALL_TOPICS.length+' právních témat v '+GUIDE.length+' oblastech';
+if(state.noticeDel){ const n=document.getElementById('notice1'); if(n)n.style.display='none'; }
+renderVehSub();
+updateChromeBg();
 if(isStandalone()){ document.documentElement.classList.add('standalone'); hideInstallUI(); const c=document.getElementById('installCardProfil'); if(c)c.style.display='none'; }
 else { maybeShowInstall(); }
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(()=>{}); }
