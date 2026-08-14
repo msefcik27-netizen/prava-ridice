@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta name="theme-color" content="#0A4250" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-touch-fullscreen" content="yes" />
@@ -368,13 +368,13 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 /* ===== STANDALONE (z plochy) — MUSÍ být na konci CSS kvůli kaskádě ===== */
 #view{overscroll-behavior:contain;}
 @media(display-mode: standalone){
-  .safe-top{padding-top:max(calc(env(safe-area-inset-top) + 10px), 54px);}
-  .subhead{padding-top:max(calc(env(safe-area-inset-top) + 12px), 56px);}
-  #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 64px);}
+  .safe-top{padding-top:max(calc(env(safe-area-inset-top) + 10px), 59px);}
+  .subhead{padding-top:max(calc(env(safe-area-inset-top) + 12px), 61px);}
+  #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 69px);}
 }
-html.standalone .safe-top{padding-top:max(calc(env(safe-area-inset-top) + 10px), 54px) !important;}
-html.standalone .subhead{padding-top:max(calc(env(safe-area-inset-top) + 12px), 56px) !important;}
-html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 64px) !important;}
+html.standalone .safe-top{padding-top:max(calc(env(safe-area-inset-top) + 10px), 59px) !important;}
+html.standalone .subhead{padding-top:max(calc(env(safe-area-inset-top) + 12px), 61px) !important;}
+html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 69px) !important;}
 
 /* Install button on onboarding */
 .btn-install{background:#fff;color:var(--teal-900);font-weight:800;}
@@ -643,7 +643,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 0.8.1 · build 28</div>
+        <div class="ver">Verze 0.9.0 · build 29</div>
       </div>
     </div>
 
@@ -956,6 +956,7 @@ function fitNavSafe(){
     if(navExtended){ document.documentElement.style.setProperty('--nav-safe','10px'); return; }
     const diff=(screen.height||0) - window.innerHeight;
     if(diff>40){ document.documentElement.style.setProperty('--nav-safe','0px'); }
+    else if(diff<=2 && isStandalone()){ document.documentElement.style.setProperty('--nav-safe','18px'); }
     else { document.documentElement.style.removeProperty('--nav-safe'); }
   }catch(e){}
 }
