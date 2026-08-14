@@ -627,7 +627,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 0.4.3 · build 17</div>
+        <div class="ver">Verze 0.4.4 · build 18</div>
       </div>
     </div>
 
@@ -898,6 +898,31 @@ function fitNavSafe(){
 }
 window.addEventListener('resize', fitNavSafe);
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) fitNavSafe(); });
+/* iOS WebKit bug: první otevření klávesnice ve standalone PWA TRVALE zmenší okno (~49px)
+   a dole zůstane pás. Workaround: po zavření klávesnice vynutit přepočet layoutu. */
+function iosViewportRepair(){
+  const phone=document.getElementById('phone');
+  setTimeout(()=>{
+    phone.style.display='none';
+    void phone.offsetHeight; // synchronní reflow
+    phone.style.display='flex';
+    fitNavSafe(); fitScreen();
+  },140);
+}
+if(isIOS()){
+  document.addEventListener('focusout', e=>{
+    if(e.target && /INPUT|TEXTAREA/i.test(e.target.tagName)) iosViewportRepair();
+  });
+  window.addEventListener('pageshow', ()=>iosViewportRepair());
+  if(window.visualViewport){
+    let lastH=visualViewport.height;
+    visualViewport.addEventListener('resize', ()=>{
+      // klávesnice zmizela (viewport se zvětšil) -> oprava
+      if(visualViewport.height>lastH+40) iosViewportRepair();
+      lastH=visualViewport.height;
+    });
+  }
+}
 function tab(name){
   state.tab=name; state.screen=name; state.history=[];
   showScreen(name);
