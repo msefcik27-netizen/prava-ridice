@@ -15,6 +15,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
 :root{
+  --nav-safe:min(env(safe-area-inset-bottom), 14px);
   --teal-900:#10464b;      /* onboarding / brand deep */
   --teal-850:#123f41;
   --teal-800:#123c3b;      /* dark status card */
@@ -203,7 +204,7 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .ver{text-align:center;color:var(--muted);font-size:11px;margin-top:8px;}
 
 /* ============ BOTTOM NAV ============ */
-#nav{display:flex;background:#fff;border-top:1px solid var(--line);padding:7px 6px calc(env(safe-area-inset-bottom) + 4px);flex:0 0 auto;}
+#nav{display:flex;background:#fff;border-top:1px solid var(--line);padding:7px 6px calc(var(--nav-safe) + 4px);flex:0 0 auto;}
 .nav-btn{flex:1;background:none;border:none;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;color:#9aa3a0;padding:4px 0;}
 .nav-btn span{font-size:11px;font-weight:600;}
 .nav-btn.active{color:var(--teal-800);}
@@ -352,7 +353,7 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
   .alert-line{padding:8px 10px;font-size:11px;margin-top:9px;}
   .title-md{font-size:15px;}
   .ver{font-size:10px;margin-top:6px;}
-  #nav{padding:5px 4px calc(env(safe-area-inset-bottom) + 3px);}
+  #nav{padding:5px 4px calc(var(--nav-safe) + 3px);}
   .nav-btn svg{width:21px;height:21px;}
   .nav-btn span{font-size:10px;}
 }
@@ -626,7 +627,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 0.4.1 · build 15</div>
+        <div class="ver">Verze 0.4.2 · build 16</div>
       </div>
     </div>
 
@@ -887,6 +888,16 @@ function fitScreen(){
   v.style.overflowY = (isTab && v.scrollHeight<=v.clientHeight+10) ? 'hidden' : 'auto';
 }
 window.addEventListener('resize', ()=>requestAnimationFrame(fitScreen));
+/* Lišta: když si systém drží spodní pruh mimo okno appky, žádné vlastní odsazení nepřidávat */
+function fitNavSafe(){
+  try{
+    const diff=(screen.height||0) - window.innerHeight;
+    if(diff>40){ document.documentElement.style.setProperty('--nav-safe','0px'); }
+    else { document.documentElement.style.removeProperty('--nav-safe'); }
+  }catch(e){}
+}
+window.addEventListener('resize', fitNavSafe);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) fitNavSafe(); });
 function tab(name){
   state.tab=name; state.screen=name; state.history=[];
   showScreen(name);
@@ -1358,7 +1369,9 @@ function maybeShowInstall(){
 
 /* ============ INIT ============ */
 loadState();
+fitNavSafe();
 [300,900,2000].forEach(t=>setTimeout(fitScreen,t));
+[300,900].forEach(t=>setTimeout(fitNavSafe,t));
 window.addEventListener('load',fitScreen);
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>fitScreen());
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeout(fitScreen,80); });
@@ -1377,7 +1390,8 @@ document.addEventListener('touchmove', function(e){
 // Diagnostika: 3x klepnout na verzi v Profilu
 (function(){ let n=0,t0=0; const v=document.querySelector('.ver'); if(!v) return;
   v.addEventListener('click', ()=>{ const now=Date.now(); if(now-t0>1600){n=0;} t0=now; n++;
-    if(n>=3){ n=0; toast('standalone:'+(isStandalone()?'ANO':'NE')+' · okno '+window.innerWidth+'×'+window.innerHeight+' · vv '+(window.visualViewport?Math.round(visualViewport.height):'—')+' · horní odsazení '+getComputedStyle(document.querySelector('.safe-top')).paddingTop); }
+    if(n>=3){ n=0; const nav=document.getElementById('nav'); const nr=nav.getBoundingClientRect();
+      toast('standalone:'+(isStandalone()?'ANO':'NE')+' · okno '+window.innerWidth+'×'+window.innerHeight+' · displej '+screen.width+'×'+screen.height+' · horní '+getComputedStyle(document.querySelector('.safe-top')).paddingTop+' · dolní env '+getComputedStyle(nav).paddingBottom+' · nav '+Math.round(nr.height)+'px/spodek '+Math.round(nr.bottom)); }
   });
 })();
 </script>
