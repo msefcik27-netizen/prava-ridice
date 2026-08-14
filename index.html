@@ -28,17 +28,17 @@
   --cream-line:#EDD6C8;
   --bg:#f3f2ef;            /* app light background */
   --card:#ffffff;
-  --ink:#12312f;           /* primary dark text */
-  --ink-soft:#3a4b49;
-  --muted:#77837f;
-  --line:#e7e6e2;
+  --ink:#0E3540;           /* primary dark text */
+  --ink-soft:#3B565F;
+  --muted:#75868C;
+  --line:#E6E4E0;
   --orange:#e08b2c;
   --red:#c0442e;
   --green:#1f7a4d;
   --green-bg:#e7f2ea;
   --radius:20px;
   --radius-sm:14px;
-  --shadow:0 10px 30px rgba(16,40,42,.08);
+  --shadow:0 10px 30px rgba(10,66,80,.09);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
@@ -660,7 +660,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 1.1.1 · build 34</div>
+        <div class="ver">Verze 1.2.0 · build 35</div>
       </div>
     </div>
 
@@ -1450,7 +1450,8 @@ function renderOb(){
   obDots();
   const B=document.getElementById('obBody');
   if(ob.step===0){
-    B.innerHTML='<div class="ob-step"><img src="icon-192.png" alt="" style="width:96px;height:96px;margin-top:28px;" />'+
+    B.innerHTML='<div class="ob-step"><div class="ob-fill"></div>'+
+      '<img src="logo-full-dark.png" alt="Práva řidiče" style="width:100%;max-width:280px;align-self:center;margin:0 0 6px;" />'+
       '<div class="ob-fill"></div>'+
       '<div class="ob-eyebrow">Právní ochrana řidiče</div>'+
       '<h1 class="title-xl">Zachráníme<br/>vám řidičák.</h1>'+
