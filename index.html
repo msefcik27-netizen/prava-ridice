@@ -639,7 +639,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 0.5.2 · build 22</div>
+        <div class="ver">Verze 0.6.0 · build 23</div>
       </div>
     </div>
 
@@ -928,9 +928,34 @@ function fitScreen(){
   v.style.overflowY = (isTab && v.scrollHeight<=v.clientHeight+10) ? 'hidden' : 'auto';
 }
 window.addEventListener('resize', ()=>requestAnimationFrame(fitScreen));
+/* EXPERIMENT b23: zmerit skutecnou vysku webview (100lvh). Kdyz je vetsi nez hlasene okno,
+   natahnout appku az na spodek displeje — lista sjede do "pruhu". */
+let navExtended=false;
+function probeLVH(){
+  try{
+    const el=document.createElement('div');
+    el.style.cssText='position:fixed;top:0;left:0;width:1px;height:100lvh;visibility:hidden;pointer-events:none;';
+    document.body.appendChild(el);
+    const h=el.getBoundingClientRect().height;
+    el.remove();
+    return h||0;
+  }catch(e){ return 0; }
+}
+function extendToTrueBottom(){
+  const lvh=probeLVH();
+  window._lvh=Math.round(lvh);
+  if(lvh>window.innerHeight+10){
+    document.getElementById('phone').style.height=Math.round(lvh)+'px';
+    document.documentElement.style.setProperty('--nav-safe','10px');
+    navExtended=true;
+    fitScreen();
+  }
+}
+
 /* Lišta: když si systém drží spodní pruh mimo okno appky, žádné vlastní odsazení nepřidávat */
 function fitNavSafe(){
   try{
+    if(navExtended){ document.documentElement.style.setProperty('--nav-safe','10px'); return; }
     const diff=(screen.height||0) - window.innerHeight;
     if(diff>40){ document.documentElement.style.setProperty('--nav-safe','0px'); }
     else { document.documentElement.style.removeProperty('--nav-safe'); }
@@ -946,7 +971,7 @@ function iosViewportRepair(){
     phone.style.display='none';
     void phone.offsetHeight; // synchronní reflow
     phone.style.display='flex';
-    fitNavSafe(); fitScreen();
+    fitNavSafe(); fitScreen(); extendToTrueBottom();
   },140);
 }
 if(isIOS()){
@@ -1522,6 +1547,7 @@ function maybeShowInstall(){
 /* ============ INIT ============ */
 loadState();
 fitNavSafe();
+setTimeout(extendToTrueBottom,250); setTimeout(extendToTrueBottom,1100);
 [300,900,2000].forEach(t=>setTimeout(fitScreen,t));
 [300,900].forEach(t=>setTimeout(fitNavSafe,t));
 window.addEventListener('load',fitScreen);
@@ -1565,7 +1591,7 @@ document.addEventListener('touchmove', function(e){
 (function(){ let n=0,t0=0; const v=document.querySelector('.ver'); if(!v) return;
   v.addEventListener('click', ()=>{ const now=Date.now(); if(now-t0>1600){n=0;} t0=now; n++;
     if(n>=3){ n=0; const nav=document.getElementById('nav'); const nr=nav.getBoundingClientRect();
-      toast('standalone:'+(isStandalone()?'ANO':'NE')+' · okno '+window.innerWidth+'×'+window.innerHeight+' · displej '+screen.width+'×'+screen.height+' · horní '+getComputedStyle(document.querySelector('.safe-top')).paddingTop+' · dolní env '+getComputedStyle(nav).paddingBottom+' · nav '+Math.round(nr.height)+'px/spodek '+Math.round(nr.bottom)); }
+      toast('standalone:'+(isStandalone()?'ANO':'NE')+' · okno '+window.innerWidth+'×'+window.innerHeight+' · displej '+screen.width+'×'+screen.height+' · lvh '+(window._lvh||'—')+' · nataženo:'+(navExtended?'ANO':'NE')+' · nav spodek '+Math.round(nr.bottom)); }
   });
 })();
 </script>
