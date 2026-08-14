@@ -75,7 +75,7 @@ body{
 @keyframes pageOutR{from{transform:none;}to{transform:translateX(100%);}}
 .screen.leaving{display:flex !important;flex-direction:column;position:absolute;inset:0;z-index:1;pointer-events:none;}
 .screen.peek{display:flex !important;flex-direction:column;position:absolute;inset:0;z-index:1;pointer-events:none;}
-.pad{padding:14px 14px 22px;}
+.pad{padding:14px 14px 16px;}
 .safe-top{padding-top:calc(env(safe-area-inset-top) + 10px);}
 
 /* Typography */
@@ -175,7 +175,13 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .stat-card .ic{width:44px;height:44px;border-radius:12px;background:var(--peach-100);display:flex;align-items:center;justify-content:center;color:#b06a34;flex:0 0 auto;}
 .stat-card .lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);}
 .stat-card .val{font-size:15px;font-weight:700;margin-top:2px;}
-.police-card{background:var(--cream);border:1px solid var(--cream-line);border-radius:16px;padding:11px 13px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-top:9px;}
+.police-card{background:var(--teal-800);border:none;border-top:5px solid var(--peach);border-radius:16px;padding:14px;cursor:pointer;position:relative;color:#fff;}
+.pc-top{display:flex;gap:12px;align-items:flex-start;}
+.pc-badge{flex:0 0 auto;width:74px;height:auto;}
+.pc-lbl{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--peach);line-height:1.3;}
+.pc-title{font-size:17px;font-weight:800;line-height:1.2;margin-top:5px;color:#fff;}
+.pc-desc{font-size:12.5px;line-height:1.45;color:rgba(255,255,255,.82);margin:10px 0 0;}
+.pc-go{position:absolute;right:12px;bottom:12px;width:34px;height:34px;border-radius:50%;background:var(--peach);display:flex;align-items:center;justify-content:center;}
 .police-card .ic{width:44px;height:44px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;color:#b06a34;flex:0 0 auto;}
 .police-card .lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#a5713f;}
 .police-card h4{font-size:14.5px;margin:2px 0 2px;}
@@ -311,7 +317,7 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 
 /* ===== ÚZKÉ DISPLEJE (zvětšené zobrazení iPhonu, ≤360 px) — vše se vejde bez scrollu ===== */
 @media(max-width:360px){
-  .pad{padding:9px 10px 8px;}
+  .pad{padding:9px 10px 12px;}
   .title-lg{font-size:19px;}
   .eyebrow{font-size:10px;margin-bottom:4px;}
   .card{padding:10px 12px;border-radius:16px;}
@@ -561,17 +567,28 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
         </div>
         <div class="police-card" onclick="openCalc()">
-          <div class="ic">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b06a34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 12l4-2"/><path d="M12 7v1"/></svg>
+          <div class="pc-top">
+            <svg class="pc-badge" viewBox="0 0 100 132" fill="none">
+              <path d="M22 96 L22 130 L50 116 L78 130 L78 96 Z" fill="#F0C2AF"/>
+              <rect x="4" y="0" width="92" height="100" rx="9" fill="#0A4250"/>
+              <g stroke="#F0C2AF" stroke-width="2.6" stroke-linecap="round">
+                <path d="M26 20 L21 14"/><path d="M20 30 L13 27"/>
+                <path d="M74 20 L79 14"/><path d="M80 30 L87 27"/>
+              </g>
+              <path d="M31 46 L31 36 L40 42 L50 28 L60 42 L69 36 L69 46 Z" fill="#F0C2AF"/>
+              <circle cx="31" cy="32" r="3" fill="#F0C2AF"/><circle cx="50" cy="24" r="3.4" fill="#F0C2AF"/><circle cx="69" cy="32" r="3" fill="#F0C2AF"/>
+              <text x="50" y="66" text-anchor="middle" font-family="Inter,sans-serif" font-size="15" font-weight="800" fill="#ffffff">JEDINÁ</text>
+              <text x="50" y="80" text-anchor="middle" font-family="Inter,sans-serif" font-size="10.5" font-weight="700" fill="#F0C2AF">SVÉHO</text>
+              <text x="50" y="92" text-anchor="middle" font-family="Inter,sans-serif" font-size="10.5" font-weight="700" fill="#F0C2AF">DRUHU</text>
+            </svg>
+            <div style="flex:1;min-width:0;">
+              <div class="pc-lbl">Interaktivní průvodce</div>
+              <div class="pc-title">Kalkulačka a asistent při kontrole</div>
+            </div>
           </div>
-          <div style="flex:1;">
-            <div class="lbl">Zastavila vás policie?</div>
-            <h4>Kalkulačka a asistent při kontrole</h4>
-            <p>Odhad hladiny alkoholu i drog a krok-za-krokem postup.</p>
-          </div>
-          <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9b79f" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+          <p class="pc-desc">První právní asistent, který orientačně vyhodnotí riziko řízení po užití alkoholu nebo drog a ukáže, co řidiči reálně hrozí a jak postupovat dle jeho priorit.</p>
+          <div class="pc-go"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A4250" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>
         </div>
-
         <div class="search-box">
           <div class="search-input">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9aa3a0" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
@@ -657,7 +674,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 1.3.1 · build 38</div>
+        <div class="ver">Verze 1.5.0 · build 42</div>
       </div>
     </div>
 
@@ -712,7 +729,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           <div class="hint" id="fFileName" style="display:none;"></div>
         </div>
         <div class="consent">
-          <div class="check on" id="fConsent" onclick="this.classList.toggle('on')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div class="check" id="fConsent" onclick="this.classList.toggle('on')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
           <div>Odesláním souhlasíte se zpracováním osobních údajů. <span class="link" onclick="openExt('https://www.pravaridice.cz/')">Zásady zpracování osobních údajů</span></div>
         </div>
         <button class="btn btn-dark" onclick="submitForm()">
@@ -849,12 +866,42 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 <script>
 /* ============ DATA ============ */
 const SERVICES = [
-  {id:'zabaveni',t:'Zabavení řidičského průkazu',d:'Pomoc při zadržení řidičského průkazu na místě i vrácení oprávnění.',ic:'card'},
-  {id:'rychlost',t:'Překročení rychlosti',d:'Obhajoba u přestupku i správního řízení o překročení rychlosti.',ic:'gauge'},
-  {id:'alkohol',t:'Řízení pod vlivem alkoholu',d:'Přestupek i trestný čin – obhajoba podle míry naměřeného alkoholu.',ic:'glass'},
-  {id:'drogy',t:'Řízení pod vlivem drog',d:'Obhajoba při pozitivním testu na návykové látky.',ic:'pill'},
-  {id:'nehoda',t:'Nehoda se zraněním nebo úmrtím',d:'Zastupování při dopravní nehodě s následkem na zdraví či životě.',ic:'crash'},
-  {id:'zakaz',t:'Řízení v zákazu řízení',d:'Obhajoba při řízení v době uloženého zákazu řízení.',ic:'ban'},
+  {id:'zabaveni',t:'Zabavení řidičského průkazu',d:'Zadržení dokladu na místě i vrácení oprávnění.',ic:'card',
+   hrozi:['Policie zadrží průkaz na místě podle § 118b odst. 1a–1e zákona č. 361/2000 Sb.','Šest situací: rychlost o 40 km/h v obci nebo 50 km/h mimo obec, alkohol, pozitivní test na drogy, odmítnutí vyšetření, řízení v zákazu, nehoda se zraněním nebo smrtí','Zadržený průkaz musíte odevzdat úřadu do 5 pracovních dnů'],
+   pomoc:['Zastoupení v řízení o oprávněnosti zadržení','Hledání procesních a formálních vad','Doba zadržení se započítává do případného zákazu — hlídáme, aby se započetla správně'],
+   tpc:['ridicak','Zadržení řidičáku na místě — kdy a co dál']},
+  {id:'rychlost',t:'Překročení rychlosti',d:'Od blokové pokuty po zákaz řízení.',ic:'gauge',
+   hrozi:['Do 10 km/h: 2 000–5 000 Kč, 0 bodů','O 10 km/h a více: 2 000–5 000 Kč, 2 body','O 20 km/h v obci / 30 mimo obec: 4 000–10 000 Kč, 4 body','O 40 km/h v obci / 50 mimo obec: 7 000–25 000 Kč, 6 bodů a zákaz 6–18 měsíců'],
+   pomoc:['Analýza technických podmínek měření a kalibrace','Podání odporu proti příkazu a odvolání','Zastoupení při jednání, návrh na vrácení průkazu po polovině zákazu'],
+   tpc:['rychlost','Překročení rychlosti — kompletní sazebník']},
+  {id:'alkohol',t:'Řízení pod vlivem alkoholu',d:'Přestupek i trestný čin podle naměřené hladiny.',ic:'glass',
+   hrozi:['Do 0,30 ‰: pokuta 7 000–25 000 Kč, zákaz 6–18 měsíců, bez bodů','0,31–0,99 ‰: stejná pokuta a zákaz, navíc 6 bodů a odebrání průkazu','Od 1,00 ‰: trestný čin § 274 TZ — zákaz 1–10 let, záznam v rejstříku trestů, odnětí svobody až 1 rok'],
+   pomoc:['Ověření kalibrace přístroje a odchylky 0,24 ‰','Hledání procesních vad v postupu policie','U trestného činu snaha o podmíněné zastavení stíhání = čistý rejstřík'],
+   tpc:['alkohol','Od 1,00 ‰ — trestný čin']},
+  {id:'drogy',t:'Řízení pod vlivem drog',d:'Prahové hodnoty rozhodují o přestupku i trestném činu.',ic:'pill',
+   hrozi:['Přestupek: THC 2–9,99 ng/ml, pervitin/amfetamin/MDMA 25–149,99, kokain 25–74,99, morfin 10–199,99','Trestný čin: THC od 10, pervitin a spol. od 150, kokain od 75, morfin od 200 ng/ml','U přestupku 6 bodů a zákaz 6–18 měsíců, u trestného činu zákaz 1–10 let a záznam v rejstříku'],
+   pomoc:['Posouzení prahových hodnot a správnosti odběru','Zpochybnění postupu při orientačním testu','Obhajoba v trestním řízení včetně podmíněného zastavení'],
+   tpc:['drogy','Hranice přestupku a trestného činu']},
+  {id:'odmitnuti',t:'Odmítnutí testu na alkohol či drogy',d:'Vždy přestupek — bez záznamu v rejstříku trestů.',ic:'ban',
+   hrozi:['Pokuta 25 000–75 000 Kč','Zákaz řízení 18–36 měsíců','6 bodů a povinný psychoterapeutický program pro navrácení oprávnění','Nikdy nejde o trestný čin — rejstřík trestů zůstává čistý'],
+   pomoc:['Posouzení, zda bylo odmítnutí ve vaší situaci výhodnější volbou','Zastoupení ve správním řízení, snaha o nejnižší sazbu','Návrh na vrácení oprávnění po polovině zákazu'],
+   tpc:['drogy','Odmítnutí testu na alkohol nebo drogy']},
+  {id:'zakaz',t:'Řízení v zákazu řízení',d:'Maření výkonu úředního rozhodnutí podle § 337 TZ.',ic:'ban',
+   hrozi:['Trestný čin § 337 odst. 1a: odnětí svobody až 2 roky, zákaz 1–10 let, 4 body a peněžitý trest','Jako přestupek § 125c: zákaz až 3 roky, pokuta až 75 000 Kč a 4 body'],
+   pomoc:['Hledání chyb policie i úřadu, podání odporu proti příkazu','Jednání o nejnižších sazbách a o výši peněžitého trestu podle majetkových poměrů','Snaha o podmíněné zastavení stíhání; po polovině zákazu návrh na vrácení oprávnění'],
+   tpc:['ridicak','Řízení v zákazu — § 337 TZ']},
+  {id:'vybodovani',t:'Vybodování (12 bodů)',d:'Lhůta na námitky je pouhých 5 dní.',ic:'card',
+   hrozi:['Ztráta řidičského oprávnění na 12 měsíců — nelze zkrátit','Po zákazu povinné dopravně psychologické vyšetření a přezkoušení v autoškole (~25 000 Kč)'],
+   pomoc:['Námitky do 5 dnů od doručení oznámení — šablonovitá podání neuspějí','Prošetření vad při udělení jednotlivých pokut; nalezené vady znamenají odmazání bodů','Zastoupení v celém námitkovém řízení'],
+   tpc:['vybodovani','Námitky proti vybodování — lhůta 5 dní']},
+  {id:'nehoda',t:'Nehoda se zraněním nebo úmrtím',d:'Od pokuty po trestní stíhání.',ic:'crash',
+   hrozi:['Ublížení na zdraví: pokuta až 50 000 Kč a zákaz řízení až 3 roky','Usmrcení nebo těžká újma: trestní stíhání, odnětí svobody až 10 let, zákaz 1–10 let a 6 bodů'],
+   pomoc:['Vstup advokáta ještě před prvním výslechem — čas je zásadní','Zastoupení v trestním řízení i před pojišťovnou','Jednání o alternativním trestu a o výši náhrady'],
+   tpc:['nehody','Nehoda s usmrcením nebo těžkou újmou']},
+  {id:'odskodneni',t:'Odškodnění oběti nehody',d:'Nároky poškozeného z povinného ručení viníka.',ic:'crash',
+   hrozi:[],
+   pomoc:['Uplatnění nároku na náhradu újmy na zdraví i psychické újmy','Náhrada se vyplácí z povinného ručení viníka — vlastní úrazové pojištění není nutné','Zastoupení v jednání s pojišťovnou i u soudu'],
+   tpc:['nehody','Odškodnění oběti dopravní nehody']},
 ];
 const SVC_ICONS = {
   card:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>',
@@ -960,7 +1007,8 @@ function showScreen(id){
 function fitScreen(){
   const v=document.getElementById('view');
   const isTab=TABS.includes(state.screen);
-  v.style.overflowY = (isTab && v.scrollHeight<=v.clientHeight+10) ? 'hidden' : 'auto';
+  // zamknout scroll JEN když se obsah opravdu celý vejde (jinak se ořízne poslední řádek)
+  v.style.overflowY = (isTab && v.scrollHeight<=v.clientHeight+1) ? 'hidden' : 'auto';
 }
 window.addEventListener('resize', ()=>requestAnimationFrame(fitScreen));
 /* EXPERIMENT b23: zmerit skutecnou vysku webview (100lvh). Kdyz je vetsi nez hlasene okno,
@@ -1094,16 +1142,27 @@ function renderServices(){
     </div>`).join('');
 }
 function openService(id){
-  const s=SERVICES.find(x=>x.id===id);
-  document.getElementById('svcTitle').textContent=s.t;
-  document.getElementById('svcBody').innerHTML=`
-    <div class="card" style="margin-bottom:16px;">
-      <div class="li-icon" style="width:52px;height:52px;margin-bottom:12px;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b06a34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SVC_ICONS[s.ic]}</svg></div>
-      <h2 class="title-md" style="margin-bottom:8px;">${s.t}</h2>
-      <p class="muted" style="line-height:1.55;margin:0;">${s.d}</p>
-    </div>
-    <p class="muted small" style="line-height:1.6;">Popíšeme vám postup krok za krokem, jaké máte možnosti obhajoby a jaké lhůty je potřeba dodržet. Pro konkrétní situaci doporučujeme nezávaznou konzultaci — advokát odpovídá do 2 hodin.</p>
-    <button class="btn btn-dark" style="margin-top:8px;" onclick="go('konzultace')">Konzultace zdarma</button>`;
+  const x=SERVICES.find(y=>y.id===id);
+  document.getElementById('svcTitle').textContent=x.t;
+  document.getElementById('svcBody').innerHTML=
+    '<div class="card"><div class="li-icon" style="width:46px;height:46px;margin-bottom:10px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#b06a34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+SVC_ICONS[x.ic]+'</svg></div>'+
+      '<h2 class="title-md" style="margin-bottom:6px;">'+x.t+'</h2>'+
+      '<p class="muted small" style="margin:0;line-height:1.5;">'+x.d+'</p></div>'+
+    (x.hrozi&&x.hrozi.length?'<div class="section-label" style="margin-top:14px;">Co vám hrozí</div>'+
+      '<div class="card">'+x.hrozi.map(h=>'<div style="display:flex;gap:9px;padding:5px 0;"><span style="color:var(--orange);font-weight:800;">•</span><span style="font-size:13.5px;line-height:1.45;color:var(--ink-soft);">'+h+'</span></div>').join('')+'</div>':'')+
+    '<div class="section-label" style="margin-top:14px;">Jak pomůžeme</div>'+
+    '<div class="card">'+x.pomoc.map(h=>'<div style="display:flex;gap:9px;padding:5px 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;margin-top:2px;"><path d="M20 6L9 17l-5-5"/></svg><span style="font-size:13.5px;line-height:1.45;color:var(--ink-soft);">'+h+'</span></div>').join('')+'</div>'+
+    '<div class="card" style="margin-top:12px;background:var(--cream);border:1px solid var(--cream-line);">'+
+      '<div class="eyebrow" style="color:#a5713f;margin-bottom:4px;">Pevná cena</div>'+
+      '<div class="title-md" style="font-size:16px;">Zastupování už od 10 000 Kč</div>'+
+      '<p class="small" style="margin:6px 0 0;color:#6b5a44;line-height:1.45;">Cenu znáte předem a nemění se podle náročnosti případu. Konzultace je zdarma, obhajoba po celé ČR.</p></div>'+
+    (x.tpc?'<div class="list-card" style="margin-top:12px;"><div class="list-item" onclick="openTopic(\''+x.tpc[0]+'\',\''+x.tpc[1].replace(/'/g,"\\'")+'\')">'+
+      '<div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b06a34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>'+
+      '<div class="li-body"><h4>Podrobnosti v Průvodci</h4><p>'+x.tpc[1]+'</p></div>'+
+      '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div></div>':'')+
+    '<div style="display:flex;gap:8px;margin-top:14px;">'+
+      '<a class="btn btn-dark btn-sm" style="flex:1;text-decoration:none;" href="tel:+420739662266">Zavolat</a>'+
+      '<button class="btn btn-outline-dark btn-sm" style="flex:1;" onclick="go(\'konzultace\')">Konzultace zdarma</button></div>';
   go('service-detail');
 }
 
@@ -1292,6 +1351,7 @@ function submitForm(){
   if(!document.getElementById('fConsent').classList.contains('on')){ toast('Potvrďte prosím souhlas se zpracováním údajů.'); return; }
   document.getElementById('fTel').value=''; document.getElementById('fMsg').value='';
   document.getElementById('fName').value=''; document.getElementById('fMail').value='';
+  document.getElementById('fConsent').classList.remove('on');
   toast('Odesláno. Zavoláme vám do 2 hodin.');
   backAuto();
 }
@@ -1941,10 +2001,8 @@ let suppressTabAnim=false;
   },{passive:true});
 })();
 
-// iOS: zakazat tazeni cele stranky — scrolluje jen obsah (#view) a sheet
-document.addEventListener('touchmove', function(e){
-  if(!e.target.closest('#view, #sheet, textarea, input')) e.preventDefault();
-}, {passive:false});
+// (blokátor tažení stránky odstraněn — #phone je position:fixed, stránka se tahat nemůže)
+
 // Diagnostika: 3x klepnout na verzi v Profilu
 (function(){ let n=0,t0=0; const v=document.querySelector('.ver'); if(!v) return;
   v.addEventListener('click', ()=>{ const now=Date.now(); if(now-t0>1600){n=0;} t0=now; n++;
