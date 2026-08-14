@@ -65,12 +65,15 @@ body{
 
 .statusbar{height:0;}
 /* Screen scroll area */
-#view{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+#view{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;position:relative;}
 .screen{display:none;min-height:100%;}
 .screen.active{display:block;animation:fade .22s ease;}
 @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
-@keyframes slideL{from{opacity:.3;transform:translateX(46px);}to{opacity:1;transform:none;}}
-@keyframes slideR{from{opacity:.3;transform:translateX(-46px);}to{opacity:1;transform:none;}}
+@keyframes pageInL{from{transform:translateX(100%);}to{transform:none;}}
+@keyframes pageInR{from{transform:translateX(-100%);}to{transform:none;}}
+@keyframes pageOutL{from{transform:none;}to{transform:translateX(-100%);}}
+@keyframes pageOutR{from{transform:none;}to{transform:translateX(100%);}}
+.screen.leaving{display:flex !important;flex-direction:column;position:absolute;inset:0;z-index:1;pointer-events:none;}
 .pad{padding:14px 14px 22px;}
 .safe-top{padding-top:calc(env(safe-area-inset-top) + 10px);}
 
@@ -507,15 +510,15 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
             </div>
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
           </div>
-          <div class="list-item" onclick="openExt('https://www.bouracka.cz/')">
+          <div class="list-item" onclick="openNehoda()">
             <div class="li-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b06a34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
             </div>
             <div class="li-body">
               <h4>Stala se vám dopravní nehoda?</h4>
-              <p>Bouračka.cz — okamžitá pomoc po nehodě.</p>
+              <p>Krok za krokem: záznam, asistence i pojišťovna.</p>
             </div>
-            <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
+            <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
           </div>
         </div>
       </div>
@@ -639,7 +642,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 0.6.0 · build 23</div>
+        <div class="ver">Verze 0.7.0 · build 25</div>
       </div>
     </div>
 
@@ -742,6 +745,12 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
     <div class="screen" id="s-kontakt">
       <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title">Kontakt</div></div>
       <div class="pad" id="kontaktBody"></div>
+    </div>
+
+    <!-- SUB: NEHODA -->
+    <div class="screen" id="s-nehoda">
+      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title">Co dělat po nehodě</div></div>
+      <div class="pad" id="nehodaBody"></div>
     </div>
 
     <!-- SUB: VOZIDLA -->
@@ -942,14 +951,9 @@ function probeLVH(){
   }catch(e){ return 0; }
 }
 function extendToTrueBottom(){
-  const lvh=probeLVH();
-  window._lvh=Math.round(lvh);
-  if(lvh>window.innerHeight+10){
-    document.getElementById('phone').style.height=Math.round(lvh)+'px';
-    document.documentElement.style.setProperty('--nav-safe','10px');
-    navExtended=true;
-    fitScreen();
-  }
+  // EXPERIMENT b23 UZAVREN: iOS zonu pod oknem NEVYKRESLUJE (lista v ni zmizela).
+  // Natahovani je vypnute; probe zustava jen pro diagnostiku.
+  window._lvh=Math.round(probeLVH());
 }
 
 /* Lišta: když si systém drží spodní pruh mimo okno appky, žádné vlastní odsazení nepřidávat */
@@ -993,9 +997,14 @@ function tab(name){
   state.tab=name; state.screen=name; state.history=[];
   showScreen(name);
   if(prev>-1 && next>-1 && prev!==next){
+    const oldScr=document.getElementById('s-'+TABS[prev]);
     const scr=document.getElementById('s-'+name);
+    const dolava=next>prev;
+    oldScr.classList.add('leaving');
+    oldScr.style.animation=(dolava?'pageOutL':'pageOutR')+' .28s cubic-bezier(.22,.61,.36,1) forwards';
     scr.style.animation='none'; void scr.offsetWidth;
-    scr.style.animation=(next>prev?'slideL':'slideR')+' .22s ease';
+    scr.style.animation=(dolava?'pageInL':'pageInR')+' .28s cubic-bezier(.22,.61,.36,1)';
+    setTimeout(()=>{ oldScr.classList.remove('leaving'); oldScr.style.animation=''; },300);
   }
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
   document.getElementById('nav').style.display='flex';
@@ -1377,6 +1386,32 @@ function renderVehSub(){
   else { el.textContent=vs.length+' '+plural(vs.length,'vozidlo','vozidla','vozidel')+' bez termínů.'; el.style.color=''; }
 }
 function openVozidla(){ renderVozidla(); go('vozidla'); }
+function openNehoda(){
+  const vs=getVehicles().filter(v=>v.ins||v.asist);
+  const kontakty = vs.length
+    ? vs.map(v=>`<div class="list-item" ${v.asist?`onclick="window.location.href='tel:${v.asist.replace(/ /g,'')}'"`:''}>
+        <div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b06a34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2.1z"/></svg></div>
+        <div class="li-body"><h4>${v.spz}${v.ins?' · '+v.ins:''}</h4><p>${v.asist?'Asistence: '+v.asist:'Asistenční linka není vyplněna'}</p></div></div>`).join('')
+    : `<div class="list-item" onclick="openVozidla()">
+        <div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b06a34" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/></svg></div>
+        <div class="li-body"><h4>Doplnit pojišťovnu a asistenci</h4><p>Uložte si kontakty ve Vozidlech — ručně, nebo nahráním pojistné smlouvy.</p></div>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>`;
+  const KROKY=[
+    ['Zastavte a zabezpečte místo','Výstražná světla, reflexní vesta, výstražný trojúhelník v dostatečné vzdálenosti za vozidlem.'],
+    ['Zkontrolujte zranění','Při zranění volejte <a href="tel:155" style="color:var(--teal-700);font-weight:700;">155</a> (příp. <a href="tel:112" style="color:var(--teal-700);font-weight:700;">112</a>). Se zraněnými nehýbejte, nehrozí-li další nebezpečí.'],
+    ['Kdy volat policii (<a href="tel:158" style="color:var(--teal-700);font-weight:700;">158</a>)','Při zranění či úmrtí, škodě zjevně nad 100 000 Kč, škodě na majetku třetí osoby či komunikaci, podezření na alkohol — a vždy, když se s druhým řidičem neshodnete na zavinění.'],
+    ['Zdokumentujte','Vyfoťte postavení vozidel, poškození, doklady a SPZ. Poznamenejte si svědky.'],
+    ['Sepište záznam o nehodě','Elektronicky přes <b>Bouračka.cz</b> (tlačítko níže), nebo papírový euroformulář. Bez podpisu obou řidičů nic neuznávejte.'],
+    ['Volejte asistenci a pojišťovnu','Odtah a hlášení škody — kontakty máte níže.'],
+    ['Hrozí vám postih?','Nepodepisujte nic, čím si nejste jistí, a ozvěte se nám — konzultace je zdarma.']];
+  document.getElementById('nehodaBody').innerHTML=
+    KROKY.map((k,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="tx"><b>${k[0]}</b><br/><span style="color:var(--muted);font-size:13px;line-height:1.45;">${k[1]}</span></div></div>`).join('')+
+    `<button class="btn btn-ghost" style="margin-top:14px;" onclick="openExt('https://www.bouracka.cz/')">Otevřít Bouračka.cz — záznam o nehodě</button>
+    <div class="section-label" style="margin-top:14px;">Vaše asistence a pojišťovna</div>
+    <div class="list-card">${kontakty}</div>
+    <button class="btn btn-dark" style="margin-top:14px;" onclick="go('konzultace')">Konzultace zdarma</button>`;
+  go('nehoda');
+}
 function renderVozidla(){
   const vs=getVehicles();
   const rows=vs.map((v,i)=>{
@@ -1388,6 +1423,7 @@ function renderVozidla(){
       </div>
       <div class="small muted" style="margin-top:4px;line-height:1.5;">
         STK: ${v.stk||'—'} · Pojištění: ${v.poj||'—'} · Známka: ${v.znamka||'—'}</div>
+      ${v.ins||v.asist?`<div class="small" style="margin-top:4px;">${v.ins||'Pojišťovna'}${v.asist?` · <a href="tel:${v.asist.replace(/ /g,'')}" style="color:var(--teal-700);font-weight:700;">☎ ${v.asist}</a>`:''}</div>`:''}
       ${l?`<div class="small" style="margin-top:6px;font-weight:700;color:${l.c};">${l.t}</div>`:''}
     </div>`;
   }).join('');
@@ -1398,16 +1434,50 @@ function renderVozidla(){
       <div class="field" style="margin-bottom:10px;"><label>SPZ / název</label><input type="text" id="vSpz" autocapitalize="characters" placeholder="1AB 2345"/></div>
       <div class="field" style="margin-bottom:10px;"><label>STK platí do</label><input type="date" id="vStk" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-family:inherit;font-size:15px;background:#fff;"/></div>
       <div class="field" style="margin-bottom:10px;"><label>Pojištění platí do</label><input type="date" id="vPoj" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-family:inherit;font-size:15px;background:#fff;"/></div>
-      <div class="field" style="margin-bottom:12px;"><label>Dálniční známka do</label><input type="date" id="vZn" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-family:inherit;font-size:15px;background:#fff;"/></div>
+      <div class="field" style="margin-bottom:10px;"><label>Dálniční známka do</label><input type="date" id="vZn" style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-family:inherit;font-size:15px;background:#fff;"/></div>
+      <div class="field" style="margin-bottom:10px;"><label>Pojišťovna</label><input type="text" id="vIns" placeholder="např. Kooperativa"/></div>
+      <div class="field" style="margin-bottom:10px;"><label>Asistenční linka</label><input type="tel" id="vAsist" inputmode="tel" placeholder="např. 957 105 105"/></div>
+      <label class="attach" style="margin-bottom:12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Vytěžit z pojistné smlouvy (PDF)<input type="file" accept="application/pdf,.pdf" hidden onchange="smlouvaPicked(this)"/></label>
       <button class="btn btn-dark btn-sm" onclick="addVehicle()">Přidat vozidlo</button>
     </div>
     <div class="disclaimer" style="margin-top:12px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#77837f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span>Údaje se ukládají jen ve vašem telefonu. Push připomínky (měsíc a týden předem) doplní backend.</span></div>`;
+}
+const INSURERS=['Kooperativa','Generali Česká pojišťovna','Česká pojišťovna','Allianz','ČSOB Pojišťovna','UNIQA','Česká podnikatelská pojišťovna','ČPP','Direct','Pillow','Slavia pojišťovna','Hasičská vzájemná pojišťovna'];
+async function smlouvaPicked(inp){
+  const f=inp.files&&inp.files[0]; inp.value='';
+  if(!f) return;
+  toast('Čtu smlouvu…');
+  try{
+    await ensurePdfjs();
+    const pdf=await window.pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;
+    let text='';
+    for(let i=1;i<=Math.min(pdf.numPages,8);i++){
+      const tc=await (await pdf.getPage(i)).getTextContent();
+      text+=' '+tc.items.map(it=>it.str).join(' ');
+    }
+    const norm=text.replace(/\s+/g,' ');
+    let found=null;
+    for(const n of INSURERS){ if(norm.toLowerCase().includes(n.toLowerCase())){ found=n; break; } }
+    if(found) document.getElementById('vIns').value=found;
+    // telefon do 200 znaku od slova "asisten"
+    let tel=null;
+    const ai=norm.toLowerCase().indexOf('asisten');
+    if(ai>-1){
+      const okoli=norm.slice(Math.max(0,ai-100), ai+250);
+      const m=okoli.match(/(?:\+420\s?)?\d{3}\s?\d{3}\s?\d{3}/);
+      if(m) tel=m[0].trim();
+    }
+    if(tel) document.getElementById('vAsist').value=tel;
+    if(found||tel) toast('Načteno: '+(found||'')+(found&&tel?' · ':'')+(tel||'')+' — zkontrolujte prosím.');
+    else toast('Ve smlouvě se nepodařilo najít pojišťovnu ani asistenci — doplňte prosím ručně.');
+  }catch(e){ toast('PDF se nepodařilo přečíst — doplňte údaje ručně.'); }
 }
 function addVehicle(){
   const spz=(document.getElementById('vSpz').value||'').trim().toUpperCase();
   if(!spz){ toast('Zadejte prosím SPZ nebo název vozidla.'); return; }
   const vs=getVehicles();
-  vs.push({spz, stk:document.getElementById('vStk').value||'', poj:document.getElementById('vPoj').value||'', znamka:document.getElementById('vZn').value||''});
+  vs.push({spz, stk:document.getElementById('vStk').value||'', poj:document.getElementById('vPoj').value||'', znamka:document.getElementById('vZn').value||'',
+    ins:(document.getElementById('vIns').value||'').trim(), asist:(document.getElementById('vAsist').value||'').trim()});
   setVehicles(vs); renderVozidla(); toast('Vozidlo přidáno.');
 }
 function rmVehicle(i){
