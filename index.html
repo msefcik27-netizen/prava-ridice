@@ -368,13 +368,13 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 /* ===== STANDALONE (z plochy) — MUSÍ být na konci CSS kvůli kaskádě ===== */
 #view{overscroll-behavior:contain;}
 @media(display-mode: standalone){
-  .safe-top{padding-top:max(calc(env(safe-area-inset-top) + 10px), 59px);}
-  .subhead{padding-top:max(calc(env(safe-area-inset-top) + 12px), 61px);}
-  #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 69px);}
+  .safe-top{padding-top:max(calc(env(safe-area-inset-top) + 10px), 12px);}
+  .subhead{padding-top:max(calc(env(safe-area-inset-top) + 12px), 14px);}
+  #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 26px);}
 }
-html.standalone .safe-top{padding-top:max(calc(env(safe-area-inset-top) + 10px), 59px) !important;}
-html.standalone .subhead{padding-top:max(calc(env(safe-area-inset-top) + 12px), 61px) !important;}
-html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 69px) !important;}
+html.standalone .safe-top{padding-top:max(calc(env(safe-area-inset-top) + 10px), 12px) !important;}
+html.standalone .subhead{padding-top:max(calc(env(safe-area-inset-top) + 12px), 14px) !important;}
+html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 26px) !important;}
 
 /* Install button on onboarding */
 .btn-install{background:#fff;color:var(--teal-900);font-weight:800;}
@@ -643,7 +643,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 0.9.0 · build 29</div>
+        <div class="ver">Verze 0.9.2 · build 31</div>
       </div>
     </div>
 
@@ -954,9 +954,7 @@ function extendToTrueBottom(){
 function fitNavSafe(){
   try{
     if(navExtended){ document.documentElement.style.setProperty('--nav-safe','10px'); return; }
-    const diff=(screen.height||0) - window.innerHeight;
-    if(diff>40){ document.documentElement.style.setProperty('--nav-safe','0px'); }
-    else if(diff<=2 && isStandalone()){ document.documentElement.style.setProperty('--nav-safe','18px'); }
+    if(isStandalone()){ document.documentElement.style.setProperty('--nav-safe','16px'); }
     else { document.documentElement.style.removeProperty('--nav-safe'); }
   }catch(e){}
 }
@@ -1020,7 +1018,7 @@ function renderPoints(){
   document.getElementById('ptSub').textContent='z 12 '+plural(12,'bod','body','bodů');
   let noteVerb = remain===0 ? 'Nezbývá vám žádný bod'
     : 'Zbýv'+(remain>=2&&remain<=4?'ají':'á')+' vám '+remain+' '+plural(remain,'bod','body','bodů');
-  document.getElementById('ptNote').textContent = noteVerb + (remain===0?' do hranice 12 bodů.':' do hranice 12 bodů.');
+  document.getElementById('ptNote').textContent = noteVerb + ' do hranice 12 bodů.' + ((p>=6&&p<=7)?' Pozor: jediný 6bodový přestupek může znamenat vybodování.':'');
   // progress + color
   const bar=document.getElementById('ptBar');
   bar.style.width=(p/12*100)+'%';
@@ -1031,9 +1029,9 @@ function renderPoints(){
   // badge: pro 0–5 se nezobrazuje
   const pill=document.getElementById('riskPill');
   pill.style.display = p<=5 ? 'none' : 'inline-flex';
-  if(p>=12){pill.innerHTML='<span class="dot" style="background:var(--red)"></span> Rizikové';}
-  else if(p>=8){pill.innerHTML='<span class="dot" style="background:var(--orange)"></span> Zvýšené';}
-  else if(p>=6){pill.innerHTML='<span class="dot" style="background:#e0b52c"></span> Sledujte';}
+  if(p>=12){pill.innerHTML='<span class="dot" style="background:var(--red)"></span> Vybodování';}
+  else if(p>=8){pill.innerHTML='<span class="dot" style="background:var(--orange)"></span> Kritické';}
+  else if(p>=6){pill.innerHTML='<span class="dot" style="background:#e0b52c"></span> Rizikové';}
   // od 8 bodu: urgentni kontakt NAHRADI kartu notifikaci; PDF/vozidla zustavaji
   const urgent = p>=8;
   document.getElementById('consult12').style.display = urgent ? 'block':'none';
