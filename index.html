@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#10464b" />
+<meta name="theme-color" content="#0A4250" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-touch-fullscreen" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -17,15 +17,15 @@
 <style>
 :root{
   --nav-safe:min(env(safe-area-inset-bottom), 14px);
-  --teal-900:#10464b;      /* onboarding / brand deep */
-  --teal-850:#123f41;
-  --teal-800:#123c3b;      /* dark status card */
-  --teal-700:#1a5257;
-  --peach:#f6c9a7;         /* primary accent button */
-  --peach-strong:#f2b78e;
-  --peach-100:#f8e3d3;     /* soft icon / pill bg */
-  --cream:#f6ead9;         /* police card bg */
-  --cream-line:#ecdcc6;
+  --teal-900:#0A4250;
+  --teal-850:#0B4552;
+  --teal-800:#0C4956;
+  --teal-700:#136076;
+  --peach:#F0C2AF;
+  --peach-strong:#E6AC93;
+  --peach-100:#F8E2D8;
+  --cream:#F8EBE2;
+  --cream-line:#EDD6C8;
   --bg:#f3f2ef;            /* app light background */
   --card:#ffffff;
   --ink:#12312f;           /* primary dark text */
@@ -74,6 +74,7 @@ body{
 @keyframes pageOutL{from{transform:none;}to{transform:translateX(-100%);}}
 @keyframes pageOutR{from{transform:none;}to{transform:translateX(100%);}}
 .screen.leaving{display:flex !important;flex-direction:column;position:absolute;inset:0;z-index:1;pointer-events:none;}
+.screen.peek{display:flex !important;flex-direction:column;position:absolute;inset:0;z-index:1;pointer-events:none;}
 .pad{padding:14px 14px 22px;}
 .safe-top{padding-top:calc(env(safe-area-inset-top) + 10px);}
 
@@ -403,7 +404,14 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
   <!-- ONBOARDING -->
   <div id="onboard">
     <svg class="road" viewBox="0 0 200 320" fill="none" stroke="#ffffff" stroke-width="10" stroke-dasharray="2 16" stroke-linecap="round"><path d="M150 10 C 60 60, 60 130, 150 170 S 60 270, 120 315"/></svg>
-    <div class="logo">§</div>
+    <div class="logo" style="border:none;width:110px;height:110px;">
+      <svg viewBox="0 0 100 100" width="110" height="110" fill="none">
+        <path d="M 22 28 A 34 34 0 0 1 78 28" stroke="#F0C2AF" stroke-width="7" stroke-linecap="round"/>
+        <path d="M 78 72 A 34 34 0 0 1 22 72" stroke="#F0C2AF" stroke-width="7" stroke-linecap="round"/>
+        <path d="M 61 33 A 11 11 0 1 0 44 42 L 56 58 A 11 11 0 1 1 39 67" stroke="#F0C2AF" stroke-width="13" stroke-linecap="round"/>
+        <path d="M 61 33 A 11 11 0 1 0 44 42 L 56 58 A 11 11 0 1 1 39 67" stroke="#0A4250" stroke-width="1.6" stroke-dasharray="4 4" stroke-linecap="round"/>
+      </svg>
+    </div>
     <div class="spacer"></div>
     <div class="ob-eyebrow">Právní ochrana řidiče</div>
     <h1 class="title-xl">Zachráníme<br/>vám řidičák.</h1>
@@ -642,7 +650,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 0.7.0 · build 25</div>
+        <div class="ver">Verze 0.8.0 · build 27</div>
       </div>
     </div>
 
@@ -667,8 +675,10 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 
     <!-- SUB: KONZULTACE FORM -->
     <div class="screen" id="s-konzultace">
-      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title">Nezávazná konzultace</div></div>
+      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title"></div></div>
       <div class="pad">
+        <h1 class="title-lg" style="margin-bottom:4px;">Napište nám</h1>
+        <p class="muted" style="margin:0 0 14px;font-size:13.5px;line-height:1.5;">Ozveme se vám neprodleně. Posouzení je zdarma a nezávazné.</p>
         <div class="field">
           <label>Jméno</label>
           <input type="text" id="fName" autocapitalize="words" placeholder="Jan Novák" />
@@ -707,7 +717,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 
     <!-- SUB: KALKULAČKA -->
     <div class="screen" id="s-calc">
-      <div class="subhead"><button class="back-btn" onclick="calcBack()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg><span id="calcBackLabel">Zpět</span></button><div class="sh-title">Alkohol za volantem</div></div>
+      <div class="subhead"><button class="back-btn" onclick="calcBack()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title">Alkohol za volantem</div></div>
       <div class="pad" id="calcBody"></div>
     </div>
 
@@ -860,7 +870,7 @@ const GUIDE=[
   {t:'Pozitivní test na drogy',c:'Trestné činy',d:'Obhajoba při pozitivním testu na návykové látky.',
    b:'Pozitivní test na návykové látky může být přestupkem i trestným činem podle naměřených hodnot. Obhajoba se zaměřuje na prahové hodnoty a správnost odběru.',u:WEB+'/rizeni-pod-vlivem-drog'},
   {t:'Odmítnutí testu na alkohol nebo drogy',c:'Trestné činy',d:'Jaké následky má odmítnutí zkoušky.',
-   b:'Odmítnutí dechové zkoušky či testu na drogy má vlastní sankce a je posuzováno přísně. Podrobnosti a možnosti obhajoby najdete na webu.',u:WEB+'/odmitnuti-testu-na-alkohol-nebo-drogy'}]},
+   b:'Odmítnutí je vždy přestupek (§ 125c/1d) bez záznamu v rejstříku trestů: pokuta 25 000–75 000 Kč, zákaz řízení 18–36 měsíců, 6 bodů a povinný psychoterapeutický program pro navrácení oprávnění.',u:WEB+'/odmitnuti-testu-na-alkohol-nebo-drogy'}]},
  {id:'rychlost',n:'Rychlost a přestupky',ic:'gauge',topics:[
   {t:'Překročení rychlosti',c:'Přestupky',d:'Obhajoba u přestupku i správního řízení.',
    b:'Sankce se odvíjí od pásma překročení a místa (obec/mimo obec). Obhajoba míří na správnost měření a procesní vady ve správním řízení.',u:WEB+'/prekroceni-rychlosti'},
@@ -894,15 +904,6 @@ const PROFILE_LINKS = [
   {t:'Kontakt',s:'Telefony, e-maily a pobočky',a:"openKontakt()"},
   {t:'Média a rozhovory',s:'Otevře web pravaridice.cz',a:"openExt('https://www.pravaridice.cz/')",ext:true},
 ];
-const DRINKS = [
-  {n:'Pivo světlé 10°',ml:500,abv:4},{n:'Pivo světlé 11°',ml:500,abv:4.6},
-  {n:'Pivo 12°',ml:500,abv:5},{n:'Pivo nealko',ml:500,abv:0.5},
-  {n:'Víno bílé',ml:200,abv:11},{n:'Víno červené',ml:200,abv:13},
-  {n:'Panák (40%)',ml:40,abv:40},{n:'Panák (50%)',ml:40,abv:50},
-  {n:'Aperol spritz',ml:200,abv:11},{n:'Cider',ml:330,abv:4.5},
-  {n:'Sekt / prosecco',ml:100,abv:11},{n:'Rum s colou',ml:300,abv:8},
-];
-
 /* ============ STATE ============ */
 let state = {tab:'prehled', screen:'prehled', points:6, notif:true, unread:1, fileName:'', promoOk:false, guideChip:null,
   history:[], calc:{step:1, gender:'m', weight:80, hours:1.0, drinks:[], estimate:null}};
@@ -917,7 +918,7 @@ function updateChromeBg(){
   const sheetOpen=document.getElementById('sheet').classList.contains('show');
   const onboardVisible=document.getElementById('onboard').style.display!=='none';
   if(sheetOpen) bg='#ffffff';
-  else if(onboardVisible) bg='#10464b';
+  else if(onboardVisible) bg='#0A4250';
   else if(TABS.includes(state.screen)) bg='#ffffff';
   else bg='#f3f2ef';
   document.body.style.background=bg;
@@ -996,7 +997,7 @@ function tab(name){
   const prev=TABS.indexOf(state.screen), next=TABS.indexOf(name);
   state.tab=name; state.screen=name; state.history=[];
   showScreen(name);
-  if(prev>-1 && next>-1 && prev!==next){
+  if(!suppressTabAnim && prev>-1 && next>-1 && prev!==next){
     const oldScr=document.getElementById('s-'+TABS[prev]);
     const scr=document.getElementById('s-'+name);
     const dolava=next>prev;
@@ -1247,110 +1248,123 @@ function submitForm(){
 }
 function callUs(){ window.location.href='tel:+420739662266'; }
 
-/* ============ KALKULAČKA (fixes applied) ============ */
-function openCalc(){ state.calc={step:1,gender:'m',weight:state.calc.weight||80,hours:1.0,drinks:[],estimate:null}; go('calc'); renderCalc(); }
-function calcBack(){ // FIX: single back button, steps in-flow
-  if(state.calc.step>1){ state.calc.step--; renderCalc(); }
+/* ============ PRŮVODCE POLICEJNÍ KONTROLOU (dle PRAVA_RIDICE_kompletni kalkulačka.xlsx) ============ */
+const DRINKS=[["Pivo světlé 10°",500,4],["Pivo světlé 11°",500,4.5],["Pivo světlé 12°",500,5],["Pivo malé 10°",300,4],["Pivo malé 12°",300,5],["Pivo tmavé 13°",500,5.5],["Pivo nealko",500,0.4],["Radler 2%",500,2],["Cider 4,5%",330,4.5],["Víno bílé/červené (2 dcl)",200,12],["Víno rosé",200,11.5],["Prosecco / sekt",150,11],["Šampaňské",150,12],["Víno celá lahev",750,12],["Svařené víno",200,10],["Portské 20%",100,20],["Vermouth / Martini",75,15],["Vodka / Rum / Gin 40% (panák)",50,40],["Whisky 43%",50,43],["Tequila 38%",50,38],["Slivovice 52%",50,52],["Destilát 60%",50,60],["Fernet / Becherovka",50,38],["Rum 44%",50,44],["Aperol 11%",50,11],["Campari 25%",50,25],["Kahlúa 20%",50,20],["Baileys 17%",50,17],["Malibu 21%",50,21],["Jägermeister 35%",50,35],["Borovička 37,5%",50,37.5],["Aperol Spritz",300,8.3],["Hugo",300,7],["Mojito",300,10],["Cuba Libre",300,10.7],["Gin & Tonic",300,10.7],["Vodka Tonic",300,10],["Beton",300,10.7],["Margarita",200,20],["Cosmopolitan",150,22],["Espresso Martini",150,22],["Negroni",150,24],["Vinný střik",300,9],["Sangria",300,9],["Long Island Ice Tea",350,17.1],["Moscow Mule",300,10],["Sex on the Beach",300,10.7],["White Russian",200,17],["Tequila Sunrise",300,10],["Piña Colada",300,10],["Caipirinha",200,15],["Mimosa",200,7.5],["Bellini",150,8],["Shot 40% (2,5 cl)",25,40],["Chupito / Jäger shot",20,35],["Bomb shot (pivo+shot)",350,7],["Hard seltzer 5%",330,5],["Alcopop / Mix 5,5%",275,5.5],["Vodka + energeťák",250,8]].map(x=>({n:x[0],ml:x[1],abv:x[2]}));
+const TEL='+420739662266', TELTXT='739 662 266';
+const OUTS={
+OUT_A4:{c:'warn',t:'Policie vás vyzve k druhé dechové zkoušce',b:'CALL',x:`Hodnota první zkoušky je pod 1 ‰ – policie bude trvat na druhém měření.\n\nPokud jste pil/a naposled před méně než 60 minutami, hladina může ještě stoupat a druhé měření může dosáhnout 1 ‰ → trestný čin.\n\nPokud potřebujete 100% čistý rejstřík trestů: odmítněte druhou dechovou zkoušku i odběr krve.\nCo vám hrozí za odmítnutí:\n• Správní pokuta 25 000–75 000 Kč\n• Zákaz řízení 18–36 měsíců\n• 6 bodů do karty řidiče\n• BEZ záznamu v rejstříku trestů\n• Povinný psychoterapeutický program pro navrácení ŘO\n\nPokud jste pil/a před 2 hodinami a déle, hladina by měla klesat – druhá zkouška je pravděpodobně bezpečná.\nCo vám hrozí za přestupek (pod 1 ‰):\n• Správní pokuta 7 000–25 000 Kč\n• Zákaz řízení 6–18 měsíců\n• 6 bodů do karty řidiče\n\nNic nepodepisujte, chovejte se slušně. Neprodleně nás kontaktujte.`},
+OUT_A5:{c:'danger',t:'Hodnota 1,00 ‰ a více – trestný čin § 274 TZ',b:'CALL',x:`Co vám hrozí:\n• Peněžitý trest nebo podmíněný trest odnětí svobody\n• Odnětí svobody až 1 rok (při nehodě, ublížení na zdraví nebo recidivě až 3 roky)\n• Zákaz řízení 1–10 let\n• 6 bodů do karty řidiče\n• Záznam v rejstříku trestů\n\nI v tuto chvíli nejste bez šance – lze se pokusit o podmíněné zastavení trestního stíhání, což se rovná čistému rejstříku trestů. K tomu ale potřebujeme okamžitě začít pracovat na vašem případu.\n\nNic nepodepisujte, chovejte se slušně. Zavolejte nám ihned.`},
+OUT_A7ok:{c:'ok',t:'Přestupek – rejstřík trestů zůstane čistý',b:'SEC',x:`Obě naměřené hodnoty jsou pod 1 ‰. Věc bude řešena jako přestupek ve správním řízení.\n\nCo vám hrozí:\n• Správní pokuta 7 000–25 000 Kč\n• Zákaz řízení 6–18 měsíců\n• 6 bodů do karty řidiče\n• Bez záznamu v rejstříku trestů\n\nNic nepodepisujte, chovejte se slušně. Kontaktujte nás – i u přestupku dokážeme výrazně snížit nebo zrušit pokutu a zákaz řízení.`},
+OUT_A7tc:{c:'danger',t:'Alespoň jedna hodnota nad 1 ‰ – trestný čin § 274 TZ',b:'CALL',x:`Co vám hrozí:\n• Peněžitý trest nebo podmíněný trest odnětí svobody\n• Odnětí svobody až 1 rok (při nehodě, ublížení na zdraví nebo recidivě až 3 roky)\n• Zákaz řízení 1–10 let\n• 6 bodů do karty řidiče\n• Záznam v rejstříku trestů\n\nI v tuto chvíli je možné pokusit se o podmíněné zastavení trestního stíhání, což se rovná čistému rejstříku trestů. Potřebujeme ale začít jednat okamžitě.\n\nNic nepodepisujte, chovejte se slušně. Zavolejte nám ihned.`},
+OUT_A9a:{c:'ok',t:'Pravděpodobně přestupek – dýchejte',b:'SEC',x:`Dle odhadu byste měl/a nadýchat pod 1 ‰.\n\nCo vám hrozí za přestupek:\n• Správní pokuta 7 000–25 000 Kč\n• Zákaz řízení 6–18 měsíců\n• 6 bodů do karty řidiče\n• BEZ záznamu v rejstříku trestů\n\nPokud první dechová zkouška ukáže hodnotu blízkou 0,9 ‰ a pili jste méně než 60 minut zpátky, hladina může ještě stoupat. V takovém případě odmítněte druhou zkoušku a odběr krve.\n\nNic nepodepisujte, chovejte se slušně. Kontaktujte nás.`},
+OUT_A9b:{c:'warn',t:'Hraniční situace – zvažte odmítnutí',b:'CALL',x:`Hodnota může být těsně na hranici 1 ‰ nebo nad ní – to zakládá trestný čin.\n\nPokud potřebujete 100% čistý rejstřík trestů: odmítněte dechovou zkoušku i odběr krve.\nCo vám hrozí za odmítnutí:\n• Správní pokuta 25 000–75 000 Kč\n• Zákaz řízení 18–36 měsíců\n• 6 bodů do karty řidiče\n• BEZ záznamu v rejstříku trestů\n• Povinný psychoterapeutický program pro navrácení ŘO\n\nNic nepodepisujte, chovejte se slušně. Neprodleně nás kontaktujte.`},
+OUT_A9c:{c:'danger',t:'Hrozí trestný čin – odmítněte a zavolejte nám',b:'CALL',x:`Dle odhadu hodnota pravděpodobně 1 ‰ a více – trestný čin dle § 274 TZ.\n\nCo hrozí za trestný čin:\n• Peněžitý trest nebo podmíněný trest\n• Odnětí svobody až 1 rok (při nehodě / ublížení / recidivě až 3 roky)\n• Zákaz řízení 1–10 let\n• 6 bodů do karty řidiče\n• Záznam v rejstříku trestů\n\nPokud potřebujete čistý rejstřík trestů: odmítněte dechovou zkoušku i odběr krve.\nCo hrozí za odmítnutí:\n• Správní pokuta 25 000–75 000 Kč\n• Zákaz řízení 18–36 měsíců\n• 6 bodů do karty řidiče\n• BEZ záznamu v rejstříku trestů\n\nNic nepodepisujte, chovejte se slušně. Zavolejte nám ihned.`},
+OUT_A9d:{c:'info',t:'Nevíte kolik – nic nepodepisujte a zavolejte nám',b:'CALL',x:`Bez odhadu hladiny nedoporučujeme žádný konkrétní postup.\n\nNic nepodepisujte, chovejte se slušně. Zavolejte nám ihned a poradíme vám konkrétně.`},
+OUT_D2ok:{c:'ok',t:'Přestupek – podstoupit odběr',b:'SEC',x:`Dle kalkulačky by výsledky měly být v pásmu přestupku nebo pod hranicí.\n\nCo vám hrozí za přestupek:\n• Správní pokuta 7 000–25 000 Kč\n• Zákaz řízení 6–18 měsíců\n• 6 bodů do karty řidiče\n• BEZ záznamu v rejstříku trestů\n\nNic nepodepisujte, chovejte se slušně. Kontaktujte nás – i u přestupku dokážeme výrazně snížit nebo zrušit sankci.`},
+OUT_D2tc:{c:'danger',t:'Odmítněte odběr – hrozí trestný čin',b:'CALL',x:`Dle kalkulačky jsou hodnoty v pásmu trestného činu.\n\nCo hrozí za trestný čin:\n• Peněžitý trest nebo podmíněný trest\n• Odnětí svobody až 1 rok (při nehodě / ublížení / recidivě až 3 roky)\n• Zákaz řízení 1–10 let\n• 6 bodů do karty řidiče\n• Záznam v rejstříku trestů\n\nPokud chcete čistý rejstřík trestů nebo jste v minulosti byli trestně stíhán/a nebo uvězněn/a: odmítněte odběr.\nCo hrozí za odmítnutí:\n• Správní pokuta 25 000–75 000 Kč\n• Zákaz řízení 18–36 měsíců\n• 6 bodů do karty řidiče\n• BEZ záznamu v rejstříku trestů\n• Povinný psychoterapeutický program\n\nNic nepodepisujte, chovejte se slušně. Zavolejte nám ihned.`},
+OUT_D2nev:{c:'warn',t:'Proveďte rychle kalkulačku – nebo odmítněte',b:'CALL',x:`Než se rozhodnete, zkuste si v kalkulačce odhadnout svou hladinu.\n\nPokud chcete mít jistotu čistého rejstříku trestů nebo jste v minulosti byli trestně stíhán/a nebo uvězněn/a: odmítněte odběr.\nCo hrozí za odmítnutí:\n• Správní pokuta 25 000–75 000 Kč\n• Zákaz řízení 18–36 měsíců\n• 6 bodů do karty řidiče\n• BEZ záznamu v rejstříku trestů\n• Povinný psychoterapeutický program\n\nNic nepodepisujte, chovejte se slušně. Zavolejte nám.`},
+OUT_D3ok:{c:'ok',t:'Odběr proběhl – pravděpodobně přestupek',b:'SEC',x:`Dle kalkulačky by výsledky měly být v pásmu přestupku.\n\nCo vám hrozí za přestupek:\n• Správní pokuta 7 000–25 000 Kč\n• Zákaz řízení 6–18 měsíců\n• 6 bodů do karty řidiče\n• BEZ záznamu v rejstříku trestů\n\nNic nepodepisujte, chovejte se slušně. Kontaktujte nás – i u přestupku dokážeme výrazně snížit nebo zrušit sankci.`},
+OUT_D3tc:{c:'danger',t:'Odběr proběhl – dle kalkulačky hrozí trestný čin',b:'CALL',x:`Co hrozí za trestný čin:\n• Peněžitý trest nebo podmíněný trest\n• Odnětí svobody až 1 rok (při nehodě / ublížení / recidivě až 3 roky)\n• Zákaz řízení 1–10 let\n• 6 bodů do karty řidiče\n• Záznam v rejstříku trestů\n\nI v tuto chvíli je možné pokusit se o podmíněné zastavení trestního stíhání, což se rovná čistému rejstříku trestů. Potřebujeme ale začít jednat okamžitě.\n\nNic nepodepisujte, chovejte se slušně. Zavolejte nám ihned.`},
+OUT_D3nev:{c:'danger',t:'Odběr proběhl – kontaktujte nás ihned',b:'CALL',x:`Zkuste si v kalkulačce odhadnout, v jakém pásmu se pohybujete.\n\nI pokud výsledky ukáží trestný čin:\n• Lze se pokusit o podmíněné zastavení trestního stíhání = čistý rejstřík trestů\n• Potřebujeme ale začít jednat okamžitě\n\nCo hrozí za trestný čin (pro srovnání):\n• Peněžitý trest nebo podmíněný trest\n• Odnětí svobody až 1 rok (při nehodě / ublížení / recidivě až 3 roky)\n• Zákaz řízení 1–10 let\n• 6 bodů do karty řidiče\n• Záznam v rejstříku trestů\n\nNic nepodepisujte, chovejte se slušně. Zavolejte nám ihned.`},
+OUT_D4:{c:'warn',t:'Odmítnutí odběru – přestupek, rejstřík čistý',b:'SEC',x:`Odmítnutí odběru krve nebo moči je vždy přestupek (§ 125c/1d) – BEZ záznamu v trestním rejstříku.\n\nCo vám hrozí za odmítnutí:\n• Správní pokuta 25 000–75 000 Kč\n• Zákaz řízení 18–36 měsíců\n• 6 bodů do karty řidiče\n• Povinný psychoterapeutický program pro navrácení ŘO\n\nNic nepodepisujte, chovejte se slušně. Kontaktujte nás – i přestupek lze výrazně snížit nebo zrušit.`}};
+const ATREE={A1:{q:'Absolvoval/a jste již dechovou zkoušku?',o:[['Ano','A2'],['Ne, ještě jsem nedýchal/a','A8']]},A2:{q:'Kolikrát jste dýchal/a?',o:[['Jednou','A3'],['Dvakrát','A6']]},A3:{q:'Jaká byla naměřená hodnota?',o:[['Do 0,99 ‰','OUT_A4'],['1,00 ‰ a více','OUT_A5']]},A6:{q:'Byly obě naměřené hodnoty pod 1,00 ‰?',o:[['Ano, obě pod 1 ‰','OUT_A7ok'],['Ne, alespoň jedna ≥ 1 ‰','OUT_A7tc']]},A8:{q:'Víte přibližně, kolik jste vypil/a?',o:[['Nadýchám pod 1 ‰','OUT_A9a'],['Mohu být kolem 1 ‰','OUT_A9b'],['Pravděpodobně nad 1 ‰','OUT_A9c'],['Nevím','OUT_A9d']]}};
+const DTREE={D1:{q:'Byl/a jste vyzván/a k odběru krve nebo moči?',o:[['Ne, ještě ne','D2'],['Ano, odběr již proběhl','D3'],['Odmítl/a jsem odběr','OUT_D4']]},D2:{q:'Jaký je výsledek kalkulačky drog?',o:[['Pod hranicí / přestupek','OUT_D2ok'],['Trestný čin','OUT_D2tc'],['Kalkulačku jsem přeskočil/a','OUT_D2nev']]},D3:{q:'Odběr proběhl – jaký je odhadovaný výsledek kalkulačky?',o:[['Pod hranicí / přestupek','OUT_D3ok'],['Trestný čin','OUT_D3tc'],['Kalkulačku jsem přeskočil/a','OUT_D3nev']]}};
+const DRUGS=[{n:'THC',k:'thc',pMin:2,pMax:9.99,hl:{m:[1.2,2.5,5],z:[1.5,3,6.5]},pk:{m:[80,60,40],z:[110,85,55]},pt:0.17,wf:0.008},{n:'Pervitin',k:'pervitin',pMin:25,pMax:149.99,hl:{m:[10,10,12],z:[10,11,13]},pk:{m:[300,400,600],z:[350,460,690]},pt:0.2,wf:0.004},{n:'Amfetamin',k:'amfetamin',pMin:25,pMax:149.99,hl:{m:[10,10,12],z:[10,11,13]},pk:{m:[200,300,450],z:[230,345,520]},pt:0.3,wf:0.004},{n:'MDMA',k:'mdma',pMin:25,pMax:149.99,hl:{m:[8.7,9,10],z:[9.5,10,11]},pk:{m:[250,350,500],z:[290,400,575]},pt:0.5,wf:0.005},{n:'MDA',k:'mda',pMin:25,pMax:149.99,hl:{m:[9,9.5,11],z:[10,10.5,12]},pk:{m:[230,320,480],z:[265,370,550]},pt:0.5,wf:0.005},{n:'Kokain',k:'kokain',pMin:25,pMax:74.99,hl:{m:[1.2,2,3.5],z:[1.4,2.3,4]},pk:{m:[200,280,400],z:[230,320,460]},pt:0.1,wf:0.004},{n:'Morfin',k:'morfin',pMin:10,pMax:199.99,hl:{m:[2.5,3,4],z:[3,3.5,4.5]},pk:{m:[150,250,400],z:[175,290,460]},pt:0.3,wf:0.005}];
+let cg={mode:null,node:null,bac:null,dEst:null,dClass:null,gender:'m',weight:75,hours:1.0,drinks:[],drug:0,freq:0};
+function openCalc(){ cg={mode:null,node:null,bac:null,dEst:null,dClass:null,gender:'m',weight:75,hours:1.0,drinks:[],drug:0,freq:0}; go('calc'); renderCalcG(); }
+function calcBack(){
+  if(cg.node&&cg.node!=='A0'&&cg.node!=='D0'){ cg.node=cg.mode==='alko'?'A0':'D0'; renderCalcG(); }
+  else if(cg.mode){ cg.mode=null; cg.node=null; renderCalcG(); }
   else backAuto();
 }
-function calcNext(){ if(state.calc.step<4){ state.calc.step++; renderCalc(); } }
-function renderCalc(){
-  const c=state.calc;
-  document.getElementById('calcBackLabel').textContent = c.step>1 ? 'Zpět' : 'Zpět';
-  const stepsHtml=`<div class="step-label">Krok ${c.step} z 4</div>
-    <div class="steps">${[1,2,3,4].map(i=>`<i class="${i<=c.step?'done':''}"></i>`).join('')}</div>`;
-  const body=document.getElementById('calcBody');
-  if(c.step===1){
-    body.innerHTML=stepsHtml+`
-      <div class="q">Zadejte pohlaví, váhu a čas od posledního napití. Hladinu odhadneme orientačně.</div>
-      <div class="field-label-sm">Pohlaví</div>
-      <div class="seg"><button class="${c.gender==='m'?'on':''}" onclick="setG('m')">Muž</button><button class="${c.gender==='f'?'on':''}" onclick="setG('f')">Žena</button></div>
-      <div class="field-label-sm">Tělesná hmotnost</div>
-      <div class="stepper"><button class="step-min" onclick="stepW(-5)">−</button><div class="val" onclick="editW()"><span id="wVal">${c.weight}</span><small>kg</small></div><button class="step-min" onclick="stepW(5)">+</button></div>
-      <div class="hint" style="margin-bottom:12px;">Klepnutím na číslo zadáte hodnotu přímo. Krok tlačítek je 5 kg.</div>
-      <div class="field-label-sm">Čas od posledního napití</div>
-      <div class="stepper"><button class="step-min" onclick="stepH(-0.5)">−</button><div class="val"><span id="hVal">${c.hours.toFixed(1)}</span><small>h</small></div><button class="step-min" onclick="stepH(0.5)">+</button></div>
-      <div class="sticky-cta" style="padding-left:0;padding-right:0;"><button class="btn btn-dark" onclick="calcNext()">Pokračovat</button></div>`;
-  }
-  else if(c.step===2){
-    body.innerHTML=stepsHtml+`
-      <div class="q">Co jste pil/a?</div>
-      <div class="drink-search">
-        <div class="search-box" style="margin-top:0;"><div class="search-input">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9aa3a0" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
-          <input id="drinkSearch" placeholder="Hledat nápoj (pivo, víno, panák, …)" oninput="renderDrinkOpts()"/>
-        </div></div>
-        <div id="drinkOpts"></div>
-      </div>
-      <div id="addedDrinks" style="margin-top:14px;"></div>
-      <div class="sticky-cta" style="padding-left:0;padding-right:0;"><button class="btn btn-dark" onclick="calcNext()">Pokračovat</button></div>`;
-    renderDrinkOpts(); renderAdded();
-  }
-  else if(c.step===3){
-    const est=estimateFromDrinks();
-    // FIX: prefill from step 2
-    const pre = est!==null ? `<div class="prefill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2f6a52" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg><span>Podle zadaných nápojů odhadujeme ~${est.toFixed(2)} ‰. Můžete potvrdit nebo upravit.</span></div>` : '';
-    body.innerHTML=stepsHtml+`
-      <div class="q">Víte přibližně kolik jste vypil/a?</div>${pre}
-      <div class="choice" onclick="setEst(0.5)">Nadýchám pod 1 ‰ <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9b79f" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>
-      <div class="choice" onclick="setEst(1.0)">Mohu být kolem 1 ‰ <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9b79f" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>
-      <div class="choice" onclick="setEst(1.5)">Pravděpodobně nad 1 ‰ <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9b79f" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>
-      <div class="choice" onclick="setEst(est!==null?est:1.0)">${est!==null?'Použít náš odhad ('+est.toFixed(2)+' ‰)':'Nevím'} <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9b79f" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>`;
-  }
-  else if(c.step===4){
-    const v=c.estimate!==null?c.estimate:(estimateFromDrinks()||0);
-    const cls=v<0.01?'ok':(v<0.5?'mid':'bad');
-    const head=v<0.01?'Pod hranicí – bez postihu':(v<0.5?'Nízká hladina – zvažte odklad jízdy':'Nesedejte za volant');
-    body.innerHTML=stepsHtml+`
-      <div class="q">Orientační výsledek</div>
-      <div class="result ${cls}">
-        <div class="big">${v.toFixed(2)} ‰</div>
-        <h4>${head}</h4>
-        <p>Odhad podle Widmarkova vzorce s korekcí na čas odbourávání (~0,15 ‰/h) a fyziologickou hladinu.</p>
-      </div>
-      <div class="disclaimer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#77837f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span>Orientační výpočet – přesnost přibližně 70–80 %. Nenahrazuje dechovou zkoušku ani krevní test.</span></div>
-      <button class="btn btn-dark" style="margin-top:16px;" onclick="go('konzultace')">Zastavila mě policie — potřebuji pomoc</button>`;
-  }
+function widmark(){
+  if(!cg.drinks.length) return null;
+  let g=0; cg.drinks.forEach(d=>{ g+=d.ml*(d.abv/100)*0.8*d.q; });
+  const r=cg.gender==='m'?0.70:0.60;
+  const peak=g/(cg.weight*r);
+  const el=cg.hours-0.75;
+  return Math.max(0, peak - Math.max(0,el)*0.12);
 }
-function setG(g){ state.calc.gender=g; renderCalc(); }
-function stepW(d){ state.calc.weight=Math.max(40,Math.min(200,state.calc.weight+d)); document.getElementById('wVal').textContent=state.calc.weight; }
-function editW(){ const v=prompt('Zadejte váhu v kg:',state.calc.weight); if(v){ const n=parseInt(v,10); if(!isNaN(n)) { state.calc.weight=Math.max(40,Math.min(250,n)); document.getElementById('wVal').textContent=state.calc.weight; } } }
-function stepH(d){ state.calc.hours=Math.max(0,Math.min(24,+(state.calc.hours+d).toFixed(1))); document.getElementById('hVal').textContent=state.calc.hours.toFixed(1); }
-function renderDrinkOpts(){
-  const q=(document.getElementById('drinkSearch')?.value||'').trim().toLowerCase();
-  const box=document.getElementById('drinkOpts'); if(!box)return;
-  if(!q){ box.innerHTML=''; return; }
-  const res=DRINKS.filter(d=>d.n.toLowerCase().includes(q));
-  box.innerHTML='<div class="drink-list">'+(res.length?res.map(d=>
-    `<div class="drink-opt" onclick="addDrink('${d.n}')"><span>${d.n}</span><small>${d.ml} ml · ${d.abv} %</small></div>`).join('')
-    :'<div class="drink-opt"><span>Nic nenalezeno</span></div>')+'</div>';
+function drugEst(){
+  const D=DRUGS[cg.drug], sx=cg.gender==='m'?'m':'z', f=cg.freq;
+  const wAdj=Math.min(2,Math.max(0.3, 1-(cg.weight-75)*D.wf));
+  const peak=D.pk[sx][f]*wAdj, hl=D.hl[sx][f];
+  if(cg.hours<=D.pt) return peak*(cg.hours/Math.max(D.pt,0.01));
+  return peak*Math.pow(0.5,(cg.hours-D.pt)/hl);
 }
-function addDrink(n){ const d=DRINKS.find(x=>x.n===n); const ex=state.calc.drinks.find(x=>x.n===n);
-  if(ex)ex.q++; else state.calc.drinks.push({...d,q:1});
-  document.getElementById('drinkSearch').value=''; renderDrinkOpts(); renderAdded(); }
-function renderAdded(){
-  const box=document.getElementById('addedDrinks'); if(!box)return;
-  box.innerHTML=state.calc.drinks.map((d,i)=>`
-    <div class="added">
-      <div class="info"><h5>${d.n}</h5><small>${d.ml} ml · ${d.abv} %</small></div>
-      <button class="qbtn" onclick="qDrink(${i},-1)">−</button><span class="qty">${d.q}</span><button class="qbtn" onclick="qDrink(${i},1)">+</button>
-      <button class="rm" onclick="rmDrink(${i})">✕</button>
-    </div>`).join('');
-  if(state.calc.drinks.length){ const est=estimateFromDrinks();
-    box.innerHTML+=`<div class="prefill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2f6a52" stroke-width="2" stroke-linecap="round"><path d="M12 8v5M12 16h.01"/><circle cx="12" cy="12" r="10"/></svg><span>Průběžný odhad: <b>${est.toFixed(2)} ‰</b></span></div>`; }
+function sanA(b){ if(b<0.01)return['ok','Pod hranicí – bez postihu']; if(b<0.31)return['ok','Přestupek: pokuta 7–25 tis. Kč, zákaz 6–18 měs., 0 bodů']; if(b<1)return['warn','Přestupek: pokuta 7–25 tis. Kč, zákaz 6–18 měs., 6 bodů, odebrání ŘP']; return['danger','Trestný čin § 274 TZ: zákaz 1–10 let, 6 bodů, záznam v rejstříku']; }
+function outBtns(o){
+  const lbl=o.b==='CALL'?('Zavolat Práva řidiče – '+TELTXT):'Kontaktovat – i přestupek lze řešit';
+  return '<a class="btn btn-dark" style="margin-top:14px;text-decoration:none;" href="tel:'+TEL+'">'+lbl+'</a>'+
+    '<button class="btn btn-outline-dark btn-sm" style="margin-top:8px;" onclick="go(\'konzultace\')">Napsat</button>'+
+    '<button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="openCalc()">Začít znovu</button>';
 }
-function qDrink(i,d){ state.calc.drinks[i].q+=d; if(state.calc.drinks[i].q<=0)state.calc.drinks.splice(i,1); renderAdded(); }
-function rmDrink(i){ state.calc.drinks.splice(i,1); renderAdded(); }
-function estimateFromDrinks(){
-  if(!state.calc.drinks.length)return null;
-  let grams=0; state.calc.drinks.forEach(d=>{ grams += d.ml*(d.abv/100)*0.789*d.q; });
-  const r=state.calc.gender==='m'?0.68:0.55;
-  let bac = grams/(state.calc.weight*r); // ‰ ~ g/l with rho approx
-  bac -= state.calc.hours*0.15; // elimination
-  bac -= 0.24; // device + physiological correction
-  return Math.max(0,bac);
+function stepsHtml(n,tot){ let h='<div class="step-label">Krok '+n+' z '+tot+'</div><div class="steps">'; for(let i=0;i<tot;i++)h+='<i class="'+(i<n?'done':'')+'"></i>'; return h+'</div>'; }
+function chevIco(){ return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9b79f" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>'; }
+function renderCalcG(){
+  const B=document.getElementById('calcBody');
+  document.querySelector('#s-calc .sh-title').textContent = cg.mode==='alko'?'Alkohol za volantem':(cg.mode==='drogy'?'Drogy za volantem':'Zastavila vás policie?');
+  if(!cg.mode){
+    B.innerHTML='<div class="q">Co u vás policie řeší?</div>'+
+      '<div class="choice" onclick="cg.mode=\'alko\';cg.node=\'A0\';renderCalcG()">Alkohol '+chevIco()+'</div>'+
+      '<div class="choice" onclick="cg.mode=\'drogy\';cg.node=\'D0\';renderCalcG()">Drogy '+chevIco()+'</div>'+
+      '<div class="disclaimer" style="margin-top:14px;"><span>Průvodce vás krok za krokem provede kontrolou a doporučí postup. Orientační — nenahrazuje právní pomoc.</span></div>';
+    return;
+  }
+  const node=cg.node;
+  if(node==='A0'){
+    const bac=widmark();
+    B.innerHTML=stepsHtml(1,3)+'<div class="q">Kalkulačka hladiny (volitelná)</div>'+
+      '<div class="field-label-sm">Pohlaví</div><div class="seg"><button class="'+(cg.gender==='m'?'on':'')+'" onclick="cg.gender=\'m\';renderCalcG()">Muž</button><button class="'+(cg.gender==='z'?'on':'')+'" onclick="cg.gender=\'z\';renderCalcG()">Žena</button></div>'+
+      '<div class="field-label-sm">Hmotnost</div><div class="stepper"><button class="step-min" onclick="cg.weight=Math.max(40,cg.weight-5);renderCalcG()">−</button><div class="val" onclick="var v=prompt(\'Váha v kg:\',cg.weight);if(v&&!isNaN(+v)){cg.weight=Math.max(40,Math.min(200,+v));renderCalcG();}">'+cg.weight+'<small>kg</small></div><button class="step-min" onclick="cg.weight=Math.min(200,cg.weight+5);renderCalcG()">+</button></div>'+
+      '<div class="field-label-sm">Hodin od posledního napití</div><div class="stepper"><button class="step-min" onclick="cg.hours=Math.max(0,+(cg.hours-0.5).toFixed(1));renderCalcG()">−</button><div class="val">'+cg.hours.toFixed(1)+'<small>h</small></div><button class="step-min" onclick="cg.hours=Math.min(24,+(cg.hours+0.5).toFixed(1));renderCalcG()">+</button></div>'+
+      '<div class="field-label-sm">Nápoje</div><div class="search-box" style="margin-top:0;"><div class="search-input"><input id="drinkQ" placeholder="Hledat (pivo, panák, mojito…)" oninput="drawDrinkOpts()"/></div><div id="drinkOpts"></div></div>'+
+      '<div style="margin-top:10px;">'+cg.drinks.map((d,i)=>'<div class="added"><div class="info"><h5>'+d.n+'</h5><small>'+d.ml+' ml · '+d.abv+'%</small></div><button class="qbtn" onclick="cg.drinks['+i+'].q--;if(cg.drinks['+i+'].q<1)cg.drinks.splice('+i+',1);renderCalcG()">−</button><span class="qty">'+d.q+'</span><button class="qbtn" onclick="cg.drinks['+i+'].q++;renderCalcG()">+</button></div>').join('')+'</div>'+
+      (bac!==null?'<div class="prefill"><span>Odhad: <b>'+bac.toFixed(2)+' ‰</b> · '+sanA(bac)[1]+'</span></div>':'')+
+      '<button class="btn btn-dark" style="margin-top:10px;" onclick="cg.bac=widmark();cg.node=\'A1\';renderCalcG()">'+(bac!==null?'Pokračovat s odhadem':'Přeskočit kalkulačku')+'</button>'+
+      '<div class="disclaimer" style="margin-top:10px;"><span>Orientační výpočet (Widmark, přesnost ~70–80 %). Policie od naměřené hodnoty odečítá 0,24 ‰ (odečet přístroje + fyziologická hladina). Nenahrazuje alkotest ani znalecký posudek.</span></div>';
+    return;
+  }
+  if(node==='D0'){
+    const D=DRUGS[cg.drug]; const est=drugEst();
+    const cls=est<D.pMin?['ok','pod hranicí']:(est<=D.pMax?['mid','přestupek']:['bad','trestný čin']);
+    cg.dEst=est; cg.dClass=est>D.pMax?'tc':'ok';
+    B.innerHTML=stepsHtml(1,3)+'<div class="q">Kalkulačka drog (doporučená)</div>'+
+      '<div class="field-label-sm">Látka</div><div class="chips">'+DRUGS.map((d,i)=>'<div class="chip '+(cg.drug===i?'active':'')+'" onclick="cg.drug='+i+';renderCalcG()">'+d.n+'</div>').join('')+'</div>'+
+      '<div class="field-label-sm">Pohlaví</div><div class="seg"><button class="'+(cg.gender==='m'?'on':'')+'" onclick="cg.gender=\'m\';renderCalcG()">Muž</button><button class="'+(cg.gender==='z'?'on':'')+'" onclick="cg.gender=\'z\';renderCalcG()">Žena</button></div>'+
+      '<div class="field-label-sm">Jak často užíváte</div><div class="seg"><button class="'+(cg.freq===0?'on':'')+'" onclick="cg.freq=0;renderCalcG()">Příležitostně</button><button class="'+(cg.freq===1?'on':'')+'" onclick="cg.freq=1;renderCalcG()">Pravidelně</button><button class="'+(cg.freq===2?'on':'')+'" onclick="cg.freq=2;renderCalcG()">Denně</button></div>'+
+      '<div class="field-label-sm">Hmotnost</div><div class="stepper"><button class="step-min" onclick="cg.weight=Math.max(40,cg.weight-5);renderCalcG()">−</button><div class="val" onclick="var v=prompt(\'Váha v kg:\',cg.weight);if(v&&!isNaN(+v)){cg.weight=Math.max(40,Math.min(200,+v));renderCalcG();}">'+cg.weight+'<small>kg</small></div><button class="step-min" onclick="cg.weight=Math.min(200,cg.weight+5);renderCalcG()">+</button></div>'+
+      '<div class="field-label-sm">Hodin od užití</div><div class="stepper"><button class="step-min" onclick="cg.hours=Math.max(0,+(cg.hours-1).toFixed(1));renderCalcG()">−</button><div class="val">'+cg.hours.toFixed(1)+'<small>h</small></div><button class="step-min" onclick="cg.hours=Math.min(72,+(cg.hours+1).toFixed(1));renderCalcG()">+</button></div>'+
+      '<div class="result '+cls[0]+'" style="margin-top:12px;"><div class="big">~'+est.toFixed(0)+' ng/ml</div><h4>'+D.n+': '+cls[1]+'</h4><p>Přestupek: '+D.pMin+'–'+D.pMax+' ng/ml · Trestný čin od: '+Math.round(D.pMax+0.01)+' ng/ml</p></div>'+
+      '<button class="btn btn-dark" style="margin-top:10px;" onclick="cg.node=\'D1\';renderCalcG()">Pokračovat</button>'+
+      '<button class="btn btn-outline-dark btn-sm" style="margin-top:8px;" onclick="cg.dEst=null;cg.dClass=null;cg.node=\'D1\';renderCalcG()">Přeskočit kalkulačku</button>'+
+      '<div class="disclaimer" style="margin-top:10px;"><span>Orientační farmakokinetický model (odchylka 30–50 %). Nenahrazuje laboratorní rozbor ani znalecký posudek.</span></div>';
+    return;
+  }
+  if(OUTS[node]){
+    const o=OUTS[node];
+    const cls=o.c==='ok'?'ok':(o.c==='danger'?'bad':'mid');
+    B.innerHTML='<div class="result '+cls+'"><h4 style="font-size:18px;">'+o.t+'</h4><p style="white-space:pre-line;margin-top:8px;">'+o.x+'</p></div>'+outBtns(o);
+    return;
+  }
+  const T=cg.mode==='alko'?ATREE:DTREE;
+  const n=T[node];
+  let sug=-1, hint='';
+  if(node==='A8'&&cg.bac!==null){ sug=cg.bac<0.8?0:(cg.bac<1.2?1:2); hint='<div class="prefill"><span>Odhad z kalkulačky: <b>'+cg.bac.toFixed(2)+' ‰</b> → doporučená volba označena ★</span></div>'; }
+  if((node==='D2'||node==='D3')&&cg.dClass){ sug=cg.dClass==='tc'?1:0; hint='<div class="prefill"><span>Kalkulačka: <b>~'+cg.dEst.toFixed(0)+' ng/ml</b> → doporučená volba označena ★</span></div>'; }
+  B.innerHTML=stepsHtml(2,3)+'<div class="q">'+n.q+'</div>'+hint+
+    n.o.map((op,i)=>'<div class="choice"'+(i===sug?' style="border:2px solid var(--teal-700);"':'')+' onclick="cg.node=\''+op[1]+'\';renderCalcG()">'+op[0]+(i===sug?' ★':'')+' '+chevIco()+'</div>').join('');
 }
-function setEst(v){ state.calc.estimate=v; calcNext(); }
+function drawDrinkOpts(){
+  const el=document.getElementById('drinkQ'); const box=document.getElementById('drinkOpts');
+  if(!el||!box)return;
+  const q=(el.value||'').trim().toLowerCase();
+  if(!q){box.innerHTML='';return;}
+  const res=DRINKS.filter(d=>d.n.toLowerCase().includes(q)).slice(0,8);
+  box.innerHTML='<div class="drink-list">'+(res.length?res.map(d=>'<div class="drink-opt" onclick="addDrinkG(\''+d.n.replace(/'/g,"\\'")+'\')"><span>'+d.n+'</span><small>'+d.ml+' ml · '+d.abv+'%</small></div>').join(''):'<div class="drink-opt"><span>Nenalezeno</span></div>')+'</div>';
+}
+function addDrinkG(n){ const d=DRINKS.find(x=>x.n===n); const ex=cg.drinks.find(x=>x.n===n); if(ex)ex.q++; else cg.drinks.push(Object.assign({q:1},d)); renderCalcG(); }
+
 
 /* ============ HELPERS ============ */
 function openExt(u){ toast('Otevírám: '+u.replace('https://','').replace(/\/$/,'')); try{window.open(u,'_blank');}catch(e){} }
@@ -1633,23 +1647,37 @@ updateChromeBg();
 if(isStandalone()){ document.documentElement.classList.add('standalone'); hideInstallUI(); const c=document.getElementById('installCardProfil'); if(c)c.style.display='none'; }
 else { maybeShowInstall(); }
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(()=>{}); }
-// Swipe mezi hlavními záložkami (jen na tabech, ne na podobrazovkách)
+// Interaktivní swipe: obrazovka jede s prstem
+let suppressTabAnim=false;
 (function(){
   const v=document.getElementById('view');
-  let x0=0,y0=0,t0=0,on=false;
-  v.addEventListener('touchstart',e=>{
-    if(!TABS.includes(state.screen)){ on=false; return; }
-    const t=e.touches[0]; x0=t.clientX; y0=t.clientY; t0=Date.now(); on=true;
-  },{passive:true});
+  let x0=0,y0=0,t0=0,tracking=false,drag=false,cur=null,nb=null,dir=0,W=0;
+  const el=n=>document.getElementById('s-'+n);
+  function cleanup(){ [cur,nb].forEach(sc=>{ if(sc){ sc.style.transition=''; sc.style.transform=''; sc.classList.remove('peek'); }}); cur=nb=null; drag=false; dir=0; }
+  v.addEventListener('touchstart',e=>{ if(!TABS.includes(state.screen)){tracking=false;return;} const t=e.touches[0]; x0=t.clientX;y0=t.clientY;t0=Date.now();tracking=true;drag=false;W=v.clientWidth; },{passive:true});
+  v.addEventListener('touchmove',e=>{
+    if(!tracking) return;
+    const t=e.touches[0]; const dx=t.clientX-x0, dy=t.clientY-y0;
+    if(!drag){
+      if(Math.abs(dx)<12 || Math.abs(dx)<Math.abs(dy)*1.2) return;
+      const i=TABS.indexOf(state.screen); const d=dx<0?1:-1; const ni=i+d;
+      if(ni<0||ni>=TABS.length){tracking=false;return;}
+      drag=true; dir=d; cur=el(state.screen); nb=el(TABS[ni]); nb.classList.add('peek');
+    }
+    e.preventDefault();
+    const dxx = dir===1?Math.min(0,dx):Math.max(0,dx);
+    cur.style.transform='translateX('+dxx+'px)';
+    nb.style.transform='translateX('+(dxx+dir*W)+'px)';
+  },{passive:false});
   v.addEventListener('touchend',e=>{
-    if(!on) return; on=false;
-    const t=e.changedTouches[0];
-    const dx=t.clientX-x0, dy=t.clientY-y0, dt=Date.now()-t0;
-    if(Math.abs(dx)<55 || Math.abs(dx)<Math.abs(dy)*1.4 || dt>650) return;
-    const i=TABS.indexOf(state.screen);
-    const ni = dx<0 ? i+1 : i-1;
-    if(ni<0 || ni>=TABS.length) return;
-    tab(TABS[ni]);
+    if(!tracking) return; tracking=false; if(!drag) return;
+    const t=e.changedTouches[0]; const dx=t.clientX-x0; const dt=Math.max(1,Date.now()-t0);
+    const go_=Math.abs(dx)>W*0.33 || Math.abs(dx)/dt>0.35;
+    const target=TABS[TABS.indexOf(state.screen)+dir];
+    const curEl=cur,nbEl=nb,d=dir;
+    function fin(x1,x2,cb){ [[curEl,x1],[nbEl,x2]].forEach(([sc,x])=>{ sc.style.transition='transform .2s cubic-bezier(.22,.61,.36,1)'; sc.style.transform='translateX('+x+'px)'; }); setTimeout(cb,215); }
+    if(go_) fin(-d*W,0,()=>{ suppressTabAnim=true; tab(target); suppressTabAnim=false; cleanup(); });
+    else fin(0,d*W,cleanup);
   },{passive:true});
 })();
 
