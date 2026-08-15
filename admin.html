@@ -73,11 +73,14 @@ main{max-width:1180px;margin:0 auto;padding:22px 20px 80px}
 label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;
       letter-spacing:.06em;margin:0 0 5px}
 .pole{margin-bottom:15px}
-input[type=text],select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+input[type=text],input[type=date],select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;
       background:#fff;color:var(--ink);outline:none}
-input[type=text]:focus,select:focus,textarea:focus{border-color:var(--teal-800);box-shadow:0 0 0 3px rgba(12,73,86,.09)}
+input[type=text]:focus,input[type=date]:focus,select:focus,textarea:focus{border-color:var(--teal-800);box-shadow:0 0 0 3px rgba(12,73,86,.09)}
 textarea{min-height:230px;resize:vertical;line-height:1.6}
 .napoveda{font-size:12px;color:var(--muted);margin:5px 0 0}
+input[type=date]{font-family:inherit;color:var(--ink);min-height:44px}
+input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.6;padding:2px}
+input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 .radky2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:620px){.radky2{grid-template-columns:1fr}}
 
@@ -462,10 +465,11 @@ function editorOblasti(){
       <div class="txt"><b>Zobrazit v aplikaci</b><span>Vypnuto = oblast uživatelé nevidí.</span></div>
       <div class="knof"></div></div>
     <div class="lista">
-      <button class="btn btn-hlavni" onclick="ulozOblast()">Uložit</button>
+      <button class="btn btn-hlavni" data-ulozit onclick="ulozOblast()">Uložit</button>
       <button class="btn btn-vedl" onclick="novaOblast('${o.id}')">+ Podoblast</button>
       <button class="btn btn-smaz vpravo" onclick="smazOblast('${o.id}')">Smazat oblast</button>
     </div>`;
+  hlidejFormular($('editor'));
 }
 
 async function novaOblast(rodicId){
@@ -550,10 +554,11 @@ function editorClanku(){
     <div id="nahled"></div>
 
     <div class="lista">
-      <button class="btn btn-hlavni" onclick="ulozClanek()">Uložit</button>
+      <button class="btn btn-hlavni" data-ulozit onclick="ulozClanek()">Uložit</button>
       <button class="btn btn-smaz vpravo" onclick="smazClanek('${c.id}')">Smazat článek</button>
     </div>`;
   nahledZamku();
+  hlidejFormular($('editor'));
 }
 
 function nahledZamku(){
@@ -652,9 +657,10 @@ function editorSluzby(){
       <div class="txt"><b>Zobrazit v aplikaci</b><span>Vypnuto = službu uživatelé nevidí.</span></div>
       <div class="knof"></div></div>
     <div class="lista">
-      <button class="btn btn-hlavni" onclick="ulozSluzbu()">Uložit</button>
+      <button class="btn btn-hlavni" data-ulozit onclick="ulozSluzbu()">Uložit</button>
       <button class="btn btn-smaz vpravo" onclick="smazSluzbu('${s.id}')">Smazat službu</button>
     </div>`;
+  hlidejFormular($('editorSluzby'));
 }
 
 async function novaSluzba(){
@@ -735,16 +741,17 @@ function kresliTexty(karta){
                <div class="txt"><b>Otevřít v novém okně</b><span>Vypnuto = odkaz se otevře přímo v aplikaci.</span></div>
                <div class="knof"></div></div>
              <div class="lista">
-               <button class="btn btn-hlavni" style="padding:8px 14px;font-size:13px" onclick="ulozBlok('${t.klic}')">Hotovo</button>
+               <button class="btn btn-hlavni" data-ulozit style="padding:8px 14px;font-size:13px" onclick="ulozBlok('${t.klic}')">Uložit</button>
                <button class="btn btn-smaz vpravo" style="padding:8px 12px;font-size:13px" onclick="smazBlok('${t.klic}')">Smazat blok</button>
              </div>`
           : ''}
       </div>`; }).join('')}
     <div class="lista">
-      <button class="btn btn-hlavni" onclick="ulozTexty('${karta}')">Uložit texty</button>
+      <button class="btn btn-hlavni" data-ulozit onclick="ulozTexty('${karta}')">Uložit</button>
       <button class="btn btn-vedl" onclick="novyBlok('${karta}')">+ Přidat blok</button>
     </div>
     ${karta==='zpravy' ? sekceZprav() : ''}`;
+  hlidejFormular(sek);
 }
 
 async function ulozTexty(karta, potichu){
@@ -804,6 +811,7 @@ function upravBlok(klic){
 
 async function ulozBlok(klic){
   const t = texty.find(x => x.klic === klic); if(!t) return;
+  if(bezeZmeny($('sek-'+t.karta))){ upravovane.delete(klic); kresliTexty(t.karta); return; }
   await ulozTexty(t.karta, true);
   upravovane.delete(klic);
   kresliTexty(t.karta);
@@ -834,6 +842,41 @@ async function smazBlok(klic){
   if(error){ hlaska('Smazání selhalo: '+error.message, true); return; }
   texty = texty.filter(x => x.klic !== klic);
   kresliTexty(t.karta); hlaska('Blok smazán.');
+}
+
+/* ---------- PRAVIDLO PRO VŠECHNY FORMULÁŘE ----------
+   Dokud se nic nezmění, hlavní tlačítko říká „Zavřít" a jen zavře.
+   Jakmile se něco změní, přepne se na „Uložit" a zvýrazní se.
+   Odpadá tím rozhodování, jestli je potřeba ukládat, i zbytečné zápisy. */
+function stavFormulare(el){
+  const casti = [];
+  el.querySelectorAll('input,textarea,select').forEach(x => casti.push(x.value));
+  el.querySelectorAll('.prepinac').forEach(x => casti.push(x.classList.contains('zap') ? '1' : '0'));
+  return casti.join('\u0001');
+}
+
+function hlidejFormular(el){
+  if(!el) return;
+  const btn = el.querySelector('[data-ulozit]');
+  if(!btn) return;
+  const puvodni = stavFormulare(el);
+  const prekresli = () => {
+    const zmeneno = stavFormulare(el) !== puvodni;
+    btn.dataset.zmeneno = zmeneno ? '1' : '';
+    btn.textContent = zmeneno ? 'Uložit' : 'Zavřít';
+    btn.classList.toggle('btn-hlavni', zmeneno);
+    btn.classList.toggle('btn-vedl', !zmeneno);
+  };
+  el.addEventListener('input', prekresli);
+  el.addEventListener('change', prekresli);
+  el.addEventListener('click', () => setTimeout(prekresli, 0));
+  prekresli();
+}
+
+/* Vrátí true, když se ve formuláři nic nezměnilo — volající pak jen zavře. */
+function bezeZmeny(el){
+  const btn = el && el.querySelector('[data-ulozit]');
+  return btn ? !btn.dataset.zmeneno : false;
 }
 
 /* ---------- ADMINISTRACE: klienti, kódy, statistiky ---------- */
@@ -880,6 +923,7 @@ function vykresliSpravu(){
     ${klienti.length ? klienti.map(k => vybranyKlient===k.id ? formularKlienta(k) : nahledKlienta(k)).join('')
                      : '<div class="prazdno">Zatím žádní klienti.</div>'}
     <div class="lista"><button class="btn btn-vedl" onclick="novyKlient()">+ Přidat klienta</button></div>`;
+  hlidejFormular($('sek-sprava'));
 }
 
 function nahledKlienta(k){
@@ -937,14 +981,16 @@ function formularKlienta(k){
       </div>
       <div class="radky2">
         <div><label>IČO</label><input type="text" id="k-ico" value="${esc(k.ico||'')}"></div>
-        <div><label>Platnost kódu do</label><input type="text" id="k-platnost" value="${esc(k.platnost_do||'')}" placeholder="2027-12-31"></div>
+        <div><label>Platnost kódu do</label>
+          <input type="date" id="k-platnost" value="${esc(k.platnost_do||'')}">
+          <p class="napoveda">Prázdné = kód platí bez omezení.</p></div>
       </div>
       <label>Poznámka</label><textarea id="k-pozn" style="min-height:70px">${esc(k.poznamka||'')}</textarea>
       <div class="prepinac ${k.aktivni?'zap':''}" onclick="this.classList.toggle('zap')" id="k-aktivni">
         <div class="txt"><b>Aktivní klient</b><span>Vypnuto = kód přestane fungovat.</span></div>
         <div class="knof"></div></div>
       <div class="lista">
-        <button class="btn btn-hlavni" style="padding:8px 14px;font-size:13px" onclick="ulozKlienta('${k.id}')">Hotovo</button>
+        <button class="btn btn-hlavni" data-ulozit style="padding:8px 14px;font-size:13px" onclick="ulozKlienta('${k.id}')">Uložit</button>
         <button class="btn btn-smaz vpravo" style="padding:8px 12px;font-size:13px" onclick="smazKlienta('${k.id}')">Smazat klienta</button>
       </div>
     </div>`;
@@ -1005,6 +1051,7 @@ async function novyKlient(){
 
 async function ulozKlienta(id){
   const k = klienti.find(x => x.id === id); if(!k) return;
+  if(bezeZmeny($('sek-sprava'))){ vybranyKlient = null; vykresliSpravu(); return; }
   const zmeny = {
     nazev: $('k-nazev').value.trim(),
     domeny: (function(){
@@ -1078,7 +1125,7 @@ function formularZpravy(z){
         <div><label>Text tlačítka</label><input type="text" id="z-odkaztext" value="${esc(z.odkaz_text||'')}" placeholder="Přečíst"></div>
       </div>
       <div class="radky2">
-        <div><label>Datum</label><input type="text" id="z-datum" value="${esc(z.datum||'')}" placeholder="2026-08-15"></div>
+        <div><label>Datum zprávy</label><input type="date" id="z-datum" value="${esc(z.datum||'')}"></div>
         <div><label>Pořadí</label><input type="text" id="z-poradi" value="${z.poradi||0}"></div>
       </div>
       <div class="prepinac ${z.nove_okno!==false?'zap':''}" onclick="this.classList.toggle('zap')" id="z-okno">
@@ -1091,7 +1138,7 @@ function formularZpravy(z){
         <div class="txt"><b>Publikováno</b><span>Vypnuto = koncept, uživatelé zprávu nevidí.</span></div>
         <div class="knof"></div></div>
       <div class="lista">
-        <button class="btn btn-hlavni" style="padding:8px 14px;font-size:13px" onclick="ulozZpravu('${z.id}')">Hotovo</button>
+        <button class="btn btn-hlavni" data-ulozit style="padding:8px 14px;font-size:13px" onclick="ulozZpravu('${z.id}')">Uložit</button>
         <button class="btn btn-smaz vpravo" style="padding:8px 12px;font-size:13px" onclick="smazZpravu('${z.id}')">Smazat zprávu</button>
       </div>
     </div>`;
@@ -1112,6 +1159,7 @@ async function novaZprava(){
 }
 
 async function ulozZpravu(id){
+  if(bezeZmeny($('sek-zpravy'))){ vybranaZprava = null; kresliTexty('zpravy'); return; }
   const zmeny = {
     nadpis: $('z-nadpis').value.trim(),
     telo:   $('z-telo').value,
