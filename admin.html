@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Práva řidiče — správa obsahu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal-900:#0A4250; --teal-800:#0C4956; --peach:#F0C2AF; --cream:#F8EBE2;
+  --ink:#0E3540; --muted:#6B7B7F; --line:#E2E8E9; --bg:#F3F5F5;
+  --ok:#1F7A5A; --warn:#B26A00; --err:#B4322C;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+button,input,select,textarea{font-family:inherit;font-size:inherit}
+
+/* ---------- hlavička ---------- */
+header{background:var(--teal-900);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:14px;
+       position:sticky;top:0;z-index:20;flex-wrap:wrap}
+header h1{font-size:16px;font-weight:700;margin:0;letter-spacing:.01em}
+header .kdo{margin-left:auto;font-size:13px;color:rgba(255,255,255,.75)}
+header button{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:#fff;
+       border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer}
+header button:hover{background:rgba(255,255,255,.24)}
+.tabs{display:flex;gap:6px;background:#fff;border-bottom:1px solid var(--line);padding:0 20px;position:sticky;top:53px;z-index:19}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:12px 14px;cursor:pointer;
+       font-weight:600;color:var(--muted);font-size:14px}
+.tabs button.on{color:var(--teal-900);border-bottom-color:var(--peach)}
+
+main{max-width:1180px;margin:0 auto;padding:22px 20px 80px}
+.wrap{display:grid;grid-template-columns:330px 1fr;gap:20px;align-items:start}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
+.panel h2{font-size:14px;margin:0 0 12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+
+/* ---------- strom ---------- */
+.strom{list-style:none;margin:0;padding:0}
+.uzel{border-radius:10px;margin-bottom:3px}
+.radek{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:9px;cursor:pointer}
+.radek:hover{background:var(--cream)}
+.radek.on{background:var(--teal-900);color:#fff}
+.radek.on .znak{color:rgba(255,255,255,.7)}
+.radek .nazev{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;font-size:14px}
+.radek .znak{font-size:11.5px;color:var(--muted);flex:0 0 auto}
+.deti{list-style:none;margin:0 0 6px 16px;padding:0;border-left:2px solid var(--line)}
+.deti .radek{padding-left:12px}
+.deti .radek .nazev{font-weight:500;font-size:13.5px}
+.sipka{width:16px;text-align:center;color:var(--muted);flex:0 0 auto;font-size:11px;user-select:none}
+.odznak{font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:6px;letter-spacing:.03em;flex:0 0 auto}
+.o-placeny{background:#FFE9C7;color:var(--warn)}
+.o-koncept{background:#EDEFEF;color:var(--muted)}
+.radek.on .odznak{opacity:.9}
+
+/* ---------- formulář ---------- */
+label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;
+      letter-spacing:.06em;margin:0 0 5px}
+.pole{margin-bottom:15px}
+input[type=text],select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+      background:#fff;color:var(--ink);outline:none}
+input[type=text]:focus,select:focus,textarea:focus{border-color:var(--teal-800);box-shadow:0 0 0 3px rgba(12,73,86,.09)}
+textarea{min-height:230px;resize:vertical;line-height:1.6}
+.napoveda{font-size:12px;color:var(--muted);margin:5px 0 0}
+.radky2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:620px){.radky2{grid-template-columns:1fr}}
+
+.prepinac{display:flex;align-items:center;gap:11px;padding:12px 14px;border:1px solid var(--line);
+      border-radius:11px;background:#fff;cursor:pointer;margin-bottom:10px}
+.prepinac:hover{border-color:var(--teal-800)}
+.prepinac .txt{flex:1}
+.prepinac .txt b{display:block;font-size:14px}
+.prepinac .txt span{font-size:12.5px;color:var(--muted)}
+.knof{width:46px;height:27px;border-radius:14px;background:#D6DCDD;position:relative;flex:0 0 auto;transition:background .16s}
+.knof::after{content:'';position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;
+      background:#fff;transition:transform .16s;box-shadow:0 1px 3px rgba(0,0,0,.22)}
+.prepinac.zap .knof{background:var(--teal-800)}
+.prepinac.zap .knof::after{transform:translateX(19px)}
+.prepinac.zap.placeny .knof{background:var(--warn)}
+
+.btn{border:0;border-radius:10px;padding:11px 17px;font-weight:700;cursor:pointer;font-size:14px}
+.btn-hlavni{background:var(--teal-900);color:#fff}
+.btn-hlavni:hover{background:var(--teal-800)}
+.btn-vedl{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn-vedl:hover{background:var(--cream)}
+.btn-smaz{background:#fff;color:var(--err);border:1px solid #F0D2D0}
+.btn-smaz:hover{background:#FDF3F2}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.lista{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.lista .vpravo{margin-left:auto}
+
+/* ---------- náhled zámku ---------- */
+.nahled{background:var(--cream);border:1px solid #EBDCD2;border-radius:12px;padding:14px;margin-top:16px}
+.nahled h3{margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.zamek{display:flex;gap:10px;align-items:center;background:#FBF3EC;border:1px solid #EBDCD2;
+      border-radius:10px;padding:12px 14px;color:#5C4B3E;font-size:13.5px;margin-top:8px}
+
+.hlaska{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--teal-900);color:#fff;
+      padding:12px 20px;border-radius:11px;font-size:14px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.25);
+      opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
+.hlaska.vidno{opacity:1}
+.hlaska.chyba{background:var(--err)}
+
+.prazdno{color:var(--muted);font-size:14px;padding:24px 8px;text-align:center}
+
+/* ---------- přihlášení ---------- */
+#login{max-width:400px;margin:70px auto;background:#fff;border:1px solid var(--line);
+      border-radius:16px;padding:28px}
+#login h2{margin:0 0 6px;font-size:20px}
+#login p{color:var(--muted);font-size:14px;margin:0 0 20px}
+#nastaveni{background:#FFF6E5;border:1px solid #F0DCB0;border-radius:12px;padding:16px;margin-bottom:20px;font-size:13.5px}
+#nastaveni code{background:#fff;padding:2px 6px;border-radius:5px;font-size:12.5px}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div id="nastaveni" style="display:none">
+    <b>Administrace zatím není propojená s databází.</b><br>
+    V souboru <code>admin.html</code> je nahoře ve skriptu blok <code>const CFG</code>.
+    Doplň do něj <code>URL</code> a <code>ANON</code> z Supabase (Project Settings → API)
+    a stránku znovu načti.
+  </div>
+  <h2>Správa obsahu</h2>
+  <p>Práva řidiče — přihlaste se e-mailem, na který máte oprávnění.</p>
+  <div class="pole">
+    <label for="email">E-mail</label>
+    <input type="text" id="email" placeholder="jmeno@pravaridice.cz" autocomplete="email">
+  </div>
+  <button class="btn btn-hlavni" style="width:100%" onclick="prihlas()">Poslat přihlašovací odkaz</button>
+  <p class="napoveda" style="margin-top:12px">Na e-mail přijde odkaz, kterým se přihlásíte. Žádné heslo si pamatovat nemusíte.</p>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <h1>Práva řidiče — správa obsahu</h1>
+    <span class="kdo" id="kdo"></span>
+    <button onclick="odhlas()">Odhlásit</button>
+  </header>
+  <div class="tabs">
+    <button id="t-clanky" class="on" onclick="prepni('clanky')">Články a oblasti</button>
+    <button id="t-sluzby" onclick="prepni('sluzby')">Služby</button>
+  </div>
+
+  <main>
+    <!-- ===== ČLÁNKY ===== -->
+    <div id="sek-clanky" class="wrap">
+      <div class="panel">
+        <h2>Struktura</h2>
+        <ul class="strom" id="strom"></ul>
+        <div class="lista" style="margin-top:14px">
+          <button class="btn btn-vedl" onclick="novaOblast(null)">+ Oblast</button>
+          <button class="btn btn-vedl" onclick="novyClanek()">+ Článek</button>
+        </div>
+      </div>
+      <div class="panel" id="editor">
+        <div class="prazdno">Vyberte vlevo článek nebo oblast, nebo přidejte nový.</div>
+      </div>
+    </div>
+
+    <!-- ===== SLUŽBY ===== -->
+    <div id="sek-sluzby" class="wrap" style="display:none">
+      <div class="panel">
+        <h2>Služby</h2>
+        <ul class="strom" id="stromSluzby"></ul>
+        <div class="lista" style="margin-top:14px">
+          <button class="btn btn-vedl" onclick="novaSluzba()">+ Služba</button>
+        </div>
+      </div>
+      <div class="panel" id="editorSluzby">
+        <div class="prazdno">Vyberte vlevo službu.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="hlaska" id="hlaska"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   NASTAVENÍ — doplň po založení Supabase projektu
+   Project Settings → API → Project URL a anon public key
+   ============================================================ */
+const CFG = {
+  URL:  'https://fmwliouywqklxafttfjm.supabase.co',
+  ANON: 'sb_publishable_3Af5Q_9OqQ6O9T28fiNgCA_asCxtS75'
+};
+
+let db = null, uzivatel = null;
+let oblasti = [], clanky = [], sluzby = [];
+let vybrano = null;      // {typ:'oblast'|'clanek', id}
+let vybranaSluzba = null;
+let rozbaleno = {};
+
+const $  = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function hlaska(text, chyba){
+  const h = $('hlaska');
+  h.textContent = text;
+  h.className = 'hlaska vidno' + (chyba ? ' chyba' : '');
+  clearTimeout(h._t);
+  h._t = setTimeout(() => h.className = 'hlaska', 2600);
+}
+
+/* ---------- přihlášení ---------- */
+async function start(){
+  if(!CFG.URL || !CFG.ANON){ $('nastaveni').style.display = 'block'; return; }
+  db = supabase.createClient(CFG.URL, CFG.ANON);
+  const { data } = await db.auth.getSession();
+  if(data.session){ await poPrihlaseni(data.session); }
+  db.auth.onAuthStateChange((_e, s) => { if(s) poPrihlaseni(s); });
+}
+
+async function prihlas(){
+  const email = $('email').value.trim();
+  if(!email){ hlaska('Zadejte e-mail.', true); return; }
+  const { error } = await db.auth.signInWithOtp({
+    email, options:{ emailRedirectTo: location.href.split('#')[0] }
+  });
+  if(error){ hlaska('Nepodařilo se odeslat: ' + error.message, true); return; }
+  hlaska('Odkaz odeslán — podívejte se do e-mailu.');
+}
+
+async function poPrihlaseni(session){
+  uzivatel = session.user;
+  // ověření oprávnění: tabulku admini smí číst jen admin (RLS)
+  const { data, error } = await db.from('admini').select('email,jmeno').limit(50);
+  if(error || !data || !data.length){
+    hlaska('Tento účet nemá oprávnění ke správě obsahu.', true);
+    await db.auth.signOut();
+    return;
+  }
+  const ja = data.find(a => a.email.toLowerCase() === (uzivatel.email||'').toLowerCase());
+  $('kdo').textContent = (ja && ja.jmeno) ? ja.jmeno : uzivatel.email;
+  $('login').style.display = 'none';
+  $('app').style.display   = 'block';
+  await nactiVse();
+}
+
+async function odhlas(){ await db.auth.signOut(); location.reload(); }
+
+/* ---------- načtení dat ---------- */
+async function nactiVse(){
+  const [o, c, s] = await Promise.all([
+    db.from('oblasti').select('*').order('poradi'),
+    db.from('clanky').select('*').order('poradi'),
+    db.from('sluzby').select('*').order('poradi')
+  ]);
+  if(o.error||c.error||s.error){ hlaska('Chyba načtení: '+((o.error||c.error||s.error).message), true); return; }
+  oblasti = o.data; clanky = c.data; sluzby = s.data;
+  kresliStrom(); kresliSluzby();
+}
+
+function prepni(co){
+  $('t-clanky').classList.toggle('on', co==='clanky');
+  $('t-sluzby').classList.toggle('on', co==='sluzby');
+  $('sek-clanky').style.display = co==='clanky' ? 'grid' : 'none';
+  $('sek-sluzby').style.display = co==='sluzby' ? 'grid' : 'none';
+}
+
+/* ---------- strom oblastí a článků ---------- */
+function kresliStrom(){
+  const korenove = oblasti.filter(o => !o.rodic_id);
+  $('strom').innerHTML = korenove.map(vykresliOblast).join('') ||
+    '<div class="prazdno">Zatím tu nic není. Začněte tlačítkem + Oblast.</div>';
+}
+
+function vykresliOblast(o){
+  const podoblasti = oblasti.filter(x => x.rodic_id === o.id);
+  const cl = clanky.filter(c => c.oblast_id === o.id);
+  const otevreno = rozbaleno[o.id] !== false;
+  const vyb = vybrano && vybrano.typ==='oblast' && vybrano.id===o.id;
+  const deti = otevreno ? `<ul class="deti">
+      ${podoblasti.map(vykresliOblast).join('')}
+      ${cl.map(vykresliClanek).join('')}
+      ${(!podoblasti.length && !cl.length) ? '<li class="prazdno" style="padding:8px;font-size:12.5px">prázdné</li>' : ''}
+    </ul>` : '';
+  return `<li class="uzel">
+    <div class="radek ${vyb?'on':''}" onclick="vyberOblast('${o.id}')">
+      <span class="sipka" onclick="event.stopPropagation();prepniUzel('${o.id}')">${otevreno?'▾':'▸'}</span>
+      <span class="nazev">${esc(o.nazev)}</span>
+      ${o.publikovano ? '' : '<span class="odznak o-koncept">skryto</span>'}
+      <span class="znak">${podoblasti.length + cl.length}</span>
+    </div>${deti}</li>`;
+}
+
+function vykresliClanek(c){
+  const vyb = vybrano && vybrano.typ==='clanek' && vybrano.id===c.id;
+  return `<li class="uzel"><div class="radek ${vyb?'on':''}" onclick="vyberClanek('${c.id}')">
+      <span class="sipka"></span>
+      <span class="nazev">${esc(c.nadpis)}</span>
+      ${c.placeny ? '<span class="odznak o-placeny">plný</span>' : ''}
+      ${c.publikovano ? '' : '<span class="odznak o-koncept">koncept</span>'}
+    </div></li>`;
+}
+
+function prepniUzel(id){ rozbaleno[id] = rozbaleno[id] === false; kresliStrom(); }
+function vyberOblast(id){ vybrano = {typ:'oblast', id}; kresliStrom(); editorOblasti(); }
+function vyberClanek(id){ vybrano = {typ:'clanek', id}; kresliStrom(); editorClanku(); }
+
+/* ---------- editor oblasti ---------- */
+function editorOblasti(){
+  const o = oblasti.find(x => x.id === vybrano.id);
+  if(!o) return;
+  const moznosti = oblasti.filter(x => x.id !== o.id && !x.rodic_id)
+    .map(x => `<option value="${x.id}" ${o.rodic_id===x.id?'selected':''}>${esc(x.nazev)}</option>`).join('');
+  $('editor').innerHTML = `
+    <h2>Oblast</h2>
+    <div class="pole"><label>Název</label><input type="text" id="f-nazev" value="${esc(o.nazev)}"></div>
+    <div class="radky2">
+      <div class="pole"><label>Nadřazená oblast</label>
+        <select id="f-rodic"><option value="">— žádná (hlavní úroveň) —</option>${moznosti}</select>
+        <p class="napoveda">Podoblast se v aplikaci zobrazí zanořená pod nadřazenou.</p></div>
+      <div class="pole"><label>Pořadí</label><input type="text" id="f-poradi" value="${o.poradi||0}"></div>
+    </div>
+    <div class="prepinac ${o.publikovano?'zap':''}" onclick="this.classList.toggle('zap')" id="f-publ">
+      <div class="txt"><b>Zobrazit v aplikaci</b><span>Vypnuto = oblast uživatelé nevidí.</span></div>
+      <div class="knof"></div></div>
+    <div class="lista">
+      <button class="btn btn-hlavni" onclick="ulozOblast()">Uložit</button>
+      <button class="btn btn-vedl" onclick="novaOblast('${o.id}')">+ Podoblast</button>
+      <button class="btn btn-smaz vpravo" onclick="smazOblast('${o.id}')">Smazat oblast</button>
+    </div>`;
+}
+
+async function novaOblast(rodicId){
+  const nazev = prompt(rodicId ? 'Název nové podoblasti:' : 'Název nové oblasti:');
+  if(!nazev) return;
+  const { data, error } = await db.from('oblasti').insert({
+    nazev, slug: slug(nazev), rodic_id: rodicId || null,
+    poradi: (oblasti.filter(o => o.rodic_id === (rodicId||null)).length) * 10,
+    publikovano: true
+  }).select().single();
+  if(error){ hlaska('Nepodařilo se vytvořit: '+error.message, true); return; }
+  oblasti.push(data); if(rodicId) rozbaleno[rodicId] = true;
+  vybrano = {typ:'oblast', id:data.id};
+  kresliStrom(); editorOblasti(); hlaska('Oblast vytvořena.');
+}
+
+async function ulozOblast(){
+  const zmeny = {
+    nazev: $('f-nazev').value.trim(),
+    rodic_id: $('f-rodic').value || null,
+    poradi: parseInt($('f-poradi').value,10) || 0,
+    publikovano: $('f-publ').classList.contains('zap')
+  };
+  const { error } = await db.from('oblasti').update(zmeny).eq('id', vybrano.id);
+  if(error){ hlaska('Uložení selhalo: '+error.message, true); return; }
+  Object.assign(oblasti.find(o => o.id === vybrano.id), zmeny);
+  kresliStrom(); hlaska('Uloženo.');
+}
+
+async function smazOblast(id){
+  const pocet = clanky.filter(c => c.oblast_id === id).length
+              + oblasti.filter(o => o.rodic_id === id).length;
+  const o = oblasti.find(x => x.id === id);
+  if(!confirm(`Smazat oblast „${o.nazev}"?` + (pocet ? `\n\nSmaže se s ní i ${pocet} položek uvnitř. Tuto akci nelze vzít zpět.` : ''))) return;
+  const { error } = await db.from('oblasti').delete().eq('id', id);
+  if(error){ hlaska('Smazání selhalo: '+error.message, true); return; }
+  vybrano = null; await nactiVse();
+  $('editor').innerHTML = '<div class="prazdno">Oblast smazána.</div>';
+  hlaska('Oblast smazána.');
+}
+
+/* ---------- editor článku ---------- */
+function editorClanku(){
+  const c = clanky.find(x => x.id === vybrano.id);
+  if(!c) return;
+  const moznosti = oblasti.map(o =>
+    `<option value="${o.id}" ${c.oblast_id===o.id?'selected':''}>${esc(cesta(o))}</option>`).join('');
+  $('editor').innerHTML = `
+    <h2>Článek</h2>
+    <div class="pole"><label>Nadpis</label><input type="text" id="f-nadpis" value="${esc(c.nadpis)}"></div>
+    <div class="pole"><label>Krátký popis</label><input type="text" id="f-perex" value="${esc(c.perex)}">
+      <p class="napoveda">Zobrazí se v seznamu pod nadpisem. <b>Je vidět vždy</b>, i u placeného článku.</p></div>
+    <div class="pole"><label>Text článku</label>
+      <textarea id="f-telo">${esc(c.telo)}</textarea>
+      <p class="napoveda">Odstavce oddělte prázdným řádkem. Řádek začínající <code>## </code> se zobrazí jako mezinadpis.</p></div>
+    <div class="radky2">
+      <div class="pole"><label>Oblast</label><select id="f-oblast">${moznosti}</select></div>
+      <div class="pole"><label>Štítek</label><input type="text" id="f-kat" value="${esc(c.kategorie)}"
+        placeholder="Vybodování, Přestupky, Sankce…"></div>
+    </div>
+    <div class="radky2">
+      <div class="pole"><label>Odkaz na web</label><input type="text" id="f-odkaz" value="${esc(c.odkaz)}"></div>
+      <div class="pole"><label>Pořadí</label><input type="text" id="f-poradi" value="${c.poradi||0}"></div>
+    </div>
+
+    <div class="prepinac placeny ${c.placeny?'zap':''}" onclick="this.classList.toggle('zap');nahledZamku()" id="f-placeny">
+      <div class="txt"><b>Jen s plným přístupem</b>
+        <span>Zapnuto = text se nepošle do telefonu, dokud uživatel nemá zaplaceno.</span></div>
+      <div class="knof"></div></div>
+
+    <div class="prepinac ${c.publikovano?'zap':''}" onclick="this.classList.toggle('zap')" id="f-publ">
+      <div class="txt"><b>Publikováno</b><span>Vypnuto = koncept, uživatelé článek nevidí.</span></div>
+      <div class="knof"></div></div>
+
+    <div id="nahled"></div>
+
+    <div class="lista">
+      <button class="btn btn-hlavni" onclick="ulozClanek()">Uložit</button>
+      <button class="btn btn-smaz vpravo" onclick="smazClanek('${c.id}')">Smazat článek</button>
+    </div>`;
+  nahledZamku();
+}
+
+function nahledZamku(){
+  const el = $('nahled'); if(!el) return;
+  const placeny = $('f-placeny').classList.contains('zap');
+  el.innerHTML = placeny ? `<div class="nahled">
+      <h3>Co uvidí uživatel bez plného přístupu</h3>
+      <div style="font-weight:800;font-size:16px;margin-top:6px">${esc($('f-nadpis').value)}</div>
+      <div style="color:#6B7B7F;font-size:13.5px;margin-top:2px">${esc($('f-perex').value)}</div>
+      <div class="zamek">🔒 Tato část je dostupná s plným přístupem.</div>
+    </div>` : '';
+}
+
+async function novyClanek(){
+  if(!oblasti.length){ hlaska('Nejdřív vytvořte oblast.', true); return; }
+  const nadpis = prompt('Nadpis nového článku:');
+  if(!nadpis) return;
+  const oblastId = (vybrano && vybrano.typ==='oblast') ? vybrano.id
+    : (vybrano && vybrano.typ==='clanek' ? clanky.find(c=>c.id===vybrano.id).oblast_id : oblasti[0].id);
+  const { data, error } = await db.from('clanky').insert({
+    nadpis, slug: slug(nadpis), oblast_id: oblastId,
+    perex:'', telo:'', kategorie:'', odkaz:'', placeny:false, publikovano:false,
+    poradi: clanky.filter(c => c.oblast_id === oblastId).length * 10
+  }).select().single();
+  if(error){ hlaska('Nepodařilo se vytvořit: '+error.message, true); return; }
+  clanky.push(data); rozbaleno[oblastId] = true;
+  vybrano = {typ:'clanek', id:data.id};
+  kresliStrom(); editorClanku();
+  hlaska('Článek vytvořen jako koncept.');
+}
+
+async function ulozClanek(){
+  const zmeny = {
+    nadpis: $('f-nadpis').value.trim(),
+    perex:  $('f-perex').value.trim(),
+    telo:   $('f-telo').value,
+    oblast_id: $('f-oblast').value,
+    kategorie: $('f-kat').value.trim(),
+    odkaz:  $('f-odkaz').value.trim(),
+    poradi: parseInt($('f-poradi').value,10) || 0,
+    placeny: $('f-placeny').classList.contains('zap'),
+    publikovano: $('f-publ').classList.contains('zap'),
+    upravil: uzivatel.email
+  };
+  if(!zmeny.nadpis){ hlaska('Nadpis nesmí být prázdný.', true); return; }
+  const { error } = await db.from('clanky').update(zmeny).eq('id', vybrano.id);
+  if(error){ hlaska('Uložení selhalo: '+error.message, true); return; }
+  Object.assign(clanky.find(c => c.id === vybrano.id), zmeny);
+  kresliStrom(); hlaska(zmeny.publikovano ? 'Uloženo a publikováno.' : 'Uloženo jako koncept.');
+}
+
+async function smazClanek(id){
+  const c = clanky.find(x => x.id === id);
+  if(!confirm(`Smazat článek „${c.nadpis}"?\n\nTuto akci nelze vzít zpět.`)) return;
+  const { error } = await db.from('clanky').delete().eq('id', id);
+  if(error){ hlaska('Smazání selhalo: '+error.message, true); return; }
+  clanky = clanky.filter(x => x.id !== id); vybrano = null;
+  kresliStrom(); $('editor').innerHTML = '<div class="prazdno">Článek smazán.</div>';
+  hlaska('Článek smazán.');
+}
+
+/* ---------- služby ---------- */
+function kresliSluzby(){
+  $('stromSluzby').innerHTML = sluzby.map(s => {
+    const vyb = vybranaSluzba === s.id;
+    return `<li class="uzel"><div class="radek ${vyb?'on':''}" onclick="vyberSluzbu('${s.id}')">
+      <span class="sipka"></span><span class="nazev">${esc(s.nazev)}</span>
+      ${s.publikovano ? '' : '<span class="odznak o-koncept">skryto</span>'}</div></li>`;
+  }).join('') || '<div class="prazdno">Zatím žádné služby.</div>';
+}
+
+function vyberSluzbu(id){ vybranaSluzba = id; kresliSluzby(); editorSluzby(); }
+
+function editorSluzby(){
+  const s = sluzby.find(x => x.id === vybranaSluzba);
+  if(!s) return;
+  $('editorSluzby').innerHTML = `
+    <h2>Služba</h2>
+    <div class="pole"><label>Název</label><input type="text" id="s-nazev" value="${esc(s.nazev)}"></div>
+    <div class="pole"><label>Krátký popis</label><input type="text" id="s-popis" value="${esc(s.popis)}"></div>
+    <div class="pole"><label>Co hrozí</label>
+      <textarea id="s-hrozi" style="min-height:130px">${esc((s.hrozi||[]).join('\n'))}</textarea>
+      <p class="napoveda">Každý bod na samostatný řádek.</p></div>
+    <div class="pole"><label>Jak pomůžeme</label>
+      <textarea id="s-pomoc" style="min-height:130px">${esc((s.pomoc||[]).join('\n'))}</textarea>
+      <p class="napoveda">Každý bod na samostatný řádek.</p></div>
+    <div class="pole"><label>Pořadí</label><input type="text" id="s-poradi" value="${s.poradi||0}"></div>
+    <div class="prepinac ${s.publikovano?'zap':''}" onclick="this.classList.toggle('zap')" id="s-publ">
+      <div class="txt"><b>Zobrazit v aplikaci</b><span>Vypnuto = službu uživatelé nevidí.</span></div>
+      <div class="knof"></div></div>
+    <div class="lista">
+      <button class="btn btn-hlavni" onclick="ulozSluzbu()">Uložit</button>
+      <button class="btn btn-smaz vpravo" onclick="smazSluzbu('${s.id}')">Smazat službu</button>
+    </div>`;
+}
+
+async function novaSluzba(){
+  const nazev = prompt('Název nové služby:');
+  if(!nazev) return;
+  const { data, error } = await db.from('sluzby').insert({
+    nazev, slug: slug(nazev), popis:'', hrozi:[], pomoc:[],
+    poradi: sluzby.length * 10, publikovano: false
+  }).select().single();
+  if(error){ hlaska('Nepodařilo se vytvořit: '+error.message, true); return; }
+  sluzby.push(data); vybranaSluzba = data.id;
+  kresliSluzby(); editorSluzby(); hlaska('Služba vytvořena.');
+}
+
+async function ulozSluzbu(){
+  const radky = t => t.split('\n').map(x => x.trim()).filter(Boolean);
+  const zmeny = {
+    nazev: $('s-nazev').value.trim(),
+    popis: $('s-popis').value.trim(),
+    hrozi: radky($('s-hrozi').value),
+    pomoc: radky($('s-pomoc').value),
+    poradi: parseInt($('s-poradi').value,10) || 0,
+    publikovano: $('s-publ').classList.contains('zap')
+  };
+  const { error } = await db.from('sluzby').update(zmeny).eq('id', vybranaSluzba);
+  if(error){ hlaska('Uložení selhalo: '+error.message, true); return; }
+  Object.assign(sluzby.find(s => s.id === vybranaSluzba), zmeny);
+  kresliSluzby(); hlaska('Uloženo.');
+}
+
+async function smazSluzbu(id){
+  const s = sluzby.find(x => x.id === id);
+  if(!confirm(`Smazat službu „${s.nazev}"?\n\nTuto akci nelze vzít zpět.`)) return;
+  const { error } = await db.from('sluzby').delete().eq('id', id);
+  if(error){ hlaska('Smazání selhalo: '+error.message, true); return; }
+  sluzby = sluzby.filter(x => x.id !== id); vybranaSluzba = null;
+  kresliSluzby(); $('editorSluzby').innerHTML = '<div class="prazdno">Služba smazána.</div>';
+  hlaska('Služba smazána.');
+}
+
+/* ---------- pomocné ---------- */
+function cesta(o){
+  const r = o.rodic_id ? oblasti.find(x => x.id === o.rodic_id) : null;
+  return r ? r.nazev + ' › ' + o.nazev : o.nazev;
+}
+function slug(s){
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,55)
+    + '-' + Math.random().toString(36).slice(2,6);
+}
+
+start();
+</script>
+</body>
+</html>
