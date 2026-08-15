@@ -540,7 +540,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/></svg>
               </div>
               <div>
-                <div style="font-size:19px;font-weight:800;">Váš bodový stav</div>
+                <div data-text="prehled.body.nadpis" style="font-size:19px;font-weight:800;">Váš bodový stav</div>
               </div>
             </div>
             <span class="risk-pill" id="riskPill"><span class="dot"></span> Bez rizika</span>
@@ -604,8 +604,8 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2.8H7a2 2 0 0 0-2 2v14.4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.8z"/><path d="M14 2.8v5h5"/><path d="M12 11.6v5.2"/><path d="M9.6 14.4l2.4 2.4 2.4-2.4"/></svg>
             </div>
             <div class="li-body">
-              <h4>Načíst body z PDF výpisu</h4>
-              <p>Nahrajte výpis z Portálu dopravy — body se nastaví samy.</p>
+              <h4 data-text="prehled.pdf.nadpis">Načíst body z PDF výpisu</h4>
+              <p data-text="prehled.pdf.popis">Nahrajte výpis z Portálu dopravy — body se nastaví samy.</p>
             </div>
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
             <input type="file" accept="application/pdf,.pdf" hidden onchange="pdfPicked(this)"/>
@@ -615,7 +615,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.4 16.4h15.2l-1.6-5.2a2.2 2.2 0 0 0-2.1-1.6H8.1a2.2 2.2 0 0 0-2.1 1.6z"/><circle cx="7.3" cy="17.4" r="1.5"/><circle cx="16.7" cy="17.4" r="1.5"/><path d="M6.6 11.2h10.8"/></svg>
             </div>
             <div class="li-body">
-              <h4>Vozidla a STK</h4>
+              <h4 data-text="prehled.vozidla.nadpis">Vozidla a STK</h4>
               <p id="vehSub">Hlídejte STK, pojištění a dálniční známku.</p>
             </div>
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
@@ -625,8 +625,8 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.4 4.1L2.3 17.6a1.9 1.9 0 0 0 1.6 2.9h16.2a1.9 1.9 0 0 0 1.6-2.9L13.6 4.1a1.9 1.9 0 0 0-3.2 0z"/><path d="M12 9.4v4.2M12 17h.01"/></svg>
             </div>
             <div class="li-body">
-              <h4>Stala se vám dopravní nehoda?</h4>
-              <p>Krok za krokem: záznam, asistence i pojišťovna.</p>
+              <h4 data-text="prehled.nehoda.nadpis">Stala se vám dopravní nehoda?</h4>
+              <p data-text="prehled.nehoda.popis">Krok za krokem: záznam, asistence i pojišťovna.</p>
             </div>
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
           </div>
@@ -745,11 +745,11 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="list-card" style="margin-top:10px;">
           <div class="list-item" onclick="openUpozorneni()">
             <div class="li-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
-            <div class="li-body"><h4>Upozornění</h4><p id="upSub">Body, zprávy a práh upozornění</p></div>
+            <div class="li-body"><h4 data-text="profil.upozorneni.nadpis">Upozornění</h4><p id="upSub">Body, zprávy a práh upozornění</p></div>
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
           </div>
         </div>
-        <div class="section-label" style="margin-top:8px;">Vzhled</div>
+        <div class="section-label" data-text="profil.vzhled.stitek" style="margin-top:8px;">Vzhled</div>
         <div class="card" style="padding:12px 13px;">
           <div class="tema-volby" id="temaVolby">
             <button type="button" data-tema="auto"   onclick="nastavTema('auto')">Podle telefonu</button>
@@ -757,9 +757,9 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
             <button type="button" data-tema="tmavy"  onclick="nastavTema('tmavy')">Tmavý</button>
           </div>
         </div>
-        <div class="section-label" style="margin-top:8px;">Odkazy</div>
+        <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 1.8.1 · build 55</div>
+        <div class="ver">Verze 1.8.2 · build 56</div>
       </div>
     </div>
 
@@ -815,7 +815,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="consent">
           <div class="check" id="fConsent" onclick="this.classList.toggle('on')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
-          <div style="flex:1 1 0;min-width:0;">Odesláním souhlasíte se zpracováním osobních údajů. <span class="link" onclick="openExt('https://www.pravaridice.cz/')">Zásady zpracování osobních údajů</span></div>
+          <div style="flex:1 1 0;min-width:0;">Odesláním souhlasíte se zpracováním osobních údajů. <span class="link" onclick="openExt('https://www.pravaridice.cz/')" data-text="formular.odkaz">Zásady zpracování osobních údajů</span></div>
         </div>
         <button class="btn btn-dark" onclick="submitForm()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -2127,10 +2127,11 @@ async function nactiObsah(){
   const dotaz = (cesta) => fetch(PR_CFG.SUPABASE_URL + '/rest/v1/' + cesta, { headers: hlavicky })
                             .then(r => r.ok ? r.json() : Promise.reject(r.status));
   try{
-    const [oblasti, clanky, sluzby] = await Promise.all([
+    const [oblasti, clanky, sluzby, texty] = await Promise.all([
       dotaz('oblasti?select=*&publikovano=eq.true&order=poradi'),
       dotaz('v_clanky?select=*&order=poradi'),
-      dotaz('sluzby?select=*&publikovano=eq.true&order=poradi')
+      dotaz('sluzby?select=*&publikovano=eq.true&order=poradi'),
+      dotaz('texty?select=klic,hodnota').catch(()=>[])
     ]);
     if(!oblasti.length || !clanky.length) return;   // prázdná databáze — nesahat na vestavěný obsah
 
@@ -2151,6 +2152,14 @@ async function nactiObsah(){
     })).filter(o => o.topics.length);
 
     if(nove.length){ GUIDE.length = 0; nove.forEach(o => GUIDE.push(o)); }
+
+    if(texty && texty.length){
+      const mapa={}; texty.forEach(t=>mapa[t.klic]=t.hodnota);
+      document.querySelectorAll('[data-text]').forEach(el=>{
+        const h=mapa[el.dataset.text];
+        if(h!==undefined && h!==null && h!=='') el.textContent=h;
+      });
+    }
 
     if(sluzby.length){
       const noveS = sluzby.map(x => ({

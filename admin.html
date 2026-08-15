@@ -49,7 +49,11 @@ main{max-width:1180px;margin:0 auto;padding:22px 20px 80px}
 .deti{list-style:none;margin:0 0 6px 16px;padding:0;border-left:2px solid var(--line)}
 .deti .radek{padding-left:12px}
 .deti .radek .nazev{font-weight:500;font-size:13.5px}
-.sipka{width:16px;text-align:center;color:var(--muted);flex:0 0 auto;font-size:11px;user-select:none}
+.sipka{width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:var(--muted);
+      flex:0 0 auto;user-select:none;border-radius:5px;transition:transform .16s,background .16s}
+.sipka:hover{background:rgba(0,0,0,.07)}
+.sipka.dolu{transform:rotate(90deg)}
+.radek.on .sipka{color:rgba(255,255,255,.8)}
 .odznak{font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:6px;letter-spacing:.03em;flex:0 0 auto}
 .o-placeny{background:#FFE9C7;color:var(--warn)}
 .o-koncept{background:#EDEFEF;color:var(--muted)}
@@ -140,13 +144,16 @@ textarea{min-height:230px;resize:vertical;line-height:1.6}
     <button onclick="odhlas()">Odhlásit</button>
   </header>
   <div class="tabs">
-    <button id="t-clanky" class="on" onclick="prepni('clanky')">Články a oblasti</button>
-    <button id="t-sluzby" onclick="prepni('sluzby')">Služby</button>
+    <button id="t-prehled"  onclick="prepni('prehled')">Přehled</button>
+    <button id="t-pruvodce" class="on" onclick="prepni('pruvodce')">Průvodce</button>
+    <button id="t-sluzby"   onclick="prepni('sluzby')">Služby</button>
+    <button id="t-zpravy"   onclick="prepni('zpravy')">Zprávy</button>
+    <button id="t-profil"   onclick="prepni('profil')">Profil</button>
   </div>
 
   <main>
     <!-- ===== ČLÁNKY ===== -->
-    <div id="sek-clanky" class="wrap">
+    <div id="sek-pruvodce" class="wrap">
       <div class="panel">
         <h2>Struktura</h2>
         <ul class="strom" id="strom"></ul>
@@ -159,6 +166,11 @@ textarea{min-height:230px;resize:vertical;line-height:1.6}
         <div class="prazdno">Vyberte vlevo článek nebo oblast, nebo přidejte nový.</div>
       </div>
     </div>
+
+    <!-- ===== TEXTY KARET (Přehled / Zprávy / Profil) ===== -->
+    <div id="sek-prehled" class="panel" style="display:none"></div>
+    <div id="sek-zpravy"  class="panel" style="display:none"></div>
+    <div id="sek-profil"  class="panel" style="display:none"></div>
 
     <!-- ===== SLUŽBY ===== -->
     <div id="sek-sluzby" class="wrap" style="display:none">
@@ -190,7 +202,7 @@ const CFG = {
 };
 
 let db = null, uzivatel = null;
-let oblasti = [], clanky = [], sluzby = [];
+let oblasti = [], clanky = [], sluzby = [], texty = [];
 let vybrano = null;      // {typ:'oblast'|'clanek', id}
 let vybranaSluzba = null;
 let rozbaleno = {};
@@ -245,21 +257,28 @@ async function odhlas(){ await db.auth.signOut(); location.reload(); }
 
 /* ---------- načtení dat ---------- */
 async function nactiVse(){
-  const [o, c, s] = await Promise.all([
+  const [o, c, s, t] = await Promise.all([
     db.from('oblasti').select('*').order('poradi'),
     db.from('clanky').select('*').order('poradi'),
-    db.from('sluzby').select('*').order('poradi')
+    db.from('sluzby').select('*').order('poradi'),
+    db.from('texty').select('*').order('poradi')
   ]);
   if(o.error||c.error||s.error){ hlaska('Chyba načtení: '+((o.error||c.error||s.error).message), true); return; }
   oblasti = o.data; clanky = c.data; sluzby = s.data;
+  texty = t.error ? [] : t.data;
+  if(t.error) console.warn('Tabulka textů zatím neexistuje — spusť texty.sql', t.error.message);
   kresliStrom(); kresliSluzby();
 }
 
+const KARTY = ['prehled','pruvodce','sluzby','zpravy','profil'];
 function prepni(co){
-  $('t-clanky').classList.toggle('on', co==='clanky');
-  $('t-sluzby').classList.toggle('on', co==='sluzby');
-  $('sek-clanky').style.display = co==='clanky' ? 'grid' : 'none';
-  $('sek-sluzby').style.display = co==='sluzby' ? 'grid' : 'none';
+  KARTY.forEach(k=>{
+    const t=$('t-'+k); if(t) t.classList.toggle('on', k===co);
+    const sek=$('sek-'+k); if(!sek) return;
+    const jeMrizka = (k==='pruvodce' || k==='sluzby');
+    sek.style.display = (k===co) ? (jeMrizka ? 'grid' : 'block') : 'none';
+  });
+  if(['prehled','zpravy','profil'].includes(co)) kresliTexty(co);
 }
 
 /* ---------- strom oblastí a článků ---------- */
@@ -272,7 +291,7 @@ function kresliStrom(){
 function vykresliOblast(o){
   const podoblasti = oblasti.filter(x => x.rodic_id === o.id);
   const cl = clanky.filter(c => c.oblast_id === o.id);
-  const otevreno = rozbaleno[o.id] !== false;
+  const otevreno = rozbaleno[o.id] === true;   // výchozí stav: zabaleno
   const vyb = vybrano && vybrano.typ==='oblast' && vybrano.id===o.id;
   const deti = otevreno ? `<ul class="deti">
       ${podoblasti.map(vykresliOblast).join('')}
@@ -281,7 +300,9 @@ function vykresliOblast(o){
     </ul>` : '';
   return `<li class="uzel">
     <div class="radek ${vyb?'on':''}" onclick="vyberOblast('${o.id}')">
-      <span class="sipka" onclick="event.stopPropagation();prepniUzel('${o.id}')">${otevreno?'▾':'▸'}</span>
+      <span class="sipka ${otevreno?'dolu':''}" onclick="event.stopPropagation();prepniUzel('${o.id}')" title="Rozbalit / sbalit">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      </span>
       <span class="nazev">${esc(o.nazev)}</span>
       ${o.publikovano ? '' : '<span class="odznak o-koncept">skryto</span>'}
       <span class="znak">${podoblasti.length + cl.length}</span>
@@ -298,8 +319,8 @@ function vykresliClanek(c){
     </div></li>`;
 }
 
-function prepniUzel(id){ rozbaleno[id] = rozbaleno[id] === false; kresliStrom(); }
-function vyberOblast(id){ vybrano = {typ:'oblast', id}; kresliStrom(); editorOblasti(); }
+function prepniUzel(id){ rozbaleno[id] = !(rozbaleno[id] === true); kresliStrom(); }
+function vyberOblast(id){ vybrano = {typ:'oblast', id}; rozbaleno[id] = true; kresliStrom(); editorOblasti(); }
 function vyberClanek(id){ vybrano = {typ:'clanek', id}; kresliStrom(); editorClanku(); }
 
 /* ---------- editor oblasti ---------- */
@@ -538,6 +559,49 @@ async function smazSluzbu(id){
   sluzby = sluzby.filter(x => x.id !== id); vybranaSluzba = null;
   kresliSluzby(); $('editorSluzby').innerHTML = '<div class="prazdno">Služba smazána.</div>';
   hlaska('Služba smazána.');
+}
+
+/* ---------- texty karet (Přehled / Zprávy / Profil) ---------- */
+const NAZVY_KARET = {prehled:'Přehled', zpravy:'Zprávy', profil:'Profil'};
+
+function kresliTexty(karta){
+  const sek = $('sek-'+karta);
+  const polozky = texty.filter(t => t.karta === karta);
+  if(!polozky.length){
+    sek.innerHTML = `<h2>${NAZVY_KARET[karta]}</h2>
+      <div class="prazdno">Texty této karty zatím nejsou v databázi.<br>
+      Spusť v Supabase soubor <b>texty.sql</b> a stránku načti znovu.</div>`;
+    return;
+  }
+  sek.innerHTML = `<h2>${NAZVY_KARET[karta]} — texty v aplikaci</h2>
+    <p class="napoveda" style="margin:-6px 0 18px">Změna se v aplikaci projeví po jejím dalším otevření.
+       Struktura obrazovky se nemění, upravuje se jen znění.</p>
+    ${polozky.map(t => `
+      <div class="pole">
+        <label for="tx-${t.klic}">${esc(t.popis)}</label>
+        ${t.viceradkovy
+          ? `<textarea id="tx-${t.klic}" style="min-height:76px">${esc(t.hodnota)}</textarea>`
+          : `<input type="text" id="tx-${t.klic}" value="${esc(t.hodnota)}">`}
+      </div>`).join('')}
+    <div class="lista"><button class="btn btn-hlavni" onclick="ulozTexty('${karta}')">Uložit texty</button></div>`;
+}
+
+async function ulozTexty(karta){
+  const polozky = texty.filter(t => t.karta === karta);
+  const zmenene = [];
+  polozky.forEach(t => {
+    const pole = $('tx-'+t.klic); if(!pole) return;
+    const nova = pole.value.trim();
+    if(nova !== t.hodnota && nova !== '') zmenene.push({...t, hodnota:nova});
+  });
+  if(!zmenene.length){ hlaska('Nic se nezměnilo.'); return; }
+  for(const t of zmenene){
+    const { error } = await db.from('texty')
+      .update({hodnota:t.hodnota, upravil:uzivatel.email}).eq('klic', t.klic);
+    if(error){ hlaska('Uložení selhalo: '+error.message, true); return; }
+    Object.assign(texty.find(x => x.klic === t.klic), {hodnota:t.hodnota});
+  }
+  hlaska('Uloženo — změněno '+zmenene.length+' '+(zmenene.length===1?'text':'textů')+'.');
 }
 
 /* ---------- pomocné ---------- */
