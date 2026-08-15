@@ -175,17 +175,18 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .stat-card .ic{width:44px;height:44px;border-radius:12px;background:var(--peach-100);display:flex;align-items:center;justify-content:center;color:#b06a34;flex:0 0 auto;}
 .stat-card .lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);}
 .stat-card .val{font-size:15px;font-weight:700;margin-top:2px;}
-.police-card{background:var(--teal-800);border:none;border-top:5px solid var(--peach);border-radius:16px;padding:14px;cursor:pointer;position:relative;color:#fff;}
+.police-card{background:var(--cream);border:1px solid var(--cream-line);border-top:5px solid var(--peach);border-radius:16px;padding:13px;cursor:pointer;color:var(--ink);}
 .pc-top{display:flex;gap:12px;align-items:flex-start;}
-.pc-badge{flex:0 0 auto;width:74px;height:auto;}
-.pc-lbl{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--peach);line-height:1.3;}
-.pc-title{font-size:17px;font-weight:800;line-height:1.2;margin-top:5px;color:#fff;}
-.pc-desc{font-size:12.5px;line-height:1.45;color:rgba(255,255,255,.82);margin:10px 0 0;}
-.pc-go{position:absolute;right:12px;bottom:12px;width:34px;height:34px;border-radius:50%;background:var(--peach);display:flex;align-items:center;justify-content:center;}
+.pc-badge{flex:0 0 auto;width:78px;height:auto;filter:drop-shadow(0 3px 8px rgba(10,66,80,.18));}
+.pc-lbl{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#a5713f;line-height:1.3;}
+.pc-title{font-size:17px;font-weight:800;line-height:1.2;margin-top:5px;color:var(--teal-900);}
+.pc-desc{font-size:13px;line-height:1.5;color:#43362B;margin:9px 0 0;}
+.pc-go{width:32px;height:32px;border-radius:50%;background:var(--teal-900);display:flex;align-items:center;justify-content:center;margin:8px 0 0 auto;}
 .police-card .ic{width:44px;height:44px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;color:#b06a34;flex:0 0 auto;}
 .police-card .lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#a5713f;}
 .police-card h4{font-size:14.5px;margin:2px 0 2px;}
-.police-card p{margin:0;font-size:12px;color:#6b5a44;}
+.police-card p{margin:0;font-size:12px;color:#4A3C30;}
+.police-card p.pc-desc{font-size:13px;color:#43362B;}
 .search-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 13px;margin-top:9px;box-shadow:var(--shadow);}
 .search-input{display:flex;align-items:center;gap:10px;}
 .search-input input{border:none;outline:none;font-family:inherit;font-size:15px;width:100%;color:var(--ink);background:transparent;}
@@ -568,26 +569,14 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="police-card" onclick="openCalc()">
           <div class="pc-top">
-            <svg class="pc-badge" viewBox="0 0 100 132" fill="none">
-              <path d="M22 96 L22 130 L50 116 L78 130 L78 96 Z" fill="#F0C2AF"/>
-              <rect x="4" y="0" width="92" height="100" rx="9" fill="#0A4250"/>
-              <g stroke="#F0C2AF" stroke-width="2.6" stroke-linecap="round">
-                <path d="M26 20 L21 14"/><path d="M20 30 L13 27"/>
-                <path d="M74 20 L79 14"/><path d="M80 30 L87 27"/>
-              </g>
-              <path d="M31 46 L31 36 L40 42 L50 28 L60 42 L69 36 L69 46 Z" fill="#F0C2AF"/>
-              <circle cx="31" cy="32" r="3" fill="#F0C2AF"/><circle cx="50" cy="24" r="3.4" fill="#F0C2AF"/><circle cx="69" cy="32" r="3" fill="#F0C2AF"/>
-              <text x="50" y="66" text-anchor="middle" font-family="Inter,sans-serif" font-size="15" font-weight="800" fill="#ffffff">JEDINÁ</text>
-              <text x="50" y="80" text-anchor="middle" font-family="Inter,sans-serif" font-size="10.5" font-weight="700" fill="#F0C2AF">SVÉHO</text>
-              <text x="50" y="92" text-anchor="middle" font-family="Inter,sans-serif" font-size="10.5" font-weight="700" fill="#F0C2AF">DRUHU</text>
-            </svg>
+            <img class="pc-badge" src="badge-kalkulacka.png" alt="Jediná svého druhu" />
             <div style="flex:1;min-width:0;">
               <div class="pc-lbl">Interaktivní průvodce</div>
               <div class="pc-title">Kalkulačka a asistent při kontrole</div>
             </div>
           </div>
           <p class="pc-desc">První právní asistent, který orientačně vyhodnotí riziko řízení po užití alkoholu nebo drog a ukáže, co řidiči reálně hrozí a jak postupovat dle jeho priorit.</p>
-          <div class="pc-go"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A4250" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>
+          <div class="pc-go"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>
         </div>
         <div class="search-box">
           <div class="search-input">
@@ -674,7 +663,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 1.5.0 · build 42</div>
+        <div class="ver">Verze 1.6.2 · build 47</div>
       </div>
     </div>
 
@@ -1005,12 +994,17 @@ function showScreen(id){
 }
 /* Hlavní záložky: scroll vypnout, když se obsah vejde (layout řeší čisté CSS) */
 function fitScreen(){
-  const v=document.getElementById('view');
-  const isTab=TABS.includes(state.screen);
-  // zamknout scroll JEN když se obsah opravdu celý vejde (jinak se ořízne poslední řádek)
-  v.style.overflowY = (isTab && v.scrollHeight<=v.clientHeight+1) ? 'hidden' : 'auto';
+  // Scroll je vždy povolený: když se obsah vejde, není co posouvat (a tažení stránky
+  // je stejně vypnuté, #phone je fixní). Odhadování výšky vedlo k ořezávání textu.
+  document.getElementById('view').style.overflowY='auto';
 }
 window.addEventListener('resize', ()=>requestAnimationFrame(fitScreen));
+/* Obsah se může dorenderovat později (účet, seznamy, fonty) — hlídáme změnu výšky */
+try{
+  const ro=new ResizeObserver(()=>requestAnimationFrame(fitScreen));
+  document.querySelectorAll('.pad').forEach(el=>ro.observe(el));
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>fitScreen());
+}catch(e){}
 /* EXPERIMENT b23: zmerit skutecnou vysku webview (100lvh). Kdyz je vetsi nez hlasene okno,
    natahnout appku az na spodek displeje — lista sjede do "pruhu". */
 let navExtended=false;
@@ -1548,6 +1542,7 @@ async function pushProfile(){
 }
 function renderAccount(){
   const box=document.getElementById('accountCard'); if(!box) return;
+  setTimeout(fitScreen,0);
   if(authUser){
     box.innerHTML='<div class="row-between"><div style="min-width:0;">'+
       '<div class="eyebrow" style="margin-bottom:4px;">Účet</div>'+
@@ -1663,26 +1658,46 @@ function renderNotif(){
 })();
 
 /* ============ UPOZORNĚNÍ (obrazovka dle feedbacku testerky) ============ */
+const NOTIF_DEF={body:true,zpravy:true,prah:9,email:'',stk:true,poj:true,znamka:true,predstih:30};
 function getNotifCfg(){
-  try{ return Object.assign({body:true,zpravy:true,prah:9,email:''}, JSON.parse(localStorage.getItem('pr-notif')||'{}')); }catch(e){ return {body:true,zpravy:true,prah:9,email:''}; }
+  try{ return Object.assign({},NOTIF_DEF, JSON.parse(localStorage.getItem('pr-notif')||'{}')); }catch(e){ return Object.assign({},NOTIF_DEF); }
 }
 function setNotifCfg(c){ try{ localStorage.setItem('pr-notif',JSON.stringify(c)); }catch(e){} }
 function openUpozorneni(){ renderUpozorneni(); go('upozorneni'); }
 function toggleNotifCfg(k){ const c=getNotifCfg(); c[k]=!c[k]; setNotifCfg(c); renderUpozorneni(); }
 function setPrah(v){ const c=getNotifCfg(); c.prah=+v; setNotifCfg(c); renderUpozorneni(); if(authUser)pushProfile(); }
 function saveNotifMail(){ const c=getNotifCfg(); c.email=(document.getElementById('nEmail').value||'').trim(); setNotifCfg(c); toast(c.email?'E-mail uložen.':'E-mail smazán.'); }
+function setPredstih(v){ const c=getNotifCfg(); c.predstih=+v; setNotifCfg(c); renderUpozorneni(); if(authUser)pushProfile(); }
+function sw(k,t,d,on){ return '<div class="card"><div class="row-between"><div style="min-width:0;padding-right:10px;"><div class="title-md" style="font-size:15.5px;">'+t+'</div><div class="small muted" style="margin-top:3px;line-height:1.4;">'+d+'</div></div><div class="toggle '+(on?'on':'')+'" onclick="toggleNotifCfg(\''+k+'\')"></div></div></div>'; }
 function renderUpozorneni(){
   const c=getNotifCfg();
+  const vs=getVehicles();
   document.getElementById('upozorneniBody').innerHTML=
-    '<div class="card"><div class="row-between"><div><div class="title-md" style="font-size:16px;">Upozornění na body</div><div class="small muted" style="margin-top:3px;">Když se přiblížíte hranici 12 bodů</div></div><div class="toggle '+(c.body?'on':'')+'" onclick="toggleNotifCfg(\'body\')"></div></div></div>'+
-    '<div class="card" style="margin-top:10px;"><div class="row-between"><div><div class="title-md" style="font-size:16px;">Zprávy od advokáta</div><div class="small muted" style="margin-top:3px;">Novinky a oznámení z kanceláře</div></div><div class="toggle '+(c.zpravy?'on':'')+'" onclick="toggleNotifCfg(\'zpravy\')"></div></div></div>'+
-    '<div class="section-label" style="margin-top:14px;">Od kolika bodů upozornit</div>'+
-    '<div class="chips">'+[6,7,8,9,10,11].map(v=>'<div class="chip '+(c.prah===v?'active':'')+'" onclick="setPrah('+v+')">'+v+' bodů</div>').join('')+'</div>'+
-    '<div class="alert-line" style="margin-top:12px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b5a3f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span>Už 6 bodů je rizikových — jediný 6bodový přestupek pak znamená vybodování.</span></div>'+
-    '<div class="section-label" style="margin-top:14px;">E-mail pro upozornění</div>'+
-    '<div class="field" style="margin-bottom:8px;"><input type="text" id="nEmail" inputmode="email" autocapitalize="none" placeholder="jan.novak@email.cz" value="'+(c.email||'')+'" /></div>'+
-    '<button class="btn btn-outline-dark btn-sm" onclick="saveNotifMail()">Uložit e-mail</button>'+
-    '<div class="disclaimer" style="margin-top:12px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#77837f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span>Nastavení se ukládá ve vašem telefonu. Odesílání push a e-mailových upozornění doplní backend.</span></div>';
+    '<div class="section-label">Bodový stav</div>'+
+    sw('body','Upozornění na body','Když se přiblížíte hranici 12 bodů',c.body)+
+    '<div class="card" style="margin-top:8px;"><div class="eyebrow" style="margin-bottom:8px;">Od kolika bodů upozornit</div>'+
+      '<div class="chips">'+[6,7,8,9,10,11].map(v=>'<div class="chip '+(c.prah===v?'active':'')+'" onclick="setPrah('+v+')">'+v+' bodů</div>').join('')+'</div>'+
+      '<div class="alert-line" style="margin-top:10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b5a3f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span>Už 6 bodů je rizikových — jediný 6bodový přestupek pak znamená vybodování.</span></div></div>'+
+    '<div class="section-label" style="margin-top:14px;">Vozidlo a termíny</div>'+
+    sw('stk','STK','Připomeneme blížící se konec platnosti',c.stk)+
+    '<div style="height:8px;"></div>'+
+    sw('poj','Pojištění vozidla','Konec platnosti povinného ručení',c.poj)+
+    '<div style="height:8px;"></div>'+
+    sw('znamka','Dálniční známka','Konec platnosti dálniční známky',c.znamka)+
+    '<div class="card" style="margin-top:8px;"><div class="eyebrow" style="margin-bottom:8px;">S jakým předstihem</div>'+
+      '<div class="chips">'+[7,14,30,60].map(v=>'<div class="chip '+(c.predstih===v?'active':'')+'" onclick="setPredstih('+v+')">'+(v===7?'týden':(v===14?'2 týdny':(v===30?'měsíc':'2 měsíce')))+'</div>').join('')+'</div>'+
+      '<div class="small muted" style="margin-top:8px;line-height:1.4;">Připomeneme '+(c.predstih===7?'týden':(c.predstih===14?'dva týdny':(c.predstih===30?'měsíc':'dva měsíce')))+' předem a znovu týden před koncem.</div></div>'+
+    (vs.length? '<div class="list-card" style="margin-top:8px;"><div class="list-item" onclick="openVozidla()">'+
+        '<div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b06a34" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14l-1.5-5a2 2 0 0 0-2-1.5h-7a2 2 0 0 0-2 1.5z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></div>'+
+        '<div class="li-body"><h4>Spravovat vozidla</h4><p>'+vs.length+' '+plural(vs.length,'vozidlo','vozidla','vozidel')+' · termíny a asistence</p></div>'+
+        '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div></div>'
+      : '<div class="alert-line warn" style="margin-top:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a3a26" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span>Zatím nemáte přidané vozidlo — bez něj termíny hlídat neumíme. <b onclick="openVozidla()" style="text-decoration:underline;">Přidat vozidlo</b></span></div>')+
+    '<div class="section-label" style="margin-top:14px;">Zprávy a kontakt</div>'+
+    sw('zpravy','Zprávy od advokáta','Novinky a oznámení z kanceláře',c.zpravy)+
+    '<div class="card" style="margin-top:8px;"><div class="eyebrow" style="margin-bottom:8px;">E-mail pro upozornění</div>'+
+      '<div class="field" style="margin-bottom:8px;"><input type="text" id="nEmail" inputmode="email" autocapitalize="none" placeholder="jan.novak@email.cz" value="'+(c.email||'')+'" /></div>'+
+      '<button class="btn btn-outline-dark btn-sm" onclick="saveNotifMail()">Uložit e-mail</button></div>'+
+    '<div class="disclaimer" style="margin-top:12px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#77837f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span>Nastavení se ukládá ve vašem telefonu (a po přihlášení i na účtu). Odesílání push a e-mailových upozornění doplní backend.</span></div>';
 }
 
 /* ============ VOZIDLA A STK (082/093/101) ============ */
@@ -1960,7 +1975,8 @@ if(state.noticeDel){ const n=document.getElementById('notice1'); if(n)n.style.di
 renderAccount(); authInit();
 renderVehSub();
 (function(){ const c=getNotifCfg(); const el=document.getElementById('upSub');
-  if(el) el.textContent = (c.body||c.zpravy) ? ('Zapnuto · práh '+c.prah+' bodů') : 'Vypnuto'; })();
+  const n=[c.body&&'body',c.stk&&'STK',c.poj&&'pojištění',c.znamka&&'známka',c.zpravy&&'zprávy'].filter(Boolean);
+  if(el) el.textContent = n.length? (n.join(', ')+' · práh '+c.prah+' bodů') : 'Vše vypnuto'; })();
 updateChromeBg();
 if(isStandalone()){ document.documentElement.classList.add('standalone'); hideInstallUI(); const c=document.getElementById('installCardProfil'); if(c)c.style.display='none'; }
 else { maybeShowInstall(); }
