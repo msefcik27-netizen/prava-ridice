@@ -690,7 +690,6 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9aa3a0" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
             <input id="guideSearch" placeholder="Hledat přestupek, sankci nebo téma…" oninput="renderGuide()" />
           </div>
-          <div class="chips" id="guideChips"></div>
         </div>
         <div class="results-label" id="guideResultsLabel" style="display:none;">Výsledky</div>
         <div id="guideResults"></div>
@@ -777,7 +776,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.1.0 · build 62</div>
+        <div class="ver">Verze 2.1.1 · build 63</div>
       </div>
     </div>
 
@@ -1319,11 +1318,10 @@ function openService(id){
 }
 
 /* ============ PRŮVODCE ============ */
-function renderChips(){
-  document.getElementById('guideChips').innerHTML = guideKategorie().map(c=>
-    `<div class="chip ${state.guideChip===c?'active':''}" onclick="toggleChip('${c}')">${c}</div>`).join('');
-}
-function toggleChip(c){ state.guideChip = state.guideChip===c?null:c; renderChips(); renderGuide(); }
+/* Štítky kategorií jsme z Průvodce odstranili — oblasti jsou v seznamu níž
+   a dublovaly se. Hledá se jen textem. */
+function renderChips(){}
+function toggleChip(){}
 let otevrenaOblast = null;
 
 /* Seznam VŠECH oblastí přímo na Průvodci. Rozbalením se ukážou články uvnitř,
@@ -1331,7 +1329,7 @@ let otevrenaOblast = null;
 function renderGuideOblasti(){
   const box = document.getElementById('guideOblasti'); if(!box) return;
   const label = document.getElementById('oblastiLabel');
-  const hleda = (document.getElementById('guideSearch').value||'').trim() || state.guideChip;
+  const hleda = (document.getElementById('guideSearch').value||'').trim();
   // při hledání seznam schováme, ať nepřekáží výsledkům
   box.style.display = hleda ? 'none' : 'block';
   if(label) label.style.display = hleda ? 'none' : 'block';
@@ -1368,15 +1366,13 @@ function renderGuide(){
   const label=document.getElementById('guideResultsLabel');
   const box=document.getElementById('guideResults');
   renderGuideOblasti();
-  if(!q && !state.guideChip){ label.style.display='none'; box.innerHTML=''; return; }
-  let res=ALL_TOPICS.filter(t=>{
-    const okQ=!q || (t.t.toLowerCase().includes(q)||t.d.toLowerCase().includes(q)||t.oblast.toLowerCase().includes(q));
-    const okC=!state.guideChip || t.c===state.guideChip;
-    return okQ&&okC;
-  });
+  if(!q){ label.style.display='none'; box.innerHTML=''; return; }
+  let res=ALL_TOPICS.filter(t=>
+    t.t.toLowerCase().includes(q) || t.d.toLowerCase().includes(q) ||
+    t.oblast.toLowerCase().includes(q) || (t.c||'').toLowerCase().includes(q));
   label.style.display='block'; label.textContent='Výsledky ('+res.length+')';
   if(res.length===0){
-    box.innerHTML=`<div class="empty">Nic neodpovídá zadání. Zkuste jiné slovo${state.guideChip?' nebo zrušte kategorii <b>'+state.guideChip+'</b>':''}.</div>`;
+    box.innerHTML='<div class="empty">Nic neodpovídá zadání. Zkuste jiné slovo.</div>';
     return;
   }
   box.innerHTML=res.map(t=>`<div class="topic" onclick="openTopic('${t.oblastId}','${t.t.replace(/'/g,"\\'")}')"><div class="cat">${t.oblast}</div><h4>${t.t}${t.zamceno?' <span class="zamek-znacka">plný</span>':''}</h4><p>${t.d}</p></div>`).join('');
