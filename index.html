@@ -278,6 +278,7 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .msg-hero p{margin:0 0 12px;font-size:12.5px;color:rgba(255,255,255,.75);}
 .msg-hero .consult-actions .btn{flex:1;}
 .notice{background:var(--card);border-radius:14px;padding:12px 13px;box-shadow:var(--shadow);margin-top:8px;}
+.notice.dulezita{border-left:4px solid var(--orange);}
 .notice .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
 .notice h4{font-size:15px;display:flex;align-items:center;gap:8px;}
 .notice .date{font-size:12px;color:var(--muted);flex:0 0 auto;}
@@ -711,13 +712,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           </div>
         </div>
         <div class="section-label" style="margin-top:12px;">Oznámení</div>
-        <div class="notice" id="notice1" onclick="markRead()">
-          <div class="top">
-            <h4><span class="unread-dot" id="noticeDot"></span> Vítáme vás v aplikaci</h4>
-            <span class="date">28. 5. 2026 <button onclick="delNotice(event)" style="background:none;border:none;color:#c3c3bd;font-size:15px;cursor:pointer;padding:2px 0 2px 8px;">✕</button></span>
-          </div>
-          <p>Beta verze přináší stav bodů, upozornění a první podobu předplatného. Vaše zpětná vazba pomáhá určit, co přidáme dál.</p>
-        </div>
+        <div id="seznamZprav"></div>
         <div id="bloky-zpravy"></div>
       </div>
     </div>
@@ -764,7 +759,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 1.8.4 · build 58</div>
+        <div class="ver">Verze 1.9.0 · build 59</div>
       </div>
     </div>
 
@@ -1391,15 +1386,101 @@ function openTopic(oblastId,title){
 }
 
 /* ============ ZPRÁVY ============ */
+/* Zdroje zpráv jsou dva:
+   a) zprávy od advokáta z databáze (tabulka zpravy)
+   b) vlastní upozornění, která si aplikace spočítá sama (body, STK, pojištění…)
+   Uživatel může zprávu odklidit — smaže se jen jemu, uloží se do telefonu. */
+let ZPRAVY_DB = [];
+
+function smazaneZpravy(){
+  try{ return JSON.parse(localStorage.getItem('pr-zpravy-smazane')||'[]'); }catch(e){ return []; }
+}
+function smazZpravu(id){
+  const sm = smazaneZpravy();
+  if(!sm.includes(id)) sm.push(id);
+  try{ localStorage.setItem('pr-zpravy-smazane', JSON.stringify(sm)); }catch(e){}
+  renderZpravy(); renderUnread();
+}
+function obnovZpravy(){
+  try{ localStorage.removeItem('pr-zpravy-smazane'); }catch(e){}
+  renderZpravy(); renderUnread();
+}
+
+/* upozornění, která vzniknou ze stavu aplikace */
+function vlastniUpozorneni(){
+  const n = getNotifCfg(), out = [];
+  const dnes = new Date();
+  const zaDni = d => Math.ceil((new Date(d) - dnes)/86400000);
+  if(n.body && state.points >= (n.prah||9)){
+    out.push({ id:'auto-body-'+state.points, nadpis:'Blížíte se hranici 12 bodů',
+      telo:'Máte '+state.points+' z 12 bodů. Doporučujeme situaci řešit — konzultace je zdarma.',
+      datum:'', dulezita:true, akce:"go('konzultace')", akceText:'Napsat nám' });
+  }
+  getVehicles().forEach((v,i)=>{
+    const spz = v.spz || ('vozidlo '+(i+1));
+    [['stk','STK', n.stk],['poj','Povinné ručení', n.poj],['znamka','Dálniční známka', n.znamka]]
+      .forEach(([klic,nazev,zapnuto])=>{
+        if(!zapnuto || !v[klic]) return;
+        const dni = zaDni(v[klic]);
+        if(dni <= (n.predstih||30)){
+          out.push({ id:'auto-'+klic+'-'+i+'-'+v[klic], nadpis:nazev+' končí — '+spz,
+            telo: dni < 0 ? 'Platnost vypršela před '+Math.abs(dni)+' dny.'
+                          : (dni === 0 ? 'Platnost končí dnes.' : 'Zbývá '+dni+' '+plural(dni,'den','dny','dní')+'.'),
+            datum:'', dulezita: dni <= 7, akce:"openVozidla()", akceText:'Otevřít vozidla' });
+        }
+      });
+  });
+  return out;
+}
+
+function vsechnyZpravy(){
+  const sm = smazaneZpravy();
+  const zDb = ZPRAVY_DB.map(z => ({
+    id:'db-'+z.id, nadpis:z.nadpis, telo:z.telo||'', datum:z.datum||'',
+    dulezita:!!z.dulezita, odkaz:z.odkaz||'', odkazText:z.odkaz_text||'Otevřít',
+    noveOkno: z.nove_okno !== false
+  }));
+  return [...vlastniUpozorneni(), ...zDb].filter(z => !sm.includes(z.id));
+}
+
+function renderZpravy(){
+  const cil = document.getElementById('seznamZprav'); if(!cil) return;
+  const zpr = vsechnyZpravy();
+  if(!zpr.length){
+    const bylySmazane = smazaneZpravy().length > 0;
+    cil.innerHTML = `<div class="card" style="text-align:center;color:var(--muted);font-size:13.5px;">
+        Žádná oznámení.
+        ${bylySmazane ? `<div><button class="btn btn-outline-dark btn-sm" style="margin-top:10px" onclick="obnovZpravy()">Zobrazit smazaná</button></div>` : ''}
+      </div>`;
+    return;
+  }
+  cil.innerHTML = zpr.map(z => `
+    <div class="notice${z.dulezita?' dulezita':''}">
+      <div class="top">
+        <h4>${z.dulezita?'<span class="unread-dot"></span> ':''}${z.nadpis}</h4>
+        <span class="date">${z.datum ? formatDatum(z.datum) : ''}
+          ${z.dulezita ? '' : `<button onclick="smazZpravu('${z.id}')" title="Odstranit"
+             style="background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 0 2px 8px;">✕</button>`}
+        </span>
+      </div>
+      ${z.telo ? `<p>${z.telo}</p>` : ''}
+      ${z.odkaz ? `<button class="btn btn-outline-dark btn-sm" style="margin-top:9px" onclick="openExt('${z.odkaz}', ${z.noveOkno})">${z.odkazText}</button>` : ''}
+      ${z.akce ? `<button class="btn btn-outline-dark btn-sm" style="margin-top:9px" onclick="${z.akce}">${z.akceText}</button>` : ''}
+    </div>`).join('');
+}
+
+function formatDatum(d){
+  try{ const x=new Date(d); return x.getDate()+'. '+(x.getMonth()+1)+'. '+x.getFullYear(); }
+  catch(e){ return ''; }
+}
+
 function renderUnread(){
   const pill=document.getElementById('unreadPill');
-  if(state.unread>0){ pill.style.display='inline-flex'; pill.textContent=state.unread+' '+plural(state.unread,'nepřečtená','nepřečtené','nepřečtených'); }
+  const n = vsechnyZpravy().length;
+  if(n>0){ pill.style.display='inline-flex'; pill.textContent=n+' '+plural(n,'zpráva','zprávy','zpráv'); }
   else pill.style.display='none';
-  document.getElementById('noticeDot').style.display=state.unread>0?'inline-block':'none';
 }
-function markRead(){ state.unread=0; renderUnread(); saveState(); }
-function delNotice(e){ e.stopPropagation(); state.noticeDel=true; state.unread=0; saveState();
-  document.getElementById('notice1').style.display='none'; renderUnread(); }
+function markRead(){}
 
 /* ============ PROFIL ============ */
 function renderProfileLinks(){
@@ -1613,7 +1694,7 @@ function addDrinkG(n){ const d=DRINKS.find(x=>x.n===n); const ex=cg.drinks.find(
 
 
 /* ============ HELPERS ============ */
-function openExt(u){ toast('Otevírám: '+u.replace('https://','').replace(/\/$/,'')); try{window.open(u,'_blank');}catch(e){} }
+function openExt(u, noveOkno){ toast('Otevírám: '+u.replace('https://','').replace(/\/$/,'')); try{ if(noveOkno===false) location.href=u; else window.open(u,'_blank'); }catch(e){} }
 function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),2200); }
 
 /* ============ PŘIHLÁŠENÍ (Supabase Auth — Apple / Google) ============
@@ -2132,11 +2213,12 @@ async function nactiObsah(){
   const dotaz = (cesta) => fetch(PR_CFG.SUPABASE_URL + '/rest/v1/' + cesta, { headers: hlavicky })
                             .then(r => r.ok ? r.json() : Promise.reject(r.status));
   try{
-    const [oblasti, clanky, sluzby, texty] = await Promise.all([
+    const [oblasti, clanky, sluzby, texty, zpravy] = await Promise.all([
       dotaz('oblasti?select=*&publikovano=eq.true&order=poradi'),
       dotaz('v_clanky?select=*&order=poradi'),
       dotaz('sluzby?select=*&publikovano=eq.true&order=poradi'),
-      dotaz('texty?select=klic,popis,hodnota').catch(()=>[])
+      dotaz('texty?select=klic,popis,hodnota,odkaz,odkaz_text,nove_okno').catch(()=>[]),
+      dotaz('zpravy?select=*&publikovano=eq.true&order=datum.desc,poradi').catch(()=>[])
     ]);
     if(!oblasti.length || !clanky.length) return;   // prázdná databáze — nesahat na vestavěný obsah
 
@@ -2167,11 +2249,13 @@ async function nactiObsah(){
       /* vlastní bloky přidané v administraci: klíč začíná 'blok.<karta>.' */
       ['prehled','pruvodce','sluzby','zpravy','profil'].forEach(karta=>{
         const cil=document.getElementById('bloky-'+karta); if(!cil) return;
-        const bloky=texty.filter(t=>t.klic.startsWith('blok.'+karta+'.') && (t.hodnota||'').trim());
+        const bloky=texty.filter(t=>t.klic.startsWith('blok.'+karta+'.') && ((t.hodnota||'').trim() || (t.odkaz||'').trim()));
         cil.innerHTML = bloky.map(t=>`
           <div class="card" style="margin-top:10px;">
             ${t.popis ? `<h3 style="margin:0 0 6px;font-size:15px;font-weight:800;">${t.popis}</h3>` : ''}
             <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink-soft);white-space:pre-line;">${t.hodnota}</p>
+            ${t.odkaz ? `<button class="btn btn-outline-dark btn-sm" style="margin-top:10px"
+                onclick="openExt('${t.odkaz}', ${t.nove_okno !== false})">${t.odkaz_text || 'Otevřít'}</button>` : ''}
           </div>`).join('');
       });
     }
@@ -2186,6 +2270,7 @@ async function nactiObsah(){
     }
 
     /* překreslit, co je zrovna vidět */
+    if(Array.isArray(zpravy)){ ZPRAVY_DB = zpravy; try{ renderZpravy(); renderUnread(); }catch(e){} }
     try{ if(typeof renderGuide === 'function') renderGuide(); }catch(e){}
     try{ if(typeof renderServices === 'function') renderServices(); }catch(e){}
     requestAnimationFrame(fitScreen);
@@ -2205,11 +2290,10 @@ setTimeout(extendToTrueBottom,250); setTimeout(extendToTrueBottom,1100);
 window.addEventListener('load',fitScreen);
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>fitScreen());
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeout(fitScreen,80); });
-renderPoints(); renderServices(); renderChips(); renderUnread(); renderProfileLinks();
+renderPoints(); renderServices(); renderChips(); renderZpravy(); renderUnread(); renderProfileLinks();
 document.getElementById('notifToggle').classList.toggle('on',state.notif);
 document.getElementById('notifInfo').style.display=state.notif?'flex':'none';
 if(state.promoOk) document.getElementById('planTitle').textContent='Zdarma (promo kód)';
-if(state.noticeDel){ const n=document.getElementById('notice1'); if(n)n.style.display='none'; }
 renderAccount(); authInit();
 renderVehSub();
 (function(){ const c=getNotifCfg(); const el=document.getElementById('upSub');
