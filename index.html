@@ -474,7 +474,9 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 .ob-dots i.on{background:var(--peach);width:22px;}
 #obBody{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .ob-coderow{display:flex;gap:8px;}
-.ob-coderow .ob-chyba{display:none;background:rgba(229,72,77,.16);border:1px solid rgba(229,72,77,.4);color:#FFD9DA;border-radius:11px;padding:10px 13px;font-size:13px;margin-top:12px;line-height:1.4;}
+.ob-coderow .pole-input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:15px;outline:none;box-sizing:border-box;}
+.pole-input:focus{border-color:var(--teal-800);}
+.ob-chyba{display:none;background:rgba(229,72,77,.16);border:1px solid rgba(229,72,77,.4);color:#FFD9DA;border-radius:11px;padding:10px 13px;font-size:13px;margin-top:12px;line-height:1.4;}
 .ob-code{flex:1;text-align:left;}
 .ob-coderow button{flex:0 0 auto;padding:0 18px;border-radius:14px;border:none;background:var(--peach);color:var(--accent-ink);font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;}
 .ob-free{background:none;border:none;color:rgba(255,255,255,.85);font-family:inherit;font-size:15px;font-weight:700;text-decoration:underline;padding:12px;cursor:pointer;width:100%;}
@@ -760,7 +762,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.0.0 · build 60</div>
+        <div class="ver">Verze 2.0.1 · build 61</div>
       </div>
     </div>
 
@@ -1698,7 +1700,7 @@ function addDrinkG(n){ const d=DRINKS.find(x=>x.n===n); const ex=cg.drinks.find(
 function openExt(u, noveOkno){ toast('Otevírám: '+u.replace('https://','').replace(/\/$/,'')); try{ if(noveOkno===false) location.href=u; else window.open(u,'_blank'); }catch(e){} }
 function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),2200); }
 
-/* ============ PŘIHLÁŠENÍ (Supabase Auth — Apple / Google) ============
+/* ============ PŘIHLÁŠENÍ (Supabase Auth — odkazem na e-mail) ============
    Po založení projektu doplňte URL a anon klíč. Dokud jsou prázdné,
    tlačítka zdvořile hlásí, že přihlášení ještě není nastavené.        */
 const PR_CFG={ SUPABASE_URL:'https://fmwliouywqklxafttfjm.supabase.co', SUPABASE_ANON:'sb_publishable_3Af5Q_9OqQ6O9T28fiNgCA_asCxtS75' };
@@ -1734,15 +1736,6 @@ async function authInit(){
     });
     renderAccount();
   }catch(e){ console.warn('auth init',e); }
-}
-async function authSignIn(provider){
-  if(!authReady()){ toast('Přihlášení ještě není nastavené — čeká na zřízení účtu.'); return; }
-  try{
-    await loadSupabase();
-    if(!sb) sb=window.supabase.createClient(PR_CFG.SUPABASE_URL, PR_CFG.SUPABASE_ANON);
-    const {error}=await sb.auth.signInWithOAuth({provider, options:{redirectTo:location.origin+location.pathname}});
-    if(error) toast('Přihlášení se nezdařilo: '+error.message);
-  }catch(e){ toast('Přihlášení se nezdařilo.'); }
 }
 async function authSignOut(){
   if(sb){ await sb.auth.signOut(); }
@@ -1785,11 +1778,35 @@ function renderAccount(){
   } else {
     box.innerHTML='<div class="eyebrow" style="margin-bottom:6px;">Účet</div>'+
       '<div class="title-md" style="font-size:16px;margin-bottom:4px;">Nepřihlášeno</div>'+
-      '<div class="small muted" style="margin-bottom:10px;">Přihlášením zálohujete body a nastavení na další zařízení.</div>'+
-      '<div style="display:flex;gap:8px;">'+
-      '<button class="btn btn-outline-dark btn-sm" style="flex:1;" onclick="authSignIn(\'apple\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.8c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8c-1.5 0-2.9.9-3.7 2.2-1.6 2.8-.4 6.9 1.1 9.1.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.2 0 2-1.1 2.8-2.2.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.5-1-2.5-3.6zM14.2 5.9c.6-.8 1-1.9.9-3-.9 0-2 .6-2.7 1.4-.6.7-1.1 1.8-.9 2.9 1 .1 2.1-.5 2.7-1.3z"/></svg> Apple</button>'+
-      '<button class="btn btn-peach btn-sm" style="flex:1;" onclick="authSignIn(\'google\')">Google</button></div>';
+      '<div class="small muted" style="margin-bottom:10px;">Přihlášením se vám vrátí body, nastavení i plný přístup — třeba po přechodu na nový telefon.</div>'+
+      '<input class="pole-input" id="uctEmail" type="email" inputmode="email" autocomplete="email" '+
+        'autocapitalize="off" spellcheck="false" placeholder="vas@email.cz" />'+
+      '<div class="small" id="uctChyba" style="display:none;color:var(--red);margin-top:7px;"></div>'+
+      '<button class="btn btn-dark btn-sm" style="margin-top:10px;" id="uctTlacitko" onclick="prihlasEmailem()">Poslat přihlašovací odkaz</button>';
   }
+}
+
+/* Přihlášení e-mailem — stejná cesta jako v onboardingu, žádné cizí účty. */
+async function prihlasEmailem(){
+  const pole = document.getElementById('uctEmail');
+  const chybaEl = document.getElementById('uctChyba');
+  const email = (pole.value||'').trim().toLowerCase();
+  const chyba = overEmail(email);
+  const ukaz = t => { chybaEl.textContent = t||''; chybaEl.style.display = t ? 'block' : 'none'; };
+  if(chyba){ ukaz(chyba); return; }
+  ukaz('');
+  await pripravSb();
+  if(!sb){ ukaz('Přihlášení je dočasně nedostupné.'); return; }
+  const tl = document.getElementById('uctTlacitko');
+  if(tl){ tl.disabled = true; tl.textContent = 'Odesílám…'; }
+  const { error } = await sb.auth.signInWithOtp({
+    email, options:{ emailRedirectTo: location.href.split('#')[0].split('?')[0] } });
+  if(error){
+    if(tl){ tl.disabled = false; tl.textContent = 'Poslat přihlašovací odkaz'; }
+    ukaz('Odeslání se nepovedlo: '+error.message); return;
+  }
+  if(tl){ tl.textContent = 'Odkaz odeslán ✓'; }
+  toast('Odkaz jsme poslali na '+email+'. Podívejte se do e-mailu.');
 }
 
 /* ============ ONBOARDING (4 kroky dle původní aplikace + feedback testerky) ============ */

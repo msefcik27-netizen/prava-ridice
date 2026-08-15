@@ -54,12 +54,14 @@ main{max-width:1180px;margin:0 auto;padding:22px 20px 80px}
 .sipka:hover{background:rgba(0,0,0,.07)}
 .sipka.dolu{transform:rotate(90deg)}
 .radek.on .sipka{color:rgba(255,255,255,.8)}
-.poradi-sipky{display:none;gap:2px;flex:0 0 auto}
-.radek:hover .poradi-sipky,.radek.on .poradi-sipky{display:flex}
-.poradi-sipky button{background:none;border:0;color:inherit;opacity:.55;cursor:pointer;padding:2px 3px;
-  border-radius:4px;display:flex;align-items:center;line-height:0}
-.poradi-sipky button:hover{opacity:1;background:rgba(0,0,0,.09)}
-.radek.on .poradi-sipky button:hover{background:rgba(255,255,255,.18)}
+.poradi-sipky{display:flex;gap:3px;flex:0 0 auto}
+.poradi-sipky button{background:#fff;border:1px solid var(--line);color:var(--teal-900);cursor:pointer;
+  width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  line-height:0;transition:background .14s,border-color .14s}
+.poradi-sipky button:hover{background:var(--cream);border-color:var(--peach)}
+.poradi-sipky button:active{background:var(--peach)}
+.radek.on .poradi-sipky button{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff}
+.radek.on .poradi-sipky button:hover{background:rgba(255,255,255,.3)}
 .odznak{font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:6px;letter-spacing:.03em;flex:0 0 auto}
 .o-placeny{background:#FFE9C7;color:var(--warn)}
 .o-plny{background:#FFE9C7;color:var(--warn)}
@@ -79,12 +81,13 @@ textarea{min-height:230px;resize:vertical;line-height:1.6}
 .radky2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:620px){.radky2{grid-template-columns:1fr}}
 
-.prepinac{display:flex;align-items:center;gap:11px;padding:12px 14px;border:1px solid var(--line);
+.prepinac{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);
       border-radius:11px;background:#fff;cursor:pointer;margin-bottom:10px}
 .prepinac:hover{border-color:var(--teal-800)}
 .prepinac .txt{flex:1}
-.prepinac .txt b{display:block;font-size:14px}
-.prepinac .txt span{font-size:12.5px;color:var(--muted)}
+.prepinac .txt > b{display:block;font-size:14px}
+.prepinac .txt span{display:block;font-size:12.5px;color:var(--muted);line-height:1.4}
+.prepinac .txt span b{font-weight:700;color:var(--ink)}
 .knof{width:46px;height:27px;border-radius:14px;background:#D6DCDD;position:relative;flex:0 0 auto;transition:background .16s}
 .knof::after{content:'';position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;
       background:#fff;transition:transform .16s;box-shadow:0 1px 3px rgba(0,0,0,.22)}
@@ -123,6 +126,7 @@ textarea{min-height:230px;resize:vertical;line-height:1.6}
   padding:2px 7px;margin:0 5px 3px 0;font-size:11.5px;font-weight:700;color:var(--teal-900);
   text-transform:none;letter-spacing:0}
 .kod-radek{display:flex;align-items:center;gap:10px;margin:9px 0 4px}
+.kod-chybi{color:var(--muted);font-size:13px;font-style:italic}
 .kod{background:#fff;border:1px dashed #C9B5A6;border-radius:8px;padding:7px 13px;
   font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px;font-weight:700;letter-spacing:.06em;color:var(--teal-900)}
 .vyuziti{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:12.5px;color:var(--muted)}
@@ -450,7 +454,8 @@ function editorOblasti(){
     </div>
     <div class="prepinac pristup ${o.placeny?'zap':''}" onclick="prepniPristup(this)" id="f-placeny">
       <div class="txt"><b>Úroveň přístupu</b>
-        <span>Zapnuto = <b>plný přístup</b> pro celou oblast včetně podoblastí. Vypnuto = obsah vidí i uživatel s omezeným přístupem.</span></div>
+        <span>Zapnuto = celá oblast včetně podoblastí vyžaduje <b>plný přístup</b>.
+          Vypnuto = obsah spadá do <b>omezeného přístupu</b>, dostupný i bez zaplacení.</span></div>
       <span class="stav-pristup"></span>
       <div class="knof"></div></div>
     <div class="prepinac ${o.publikovano?'zap':''}" onclick="this.classList.toggle('zap')" id="f-publ">
@@ -533,7 +538,8 @@ function editorClanku(){
           <b>${esc(shora)}</b> — platí pro celou oblast, i když je přepínač níž vypnutý.</div>` : ''; })()}
     <div class="prepinac pristup ${c.placeny?'zap':''}" onclick="prepniPristup(this);nahledZamku()" id="f-placeny">
       <div class="txt"><b>Úroveň přístupu</b>
-        <span>Zapnuto = <b>plný přístup</b>, text se do telefonu vůbec nepošle. Vypnuto = článek si přečte každý.</span></div>
+        <span>Zapnuto = vyžaduje <b>plný přístup</b>, text se do telefonu vůbec nepošle.
+          Vypnuto = článek spadá do <b>omezeného přístupu</b>, přečte si ho i uživatel bez zaplacení.</span></div>
       <span class="stav-pristup"></span>
       <div class="knof"></div></div>
 
@@ -638,7 +644,8 @@ function editorSluzby(){
     <div class="pole"><label>Pořadí</label><input type="text" id="s-poradi" value="${s.poradi||0}"></div>
     <div class="prepinac pristup ${s.placeny?'zap':''}" onclick="prepniPristup(this)" id="s-placeny">
       <div class="txt"><b>Úroveň přístupu</b>
-        <span>Zapnuto = <b>plný přístup</b>, detail služby uvidí jen platící. Vypnuto = vidí ho každý.</span></div>
+        <span>Zapnuto = detail služby vyžaduje <b>plný přístup</b>.
+          Vypnuto = spadá do <b>omezeného přístupu</b>, uvidí ho i uživatel bez zaplacení.</span></div>
       <span class="stav-pristup"></span>
       <div class="knof"></div></div>
     <div class="prepinac ${s.publikovano?'zap':''}" onclick="this.classList.toggle('zap')" id="s-publ">
@@ -889,8 +896,11 @@ function nahledKlienta(k){
       </div>
       <h3>${esc(k.nazev)}</h3>
       <div class="kod-radek">
-        <code class="kod">${esc(k.kod||'—')}</code>
-        <button class="blok-akce" onclick="zkopirujKod('${esc(k.kod||'')}')">Kopírovat</button>
+        ${k.kod
+          ? `<code class="kod">${esc(k.kod)}</code>
+             <button class="blok-akce" onclick="zkopirujKod('${esc(k.kod)}')">Kopírovat</button>`
+          : `<span class="kod-chybi">Bez kódu</span>
+             <button class="blok-akce" onclick="novyKodProKlienta('${k.id}', false)">Vygenerovat kód</button>`}
       </div>
       <div class="vyuziti">
         <div class="vyuziti-pruh"><i style="width:${procenta}%;background:${vycerpano?'var(--err)':'var(--teal-800)'}"></i></div>
@@ -902,6 +912,15 @@ function nahledKlienta(k){
 function formularKlienta(k){
   return `
     <div class="pole blok-edit">
+      <label>Promo kód klienta</label>
+      <div class="kod-radek" style="margin:0 0 14px">
+        ${k.kod
+          ? `<code class="kod">${esc(k.kod)}</code>
+             <button class="blok-akce" onclick="zkopirujKod('${esc(k.kod)}')">Kopírovat</button>
+             <button class="blok-akce" onclick="novyKodProKlienta('${k.id}', true)">Vygenerovat nový</button>`
+          : `<span class="kod-chybi">Klient zatím nemá kód</span>
+             <button class="blok-akce" onclick="novyKodProKlienta('${k.id}', false)">Vygenerovat kód</button>`}
+      </div>
       <label>Název firmy</label><input type="text" id="k-nazev" value="${esc(k.nazev)}" style="margin-bottom:10px">
       <div class="radky2">
         <div><label>Povolené domény</label>
@@ -944,6 +963,29 @@ function vygenerujKod(nazev){
                   .replace(/[^A-Z0-9]/g,'').slice(0,6) || 'FIRMA';
   const nahoda = Math.random().toString(36).toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);
   return zaklad + '-' + nahoda;
+}
+
+/* Vygeneruje kód klientovi. Při obnově se starý zruší — dosud uplatněná
+   místa zůstávají, protože přístup je navázaný na člověka, ne na kód. */
+async function novyKodProKlienta(id, nahradit){
+  const k = klienti.find(x => x.id === id); if(!k) return;
+  if(nahradit && !confirm('Vygenerovat klientovi „'+k.nazev+'" nový kód?\n\n'+
+      'Starý kód '+k.kod+' přestane platit. Lidem, kteří ho už uplatnili, přístup zůstane.')) return;
+
+  if(k.kod){
+    const { error } = await db.from('promo_kody').delete().eq('kod', k.kod);
+    if(error){ hlaska('Starý kód nešlo zrušit: '+error.message, true); return; }
+  }
+  let kod = vygenerujKod(k.nazev), pokus = 0, chyba = null;
+  while(pokus < 5){
+    const { error } = await db.from('promo_kody').insert({ kod, klient_id: id });
+    if(!error){ chyba = null; break; }
+    chyba = error; kod = vygenerujKod(k.nazev); pokus++;   // kolize kódu → zkusit znovu
+  }
+  if(chyba){ hlaska('Kód se nepodařilo vytvořit: '+chyba.message, true); return; }
+  await kresliSpravu();
+  vybranyKlient = id; vykresliSpravu();
+  hlaska('Kód '+kod+' vytvořen.');
 }
 
 async function novyKlient(){
