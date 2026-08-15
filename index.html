@@ -780,7 +780,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.3.0 · build 67</div>
+        <div class="ver">Verze 2.3.1 · build 68</div>
       </div>
     </div>
 
@@ -2066,7 +2066,31 @@ async function obRegistrace(){
   await pripravSb();
   if(!sb){ obChyba('Registrace je dočasně nedostupná. Zkuste to prosím později.'); return; }
   const tl = document.getElementById('obOdeslat');
-  if(tl){ tl.disabled = true; tl.textContent = 'Odesílám…'; }
+  if(tl){ tl.disabled = true; tl.textContent = 'Ověřuji…'; }
+
+  /* Kód a e-mail ověříme dřív, než pošleme potvrzovací odkaz — ať se člověk
+     nedozví o špatné doméně až ve chvíli, kdy má hotový účet. */
+  if(kod){
+    try{
+      const { data, error } = await sb.rpc('overit_kod', { p_kod: kod, p_email: email });
+      if(!error && data && data.ok === false){
+        if(tl){ tl.disabled = false; tl.textContent = 'Pokračovat'; }
+        const hlasky = {
+          neplatny_kod:     'Takový firemní kód neznáme. Zkontrolujte ho prosím.',
+          kod_vyprsel:      'Platnost tohoto kódu už skončila.',
+          klient_neaktivni: 'Kód je momentálně neaktivní — ozvěte se prosím své firmě.',
+          spatna_domena:    'Tenhle kód platí jen pro firemní e-maily'+
+                            (data.domeny ? ' na doméně '+data.domeny : '')+
+                            '. Zadejte prosím pracovní adresu.',
+          limit_vycerpan:   'Kód už vyčerpal počet míst. Ozvěte se prosím své firmě.'
+        };
+        obChyba(hlasky[data.duvod] || 'Firemní kód se nepodařilo ověřit.');
+        return;
+      }
+    }catch(e){ /* když ověření selže, pustíme dál — rozhodne uplatnění po potvrzení */ }
+  }
+
+  if(tl){ tl.textContent = 'Odesílám…'; }
   try{ localStorage.setItem('pr-cekam-na-potvrzeni', JSON.stringify({email, kod})); }catch(e){}
 
   const { error } = await sb.auth.signInWithOtp({
