@@ -749,7 +749,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
               <div class="eyebrow" style="margin-bottom:6px;">Předplatné</div>
               <div class="title-md" style="font-size:17px;" id="planTitle">Zdarma (beta)</div>
             </div>
-            <button class="btn btn-peach btn-sm" style="width:auto;padding:10px 16px;" onclick="go('predplatne')">Aktivovat</button>
+            <button class="btn btn-peach btn-sm" id="planBtn" style="width:auto;padding:10px 16px;" onclick="go('predplatne')">Aktivovat</button>
           </div>
         </div>
         
@@ -780,7 +780,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.1.3 · build 65</div>
+        <div class="ver">Verze 2.2.0 · build 66</div>
       </div>
     </div>
 
@@ -1567,10 +1567,51 @@ function renderProfileLinks(){
       <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
     </div>`).join('');
 }
-function applyPromo(){
-  const v=(document.getElementById('promoInput').value||'').trim().toUpperCase();
-  if(v.length>=4){ state.promoOk=true; saveState(); document.getElementById('planTitle').textContent='Zdarma (promo kód)'; toast('Promo kód uplatněn — aplikace je zdarma.'); back('profil'); }
-  else toast('Zadejte platný promo kód.');
+/* Uplatnění kódu vyhodnocuje výhradně server — kontroluje platnost, doménu
+   i limit. Dřív si aplikace odsouhlasila jakýkoli řetězec sama, takže tvrdila
+   „plný přístup", i když ho uživatel neměl. */
+async function applyPromo(){
+  const kod = (document.getElementById('promoInput').value||'').trim().toUpperCase();
+  if(kod.length < 4){ toast('Zadejte prosím firemní kód.'); return; }
+
+  await pripravSb();
+  if(!sb){ toast('Aktivace je dočasně nedostupná.'); return; }
+  if(!authUser){
+    toast('Nejdřív se přihlaste e-mailem — kód se váže na váš účet.');
+    go('profil'); return;
+  }
+
+  const { data, error } = await sb.rpc('uplatnit_kod', { p_kod: kod });
+  if(error){ toast('Kód se nepodařilo ověřit. Zkuste to prosím znovu.'); return; }
+
+  if(data && data.ok){
+    pristupZeServeru = true; state.promoOk = true; saveState();
+    SERVICES.forEach(x => { x.zamceno = false; });
+    GUIDE.forEach(o => (o.topics||[]).forEach(t => { t.zamceno = false; }));
+    renderPlan(); renderStavPristupu();
+    try{ renderServices(); renderGuideOblasti(); }catch(e){}
+    toast('Kód uplatněn — máte plný přístup.');
+    back('profil');
+    return;
+  }
+
+  const hlasky = {
+    neplatny_kod:     'Takový kód neznáme. Zkontrolujte ho prosím.',
+    kod_vyprsel:      'Platnost tohoto kódu už skončila.',
+    klient_neaktivni: 'Kód je momentálně neaktivní — ozvěte se nám.',
+    spatna_domena:    'Kód platí jen pro firemní e-maily'+((data&&data.domeny)?' ('+data.domeny+')':'')+'.',
+    limit_vycerpan:   'Kód už vyčerpal počet míst. Ozvěte se prosím své firmě.',
+    neprihlaseno:     'Nejdřív se přihlaste e-mailem.'
+  };
+  toast(hlasky[(data&&data.duvod)] || 'Kód se nepodařilo uplatnit.');
+}
+
+/* Popis tarifu na kartě Profil i na obrazovce Předplatné podle skutečného stavu. */
+function renderPlan(){
+  const el = document.getElementById('planTitle'); if(!el) return;
+  el.textContent = maPlnyPristup() ? 'Plný přístup' : 'Omezený přístup';
+  const btn = document.getElementById('planBtn');
+  if(btn) btn.style.display = maPlnyPristup() ? 'none' : '';
 }
 
 /* ============ OBSAH Z WEBU (nativně v appce) ============ */
@@ -1866,7 +1907,7 @@ async function zjistiPristup(){
       // s plným přístupem zmizí zámky u služeb i témat
       if(data){ SERVICES.forEach(x => { x.zamceno = false; });
                 GUIDE.forEach(o => (o.topics||[]).forEach(t => { t.zamceno = false; })); }
-      renderStavPristupu();
+      renderStavPristupu(); renderPlan();
       try{ renderServices(); renderGuideOblasti(); }catch(e){}
     }
   }catch(e){}
@@ -2038,7 +2079,7 @@ async function poPotvrzeni(){
     const { data, error } = await sb.rpc('uplatnit_kod', { p_kod: kod });
     if(!error && data && data.ok){
       state.promoOk = true; saveState(); renderStavPristupu();
-      const p = document.getElementById('planTitle'); if(p) p.textContent = 'Plný přístup — '+(data.klient||'firemní kód');
+      pristupZeServeru = true; renderPlan();
       toast('Kód uplatněn ✓');
     } else {
       const duvod = (data && data.duvod) || 'chyba';
@@ -2575,7 +2616,7 @@ document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeo
 renderPoints(); renderServices(); renderChips(); renderGuideOblasti(); renderStavPristupu(); renderZpravy(); renderUnread(); renderProfileLinks();
 document.getElementById('notifToggle').classList.toggle('on',state.notif);
 document.getElementById('notifInfo').style.display=state.notif?'flex':'none';
-if(state.promoOk) document.getElementById('planTitle').textContent='Zdarma (promo kód)';
+renderPlan();
 renderAccount(); authInit();
 renderVehSub();
 (function(){ const c=getNotifCfg(); const el=document.getElementById('upSub');
