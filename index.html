@@ -631,6 +631,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
           </div>
         </div>
+        <div id="bloky-prehled"></div>
       </div>
     </div>
 
@@ -639,6 +640,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
       <div class="pad safe-top">
         <div class="section-label">S čím vám pomůžeme</div>
         <div class="list-card" id="serviceList"></div>
+        <div id="bloky-sluzby"></div>
       </div>
     </div>
 
@@ -675,7 +677,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="results-label" id="guideResultsLabel" style="display:none;">Výsledky</div>
         <div id="guideResults"></div>
-        <div id="bloky-prehled"></div>
+        <div id="bloky-pruvodce"></div>
       </div>
     </div>
 
@@ -762,7 +764,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 1.8.3 · build 57</div>
+        <div class="ver">Verze 1.8.4 · build 58</div>
       </div>
     </div>
 
@@ -2163,7 +2165,7 @@ async function nactiObsah(){
         if(h!==undefined && h!==null && h!=='') el.textContent=h;
       });
       /* vlastní bloky přidané v administraci: klíč začíná 'blok.<karta>.' */
-      ['prehled','zpravy','profil'].forEach(karta=>{
+      ['prehled','pruvodce','sluzby','zpravy','profil'].forEach(karta=>{
         const cil=document.getElementById('bloky-'+karta); if(!cil) return;
         const bloky=texty.filter(t=>t.klic.startsWith('blok.'+karta+'.') && (t.hodnota||'').trim());
         cil.innerHTML = bloky.map(t=>`

@@ -599,7 +599,7 @@ function kresliTexty(karta){
     </div>`;
 }
 
-async function ulozTexty(karta){
+async function ulozTexty(karta, potichu){
   const polozky = texty.filter(t => t.karta === karta);
   const zmenene = [];
   polozky.forEach(t => {
@@ -609,19 +609,21 @@ async function ulozTexty(karta){
     const novyPopis = poleNadpis ? poleNadpis.value.trim() : t.popis;
     if(nova !== t.hodnota || novyPopis !== t.popis) zmenene.push({...t, hodnota:nova, popis:novyPopis});
   });
-  if(!zmenene.length){ hlaska('Nic se nezměnilo.'); return; }
+  if(!zmenene.length){ if(!potichu) hlaska('Nic se nezměnilo.'); return; }
   for(const t of zmenene){
     const { error } = await db.from('texty')
       .update({hodnota:t.hodnota, popis:t.popis, upravil:uzivatel.email}).eq('klic', t.klic);
     if(error){ hlaska('Uložení selhalo: '+error.message, true); return; }
     Object.assign(texty.find(x => x.klic === t.klic), {hodnota:t.hodnota, popis:t.popis});
   }
-  hlaska('Uloženo — změněno '+zmenene.length+' '+(zmenene.length===1?'text':'textů')+'.');
+  if(!potichu) hlaska('Uloženo — změněno '+zmenene.length+' '+(zmenene.length===1?'text':'textů')+'.');
 }
 
 async function novyBlok(karta){
   const nadpis = prompt('Nadpis nového bloku (může zůstat prázdný):', '');
   if(nadpis === null) return;
+  // nejdřív uložit, co je rozepsané — jinak by to překreslení karty zahodilo
+  await ulozTexty(karta, true);
   const klic = 'blok.'+karta+'.'+Math.random().toString(36).slice(2,8);
   const poradi = 1000 + texty.filter(t => t.karta===karta && t.klic.startsWith('blok.')).length*10;
   const { data, error } = await db.from('texty').insert({
@@ -635,6 +637,7 @@ async function novyBlok(karta){
 
 async function smazBlok(klic){
   const t = texty.find(x => x.klic === klic); if(!t) return;
+  await ulozTexty(t.karta, true);
   if(!confirm('Smazat blok „'+(t.popis || 'bez nadpisu')+'"?\n\nZ aplikace zmizí. Tuto akci nelze vzít zpět.')) return;
   const { error } = await db.from('texty').delete().eq('klic', klic);
   if(error){ hlaska('Smazání selhalo: '+error.message, true); return; }
