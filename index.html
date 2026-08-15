@@ -780,7 +780,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.2.0 · build 66</div>
+        <div class="ver">Verze 2.3.0 · build 67</div>
       </div>
     </div>
 
@@ -838,7 +838,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           <div class="check" id="fConsent" onclick="this.classList.toggle('on')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
           <div style="flex:1 1 0;min-width:0;">Odesláním souhlasíte se zpracováním osobních údajů. <span class="link" onclick="openExt('https://www.pravaridice.cz/')" data-text="formular.odkaz">Zásady zpracování osobních údajů</span></div>
         </div>
-        <button class="btn btn-dark" onclick="submitForm()">
+        <button class="btn btn-dark" id="fOdeslat" onclick="submitForm()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           Odeslat
         </button>
@@ -1676,17 +1676,51 @@ function fileAdded(inp){
   if(inp.files&&inp.files[0]){ state.fileName=inp.files[0].name;
     const el=document.getElementById('fFileName'); el.style.display='block'; el.textContent='Přiloženo: '+state.fileName; }
 }
-function submitForm(){
-  const tel=(document.getElementById('fTel').value||'').trim();
-  const mail=(document.getElementById('fMail').value||'').trim();
+/* Poptávka se ukládá do databáze. Dokud nebude nasazená funkce do JIRA,
+   je tohle jediné místo, kde poptávky žijí — a kancelář je vidí v administraci.
+   Když se odeslání nepovede, uživateli to řekneme a nabídneme telefon;
+   mlčky data zahodit je to nejhorší, co může aplikace udělat. */
+async function submitForm(){
+  const jmeno = (document.getElementById('fName').value||'').trim();
+  const tel   = (document.getElementById('fTel').value||'').trim();
+  const mail  = (document.getElementById('fMail').value||'').trim();
+  const msg   = (document.getElementById('fMsg').value||'').trim();
+
   if(tel.length<6){ toast('Zadejte prosím telefonní číslo.'); return; }
   if(mail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ toast('Zkontrolujte prosím formát e-mailu.'); return; }
   if(!document.getElementById('fConsent').classList.contains('on')){ toast('Potvrďte prosím souhlas se zpracováním údajů.'); return; }
-  document.getElementById('fTel').value=''; document.getElementById('fMsg').value='';
-  document.getElementById('fName').value=''; document.getElementById('fMail').value='';
-  document.getElementById('fConsent').classList.remove('on');
-  toast('Odesláno. Zavoláme vám do 2 hodin.');
-  backAuto();
+
+  const tlacitko = document.getElementById('fOdeslat');
+  if(tlacitko){ tlacitko.disabled = true; }
+  toast('Odesílám…');
+
+  let odeslano = false;
+  if(PR_CFG.SUPABASE_URL && PR_CFG.SUPABASE_ANON){
+    try{
+      const r = await fetch(PR_CFG.SUPABASE_URL+'/rest/v1/poptavky', {
+        method:'POST',
+        headers:{ apikey:PR_CFG.SUPABASE_ANON, Authorization:'Bearer '+PR_CFG.SUPABASE_ANON,
+                  'Content-Type':'application/json', Prefer:'return=minimal' },
+        body: JSON.stringify({ jmeno: jmeno||null, telefon: tel, email: mail||null,
+                               zprava: msg||null, tema: 'Konzultace z aplikace',
+                               user_id: (authUser && authUser.id) || null })
+      });
+      odeslano = r.ok;
+      if(!r.ok) console.warn('poptávka', r.status, await r.text());
+    }catch(e){ console.warn('poptávka', e); }
+  }
+
+  if(tlacitko){ tlacitko.disabled = false; }
+
+  if(odeslano){
+    document.getElementById('fTel').value=''; document.getElementById('fMsg').value='';
+    document.getElementById('fName').value=''; document.getElementById('fMail').value='';
+    document.getElementById('fConsent').classList.remove('on');
+    toast('Odesláno. Ozveme se do 2 hodin v pracovní době.');
+    backAuto();
+  } else {
+    toast('Odeslání se nepovedlo — zavolejte nám prosím na '+TELTXT+'.');
+  }
 }
 function callUs(){ window.location.href='tel:+420739662266'; }
 
@@ -2117,7 +2151,7 @@ function renderOb(){
       '<div class="ob-eyebrow">Proč sledovat body</div>'+
       '<h1 class="title-lg" style="font-size:30px;">Vybodování se dá předejít.</h1>'+
       '<p style="font-size:15.5px;">Po nasbírání 12 bodů přijdete o řidičský průkaz na 12 měsíců. Bodový stav lze ověřit jen u úřadu, takže mnoho řidičů ho zná až ve chvíli, kdy je pozdě.</p>'+
-      '<p style="font-size:15.5px;margin-top:12px;">Aplikace vám pomůže držet přehled. Když si zaznamenáte aktuální stav, upozorníme vás včas — typicky už při 9 bodech — abyste měli čas reagovat.</p>'+
+      '<p style="font-size:15.5px;margin-top:12px;">Aplikace vám pomůže držet přehled. Když si zaznamenáte aktuální stav, uvidíte varování na kartě Zprávy — typicky už při 9 bodech — abyste měli čas reagovat.</p>'+
       '<div class="ob-fill"></div>'+
       '<div class="ob-actions"><button class="btn btn-peach" onclick="obGo(1)">Pokračovat</button></div></div>';
     return;
@@ -2216,14 +2250,14 @@ function renderUpozorneni(){
       '<div class="chips">'+[6,7,8,9,10,11].map(v=>'<div class="chip '+(c.prah===v?'active':'')+'" onclick="setPrah('+v+')">'+v+' bodů</div>').join('')+'</div>'+
       '<div class="alert-line" style="margin-top:10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b5a3f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span>Už 6 bodů je rizikových — jediný 6bodový přestupek pak znamená vybodování.</span></div></div>'+
     '<div class="section-label" style="margin-top:14px;">Vozidlo a termíny</div>'+
-    sw('stk','STK','Připomeneme blížící se konec platnosti',c.stk)+
+    sw('stk','STK','Blížící se konec platnosti se ukáže ve Zprávách',c.stk)+
     '<div style="height:8px;"></div>'+
     sw('poj','Pojištění vozidla','Konec platnosti povinného ručení',c.poj)+
     '<div style="height:8px;"></div>'+
     sw('znamka','Dálniční známka','Konec platnosti dálniční známky',c.znamka)+
     '<div class="card" style="margin-top:8px;"><div class="eyebrow" style="margin-bottom:8px;">S jakým předstihem</div>'+
       '<div class="chips">'+[7,14,30,60].map(v=>'<div class="chip '+(c.predstih===v?'active':'')+'" onclick="setPredstih('+v+')">'+(v===7?'týden':(v===14?'2 týdny':(v===30?'měsíc':'2 měsíce')))+'</div>').join('')+'</div>'+
-      '<div class="small muted" style="margin-top:8px;line-height:1.4;">Připomeneme '+(c.predstih===7?'týden':(c.predstih===14?'dva týdny':(c.predstih===30?'měsíc':'dva měsíce')))+' předem a znovu týden před koncem.</div></div>'+
+      '<div class="small muted" style="margin-top:8px;line-height:1.4;">Upozornění se objeví ve Zprávách '+(c.predstih===7?'týden':(c.predstih===14?'dva týdny':(c.predstih===30?'měsíc':'dva měsíce')))+' předem. <b>Zatím jen v aplikaci — push do telefonu připravujeme.</b></div></div>'+
     (vs.length? '<div class="list-card" style="margin-top:8px;"><div class="list-item" onclick="openVozidla()">'+
         '<div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14l-1.5-5a2 2 0 0 0-2-1.5h-7a2 2 0 0 0-2 1.5z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></div>'+
         '<div class="li-body"><h4>Spravovat vozidla</h4><p>'+vs.length+' '+plural(vs.length,'vozidlo','vozidla','vozidel')+' · termíny a asistence</p></div>'+

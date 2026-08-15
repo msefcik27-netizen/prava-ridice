@@ -118,6 +118,16 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 .upozorneni-shora{background:#FFF3DF;border:1px solid #F0DCB0;border-radius:11px;
   padding:11px 13px;font-size:13px;color:#7A5A18;margin-bottom:10px}
 
+.tabulka{width:100%;border-collapse:collapse;font-size:13px}
+.tabulka th{text-align:left;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);padding:0 10px 7px;border-bottom:1px solid var(--line)}
+.tabulka td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.tabulka tr.nova td{background:#FFF8EE}
+.tabulka .nowrap{white-space:nowrap}
+.tabulka .zprava{max-width:280px;color:var(--muted);line-height:1.4}
+.tabulka a{color:var(--teal-900);font-weight:600}
+.tabulka select{padding:5px 8px;border-radius:7px;font-size:12.5px;min-width:104px}
+
 /* ---------- administrace ---------- */
 .dlazdice-rada{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px}
 .dlazdice{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:13px 14px}
@@ -264,6 +274,7 @@ let db = null, uzivatel = null;
 let oblasti = [], clanky = [], sluzby = [], texty = [], zpravy = [];
 let vybranaZprava = null;
 let klienti = [], statistika = null, vybranyKlient = null;
+let poptavky = [];
 let vybrano = null;      // {typ:'oblast'|'clanek', id}
 let vybranaSluzba = null;
 let rozbaleno = {};
@@ -883,10 +894,12 @@ function bezeZmeny(el){
 async function kresliSpravu(){
   const sek = $('sek-sprava');
   sek.innerHTML = '<div class="prazdno">Načítám…</div>';
-  const [k, st] = await Promise.all([
+  const [k, st, pop] = await Promise.all([
     db.from('v_klienti').select('*').order('nazev'),
-    db.rpc('statistiky')
+    db.rpc('statistiky'),
+    db.from('poptavky').select('*').order('vytvoreno', {ascending:false}).limit(50)
   ]);
+  poptavky = pop && !pop.error ? pop.data : [];
   if(k.error){
     sek.innerHTML = `<h2>Administrace</h2>
       <div class="prazdno">Tabulky klientů zatím nejsou v databázi.<br>
@@ -917,6 +930,8 @@ function vykresliSpravu(){
       ${dlazdice('Registrovaní bez kódu', bezKodu >= 0 ? bezKodu : '—', 'nepoužili promo kód')}
     </div>
 
+    ${sekcePoptavek()}
+
     <h2 style="margin-top:26px">Klienti a promo kódy</h2>
     <p class="napoveda" style="margin:-6px 0 16px">Každý klient má jeden kód. Kód projde jen z povolené domény
        a jen tolikrát, kolik má klient zaměstnanců.</p>
@@ -924,6 +939,39 @@ function vykresliSpravu(){
                      : '<div class="prazdno">Zatím žádní klienti.</div>'}
     <div class="lista"><button class="btn btn-vedl" onclick="novyKlient()">+ Přidat klienta</button></div>`;
   hlidejFormular($('sek-sprava'));
+}
+
+/* Poptávky z konzultačního formuláře v aplikaci. */
+const STAVY_POPTAVKY = {novy:'Nová', v_reseni:'V řešení', vyrizeno:'Vyřízeno'};
+
+function sekcePoptavek(){
+  const novych = poptavky.filter(p => p.stav === 'novy').length;
+  return `
+  <h2 style="margin-top:26px">Poptávky z aplikace
+    ${novych ? `<span class="odznak o-plny" style="margin-left:8px">${novych} ${novych===1?"nová":(novych<5?"nové":"nových")}</span>` : ''}</h2>
+  <p class="napoveda" style="margin:-6px 0 14px">Konzultační formulář z aplikace.
+     Zobrazuje se posledních 50.</p>
+  ${poptavky.length ? `<table class="tabulka">
+      <tr><th>Kdy</th><th>Jméno</th><th>Telefon</th><th>E-mail</th><th>Zpráva</th><th>Stav</th></tr>
+      ${poptavky.map(p => `<tr class="${p.stav==='novy'?'nova':''}">
+        <td class="nowrap">${(p.vytvoreno||'').slice(0,16).replace('T',' ')}</td>
+        <td>${esc(p.jmeno||'—')}</td>
+        <td class="nowrap"><a href="tel:${esc(p.telefon)}">${esc(p.telefon)}</a></td>
+        <td>${p.email?`<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`:'—'}</td>
+        <td class="zprava">${esc(p.zprava||'')}</td>
+        <td><select onchange="zmenStavPoptavky('${p.id}', this.value)">
+          ${Object.entries(STAVY_POPTAVKY).map(([k,v])=>
+            `<option value="${k}" ${p.stav===k?'selected':''}>${v}</option>`).join('')}
+        </select></td></tr>`).join('')}
+    </table>`
+   : '<div class="prazdno">Zatím žádné poptávky.</div>'}`;
+}
+
+async function zmenStavPoptavky(id, stav){
+  const { error } = await db.from('poptavky').update({stav}).eq('id', id);
+  if(error){ hlaska('Změna se neuložila: '+error.message, true); return; }
+  const p = poptavky.find(x => x.id === id); if(p) p.stav = stav;
+  hlaska('Stav změněn na „'+STAVY_POPTAVKY[stav]+'".');
 }
 
 function nahledKlienta(k){
