@@ -474,7 +474,8 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 .ob-dots i.on{background:var(--peach);width:22px;}
 #obBody{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .ob-coderow{display:flex;gap:8px;}
-.ob-coderow .ob-code{flex:1;text-align:left;}
+.ob-coderow .ob-chyba{display:none;background:rgba(229,72,77,.16);border:1px solid rgba(229,72,77,.4);color:#FFD9DA;border-radius:11px;padding:10px 13px;font-size:13px;margin-top:12px;line-height:1.4;}
+.ob-code{flex:1;text-align:left;}
 .ob-coderow button{flex:0 0 auto;padding:0 18px;border-radius:14px;border:none;background:var(--peach);color:var(--accent-ink);font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;}
 .ob-free{background:none;border:none;color:rgba(255,255,255,.85);font-family:inherit;font-size:15px;font-weight:700;text-decoration:underline;padding:12px;cursor:pointer;width:100%;}
 #obBody .ob-fill{flex:1;}
@@ -759,7 +760,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 1.9.0 · build 59</div>
+        <div class="ver">Verze 2.0.0 · build 60</div>
       </div>
     </div>
 
@@ -1717,11 +1718,19 @@ async function authInit(){
     await loadSupabase();
     sb=window.supabase.createClient(PR_CFG.SUPABASE_URL, PR_CFG.SUPABASE_ANON);
     const {data}=await sb.auth.getSession();
-    if(data && data.session){ authUser=data.session.user; await afterLogin(); }
-    sb.auth.onAuthStateChange((_e,session)=>{
+    if(data && data.session){
+      authUser=data.session.user; await afterLogin();
+      let ceka=null; try{ ceka=JSON.parse(localStorage.getItem('pr-cekam-na-potvrzeni')||'null'); }catch(e){}
+      if(ceka) await poPotvrzeni();
+    }
+    sb.auth.onAuthStateChange(async (_e,session)=>{
       authUser = session ? session.user : null;
       renderAccount();
-      if(authUser) afterLogin();
+      if(authUser){
+        await afterLogin();
+        let ceka=null; try{ ceka=JSON.parse(localStorage.getItem('pr-cekam-na-potvrzeni')||'null'); }catch(e){}
+        if(ceka) await poPotvrzeni();
+      }
     });
     renderAccount();
   }catch(e){ console.warn('auth init',e); }
@@ -1785,7 +1794,7 @@ function renderAccount(){
 
 /* ============ ONBOARDING (4 kroky dle původní aplikace + feedback testerky) ============ */
 const OB_STEPS=4;
-let ob={step:0, points:0, notif:true};
+let ob={step:0, points:0, notif:true, email:'', kod:''};
 function obDots(){
   document.getElementById('obDots').innerHTML=Array.from({length:OB_STEPS},(_,i)=>'<i class="'+(i===ob.step?'on':'')+'"></i>').join('');
   document.getElementById('obBack').style.visibility = ob.step>0?'visible':'hidden';
@@ -1800,14 +1809,116 @@ function obDone(){
   try{ localStorage.setItem('pr-onboarded','1'); }catch(e){}
   enterApp();
 }
-function obCode(){
-  const v=(document.getElementById('obCodeInput').value||'').trim().toUpperCase();
-  if(v.length>=4){ state.promoOk=true; saveState();
-    const p=document.getElementById('planTitle'); if(p)p.textContent='Zdarma (aktivační kód)';
-    toast('Aktivační kód uplatněn ✓'); obDone(); }
-  else toast('Zadejte prosím platný aktivační kód.');
+/* Jednorázové a nesmyslné schránky. Skutečnou pojistkou je potvrzovací
+   odkaz — na vymyšlenou adresu nikdy nedorazí a uživatel se dál nedostane. */
+const ZAKAZANE_DOMENY = ['mailinator.com','yopmail.com','guerrillamail.com','10minutemail.com',
+  'tempmail.com','temp-mail.org','trashmail.com','sharklasers.com','getnada.com','dispostable.com',
+  'maildrop.cc','fakeinbox.com','throwawaymail.com','mohmal.com','emailfake.com','tempr.email',
+  'test.cz','test.com','example.com','example.cz','a.cz','aaa.cz','asd.cz','qwe.cz'];
+
+function overEmail(e){
+  e = (e||'').trim().toLowerCase();
+  if(!e) return 'Zadejte prosím e-mail.';
+  if(!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(e)) return 'E-mail nevypadá správně — zkontrolujte ho.';
+  const domena = e.split('@')[1];
+  if(ZAKAZANE_DOMENY.includes(domena)) return 'Na jednorázové schránky aplikaci aktivovat nelze.';
+  if(/^(.)\1+@/.test(e)) return 'E-mail nevypadá jako skutečný.';
+  // Krátké domény (x.com, a.io) jsou legitimní — nezamítáme je.
+  // Skutečnou pojistkou proti smyšlené adrese je potvrzovací odkaz.
+  return null;
+}
+
+function obChyba(text){
+  const el = document.getElementById('obChyba');
+  if(el){ el.textContent = text || ''; el.style.display = text ? 'block' : 'none'; }
+}
+
+async function pripravSb(){
+  if(sb) return sb;
+  if(!authReady()) return null;
+  try{ await loadSupabase();
+       sb = window.supabase.createClient(PR_CFG.SUPABASE_URL, PR_CFG.SUPABASE_ANON);
+  }catch(e){ console.warn('supabase', e); }
+  return sb;
+}
+
+async function obRegistrace(){
+  const email = (document.getElementById('obEmail').value||'').trim().toLowerCase();
+  const kod   = (document.getElementById('obCodeInput').value||'').trim().toUpperCase();
+  ob.email = email; ob.kod = kod;
+  const chyba = overEmail(email);
+  if(chyba){ obChyba(chyba); return; }
+  obChyba('');
+
+  await pripravSb();
+  if(!sb){ obChyba('Registrace je dočasně nedostupná. Zkuste to prosím později.'); return; }
+  const tl = document.getElementById('obOdeslat');
+  if(tl){ tl.disabled = true; tl.textContent = 'Odesílám…'; }
+  try{ localStorage.setItem('pr-cekam-na-potvrzeni', JSON.stringify({email, kod})); }catch(e){}
+
+  const { error } = await sb.auth.signInWithOtp({
+    email, options:{ emailRedirectTo: location.href.split('#')[0].split('?')[0] }
+  });
+  if(error){
+    if(tl){ tl.disabled = false; tl.textContent = 'Pokračovat'; }
+    obChyba('Odeslání se nepovedlo: '+error.message);
+    return;
+  }
+  ob.step = 4; renderOb();
+}
+
+/* obrazovka „otevřete e-mail" */
+function obCekani(){
+  const B = document.getElementById('obBody');
+  B.innerHTML = '<div class="ob-step"><div class="ob-fill"></div>'+
+    '<div style="text-align:center;">'+
+    '<svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#F4B59D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:14px;"><rect x="2.6" y="4.8" width="18.8" height="14.4" rx="2.4"/><path d="M3.4 6.6l8.6 6 8.6-6"/></svg>'+
+    '<h1 class="title-lg" style="font-size:24px;">Otevřete si e-mail</h1>'+
+    '<p style="font-size:14px;margin-top:10px;">Poslali jsme odkaz na <b>'+(ob.email||'')+'</b>. '+
+      'Klepnutím na něj potvrdíte adresu a aplikace se otevře.</p>'+
+    '<p style="font-size:12.5px;opacity:.72;margin-top:14px;">Nepřišel? Podívejte se do spamu — '+
+      'první zpráva tam občas spadne.</p></div>'+
+    '<div class="ob-fill"></div>'+
+    '<button class="btn btn-outline" onclick="obZnovu()">Poslat znovu</button>'+
+    '<button class="ob-free" style="margin-top:4px;" onclick="obZpetNaEmail()">Zadat jiný e-mail</button></div>';
+  document.getElementById('obDots').style.visibility = 'hidden';
+}
+function obZpetNaEmail(){ document.getElementById('obDots').style.visibility='visible'; ob.step=3; renderOb(); }
+async function obZnovu(){
+  if(!sb || !ob.email) return;
+  const { error } = await sb.auth.signInWithOtp({ email: ob.email,
+    options:{ emailRedirectTo: location.href.split('#')[0].split('?')[0] } });
+  toast(error ? 'Odeslání se nepovedlo.' : 'Odkaz odeslán znovu.');
+}
+
+/* po návratu z potvrzovacího odkazu */
+async function poPotvrzeni(){
+  let cekani = null;
+  try{ cekani = JSON.parse(localStorage.getItem('pr-cekam-na-potvrzeni')||'null'); }catch(e){}
+  const kod = cekani && cekani.kod;
+  if(kod && sb){
+    const { data, error } = await sb.rpc('uplatnit_kod', { p_kod: kod });
+    if(!error && data && data.ok){
+      state.promoOk = true; saveState();
+      const p = document.getElementById('planTitle'); if(p) p.textContent = 'Plný přístup — '+(data.klient||'firemní kód');
+      toast('Kód uplatněn ✓');
+    } else {
+      const duvod = (data && data.duvod) || 'chyba';
+      const hlasky = {
+        neplatny_kod:    'Firemní kód nebyl rozpoznán.',
+        kod_vyprsel:     'Platnost firemního kódu skončila.',
+        klient_neaktivni:'Firemní kód je momentálně neaktivní.',
+        spatna_domena:   'Kód platí jen pro firemní e-maily'+(data && data.domeny ? ' ('+data.domeny+')' : '')+'.',
+        limit_vycerpan:  'Firemní kód už vyčerpal počet míst.'
+      };
+      toast(hlasky[duvod] || 'Kód se nepodařilo uplatnit.');
+    }
+  }
+  try{ localStorage.removeItem('pr-cekam-na-potvrzeni'); }catch(e){}
+  obDone();
 }
 function renderOb(){
+  if(ob.step===4){ obCekani(); return; }
   obDots();
   const B=document.getElementById('obBody');
   if(ob.step===0){
@@ -1847,16 +1958,22 @@ function renderOb(){
     return;
   }
   B.innerHTML='<div class="ob-step"><div style="height:18px;"></div>'+
-    '<div class="ob-eyebrow">Přihlášení</div>'+
-    '<h1 class="title-lg" style="font-size:26px;">Spravujte svůj účet, body a předplatné.</h1>'+
-    '<p style="font-size:14px;margin-top:10px;">Přihlášení je nepovinné — slouží k zálohování bodů a aktivaci předplatného na dalších zařízeních.</p>'+
+    '<div class="ob-eyebrow">Registrace</div>'+
+    '<h1 class="title-lg" style="font-size:25px;">Ještě váš e-mail a jsme hotovi.</h1>'+
+    '<p style="font-size:13.5px;margin-top:9px;">Pošleme na něj potvrzovací odkaz. Slouží k zálohování bodů, '+
+      'zprávám od advokáta a k aktivaci plného přístupu.</p>'+
     '<div class="ob-fill"></div>'+
-    '<div class="ob-eyebrow" style="margin-bottom:8px;">Máte aktivační kód?</div>'+
-    '<div class="ob-coderow"><input class="ob-code" id="obCodeInput" autocapitalize="characters" placeholder="Zadejte kód" /><button onclick="obCode()">Uplatnit</button></div>'+
-    '<div style="height:16px;"></div>'+
-    '<button class="btn btn-outline-dark" onclick="authSignIn(\'apple\')"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.8c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8c-1.5 0-2.9.9-3.7 2.2-1.6 2.8-.4 6.9 1.1 9.1.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.2 0 2-1.1 2.8-2.2.9-1.3 1.2-2.5 1.3-2.6-.1 0-2.5-1-2.5-3.6zM14.2 5.9c.6-.8 1-1.9.9-3-.9 0-2 .6-2.7 1.4-.6.7-1.1 1.8-.9 2.9 1 .1 2.1-.5 2.7-1.3z"/></svg> Přihlásit se přes Apple</button>'+
-    '<button class="btn btn-peach" style="margin-top:8px;" onclick="authSignIn(\'google\')">Přihlásit přes Google</button>'+
-    '<button class="ob-free" style="margin-top:4px;" onclick="obDone()">Pokračovat bez přihlášení →</button></div>';
+    '<div class="ob-eyebrow" style="margin-bottom:7px;">Váš e-mail</div>'+
+    '<input class="ob-code" id="obEmail" type="email" inputmode="email" autocomplete="email" '+
+      'autocapitalize="off" spellcheck="false" placeholder="jmeno@firma.cz" style="text-align:left;letter-spacing:0;" '+
+      'value="'+(ob.email||'')+'" />'+
+    '<div class="ob-eyebrow" style="margin:14px 0 7px;">Firemní kód <span style="opacity:.6;font-weight:400;">— nepovinné</span></div>'+
+    '<input class="ob-code" id="obCodeInput" autocapitalize="characters" placeholder="např. FIRMA-4K2A" value="'+(ob.kod||'')+'" />'+
+    '<div id="obChyba" class="ob-chyba"></div>'+
+    '<button class="btn btn-peach" style="margin-top:14px;" id="obOdeslat" onclick="obRegistrace()">Pokračovat</button>'+
+    '<p style="font-size:11.5px;opacity:.72;margin-top:9px;text-align:center;">'+
+      'Odesláním souhlasíte se zpracováním osobních údajů.</p></div>';
+
 }
 
 function renderNotif(){
@@ -2207,6 +2324,30 @@ function maybeShowInstall(){
 
    Placené články: čte se z pohledu v_clanky, který text nezaplaceným vůbec
    nevydá. V aplikaci proto není co odemykat — přijde rovnou bez těla. */
+/* Anonymní ohlášení instalace — jen náhodné číslo zařízení, žádný osobní údaj.
+   Slouží k porovnání, kolik lidí aplikaci má, s tím, kolik se jich registrovalo. */
+async function ohlasInstalaci(){
+  if(!PR_CFG.SUPABASE_URL || !PR_CFG.SUPABASE_ANON) return;
+  let id=null;
+  try{
+    id = localStorage.getItem('pr-instalace');
+    if(!id){
+      id = (crypto.randomUUID ? crypto.randomUUID()
+           : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+               const r=Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16); }));
+      localStorage.setItem('pr-instalace', id);
+    }
+  }catch(e){ return; }
+  try{
+    await fetch(PR_CFG.SUPABASE_URL+'/rest/v1/rpc/ohlas_instalaci', {
+      method:'POST',
+      headers:{ apikey:PR_CFG.SUPABASE_ANON, Authorization:'Bearer '+PR_CFG.SUPABASE_ANON,
+                'Content-Type':'application/json' },
+      body: JSON.stringify({ p_id: id })
+    });
+  }catch(e){}
+}
+
 async function nactiObsah(){
   if(!PR_CFG.SUPABASE_URL || !PR_CFG.SUPABASE_ANON) return;
   const hlavicky = { apikey: PR_CFG.SUPABASE_ANON, Authorization: 'Bearer ' + PR_CFG.SUPABASE_ANON };
@@ -2284,6 +2425,7 @@ loadState();
 nactiTema();
 fitNavSafe();
 setTimeout(nactiObsah, 60);
+setTimeout(ohlasInstalaci, 900);
 setTimeout(extendToTrueBottom,250); setTimeout(extendToTrueBottom,1100);
 [300,900,2000].forEach(t=>setTimeout(fitScreen,t));
 [300,900].forEach(t=>setTimeout(fitNavSafe,t));

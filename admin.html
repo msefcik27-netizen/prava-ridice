@@ -54,8 +54,16 @@ main{max-width:1180px;margin:0 auto;padding:22px 20px 80px}
 .sipka:hover{background:rgba(0,0,0,.07)}
 .sipka.dolu{transform:rotate(90deg)}
 .radek.on .sipka{color:rgba(255,255,255,.8)}
+.poradi-sipky{display:none;gap:2px;flex:0 0 auto}
+.radek:hover .poradi-sipky,.radek.on .poradi-sipky{display:flex}
+.poradi-sipky button{background:none;border:0;color:inherit;opacity:.55;cursor:pointer;padding:2px 3px;
+  border-radius:4px;display:flex;align-items:center;line-height:0}
+.poradi-sipky button:hover{opacity:1;background:rgba(0,0,0,.09)}
+.radek.on .poradi-sipky button:hover{background:rgba(255,255,255,.18)}
 .odznak{font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:6px;letter-spacing:.03em;flex:0 0 auto}
 .o-placeny{background:#FFE9C7;color:var(--warn)}
+.o-plny{background:#FFE9C7;color:var(--warn)}
+.o-omezeny{background:#E9EEEF;color:#6B7B7F;font-weight:600}
 .o-koncept{background:#EDEFEF;color:var(--muted)}
 .radek.on .odznak{opacity:.9}
 
@@ -83,6 +91,12 @@ textarea{min-height:230px;resize:vertical;line-height:1.6}
 .prepinac.zap .knof{background:var(--teal-800)}
 .prepinac.zap .knof::after{transform:translateX(19px)}
 .prepinac.zap.placeny .knof{background:var(--warn)}
+.prepinac.pristup .stav-pristup{flex:0 0 auto;font-size:12px;font-weight:800;letter-spacing:.04em;
+  text-transform:uppercase;padding:5px 10px;border-radius:8px;background:#E9EEEF;color:#6B7B7F}
+.prepinac.pristup .stav-pristup::after{content:'Omezený'}
+.prepinac.pristup.zap .stav-pristup{background:#FFE9C7;color:var(--warn)}
+.prepinac.pristup.zap .stav-pristup::after{content:'Plný'}
+.prepinac.pristup.zap .knof{background:var(--warn)}
 
 .btn{border:0;border-radius:10px;padding:11px 17px;font-weight:700;cursor:pointer;font-size:14px}
 .btn-hlavni{background:var(--teal-900);color:#fff}
@@ -116,16 +130,17 @@ textarea{min-height:230px;resize:vertical;line-height:1.6}
 .vyuziti-pruh i{display:block;height:100%;border-radius:99px}
 
 /* ---------- náhled vlastního bloku ---------- */
-.blok-nahled{background:var(--cream);border:1px solid #EBDCD2;border-radius:12px;padding:14px 15px;margin-bottom:15px}
+.blok-nahled{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin-bottom:15px}
+.blok-nahled .blok-stitek{color:var(--muted)}
 .blok-hlavicka{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .blok-stitek{flex:1;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#A07A55}
-.blok-akce{background:#fff;border:1px solid #E6D3C6;color:var(--teal-900);border-radius:8px;
+.blok-akce{background:var(--bg);border:1px solid var(--line);color:var(--teal-900);border-radius:8px;
   padding:5px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
 .blok-akce:hover{background:#FBF3EC}
 .blok-nahled h3{margin:0 0 5px;font-size:15.5px;font-weight:800;color:var(--ink)}
-.blok-nahled p{margin:0;font-size:13.5px;line-height:1.55;color:#4A3C30}
+.blok-nahled p{margin:0;font-size:13.5px;line-height:1.55;color:var(--ink)}
 .blok-nahled .blok-prazdny{color:var(--muted);font-style:italic}
-.blok-odkaz{margin-top:9px;display:inline-block;background:#fff;border:1px solid #E6D3C6;border-radius:8px;
+.blok-odkaz{margin-top:9px;display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:8px;
   padding:6px 11px;font-size:13px;font-weight:700;color:var(--teal-900)}
 .blok-odkaz span{font-weight:400;color:var(--muted);font-size:12px}
 .pole.blok-edit{background:var(--cream);border:1px solid #EBDCD2;border-radius:12px;padding:13px 14px}
@@ -326,15 +341,17 @@ function prepni(co){
 }
 
 /* ---------- strom oblastí a článků ---------- */
+const dlePoradi = (a,b) => (a.poradi||0) - (b.poradi||0);
+
 function kresliStrom(){
-  const korenove = oblasti.filter(o => !o.rodic_id);
+  const korenove = oblasti.filter(o => !o.rodic_id).sort(dlePoradi);
   $('strom').innerHTML = korenove.map(vykresliOblast).join('') ||
     '<div class="prazdno">Zatím tu nic není. Začněte tlačítkem + Oblast.</div>';
 }
 
 function vykresliOblast(o){
-  const podoblasti = oblasti.filter(x => x.rodic_id === o.id);
-  const cl = clanky.filter(c => c.oblast_id === o.id);
+  const podoblasti = oblasti.filter(x => x.rodic_id === o.id).sort(dlePoradi);
+  const cl = clanky.filter(c => c.oblast_id === o.id).sort(dlePoradi);
   const otevreno = rozbaleno[o.id] === true;   // výchozí stav: zabaleno
   const vyb = vybrano && vybrano.typ==='oblast' && vybrano.id===o.id;
   const deti = otevreno ? `<ul class="deti">
@@ -349,10 +366,12 @@ function vykresliOblast(o){
       </span>
       <span class="nazev">${esc(o.nazev)}</span>
       ${o.placeny
-          ? '<span class="odznak o-placeny" title="Celá oblast je jen s plným přístupem">celá plný</span>'
+          ? '<span class="odznak o-plny" title="Celá oblast vyžaduje plný přístup">plný</span>'
           : (() => { const pl = cl.filter(c=>c.placeny).length;
-              return pl ? `<span class="odznak o-placeny" title="${pl} z ${cl.length} článků je jen s plným přístupem">${pl}× plný</span>` : ''; })()}
+              return pl ? `<span class="odznak o-plny" title="${pl} z ${cl.length} článků vyžaduje plný přístup">${pl}× plný</span>`
+                        : '<span class="odznak o-omezeny" title="Obsah je dostupný i s omezeným přístupem">omezený</span>'; })()}
       ${o.publikovano ? '' : '<span class="odznak o-koncept">skryto</span>'}
+      ${sipky('oblast', o.id)}
       <span class="znak">${podoblasti.length + cl.length}</span>
     </div>${deti}</li>`;
 }
@@ -365,10 +384,49 @@ function vykresliClanek(c){
   return `<li class="uzel"><div class="radek ${vyb?'on':''}" onclick="vyberClanek('${c.id}')">
       <span class="sipka"></span>
       <span class="nazev">${esc(c.nadpis)}</span>
-      ${c.placeny ? '<span class="odznak o-placeny">plný</span>'
-                  : (shora ? '<span class="odznak o-placeny" title="Zamčeno nastavením oblasti" style="opacity:.7">z oblasti</span>' : '')}
+      ${c.placeny ? '<span class="odznak o-plny" title="Vyžaduje plný přístup">plný</span>'
+                  : (shora ? '<span class="odznak o-plny" title="Plný přístup podle nastavení oblasti" style="opacity:.75">plný · z oblasti</span>'
+                           : '<span class="odznak o-omezeny" title="Dostupné i s omezeným přístupem">omezený</span>')}
       ${c.publikovano ? '' : '<span class="odznak o-koncept">koncept</span>'}
     </div></li>`;
+}
+
+function sipky(typ, id){
+  return `<span class="poradi-sipky">
+    <button onclick="event.stopPropagation();posun('${typ}','${id}',-1)" title="Posunout nahoru">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></button>
+    <button onclick="event.stopPropagation();posun('${typ}','${id}',1)" title="Posunout dolů">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+  </span>`;
+}
+
+/* Posunutí o jednu pozici. Nejdřív se sourozencům přečísluje pořadí po deseti
+   (v databázi bývají samé nuly, pak by prohození nic neudělalo), teprve potom
+   se prohodí dvojice. */
+async function posun(typ, id, smer){
+  const jeOblast = typ === 'oblast';
+  const tabulka  = jeOblast ? 'oblasti' : 'clanky';
+  const pole     = jeOblast ? oblasti : clanky;
+  const polozka  = pole.find(x => x.id === id); if(!polozka) return;
+
+  const sourozenci = (jeOblast
+      ? oblasti.filter(o => (o.rodic_id || null) === (polozka.rodic_id || null))
+      : clanky.filter(c => c.oblast_id === polozka.oblast_id))
+    .sort((a,b) => (a.poradi||0) - (b.poradi||0));
+
+  const i = sourozenci.findIndex(x => x.id === id);
+  const j = i + smer;
+  if(i < 0 || j < 0 || j >= sourozenci.length) return;
+
+  sourozenci.forEach((x, n) => { x.poradi = n * 10; });
+  const a = sourozenci[i], b = sourozenci[j];
+  const tmp = a.poradi; a.poradi = b.poradi; b.poradi = tmp;
+
+  kresliStrom();   // překreslit hned, ať to nedrhne
+  const ulozeni = sourozenci.map(x => db.from(tabulka).update({poradi:x.poradi}).eq('id', x.id));
+  const vysledky = await Promise.all(ulozeni);
+  const chyba = vysledky.find(v => v.error);
+  if(chyba){ hlaska('Uložení pořadí selhalo: '+chyba.error.message, true); await nactiVse(); }
 }
 
 function prepniUzel(id){ rozbaleno[id] = !(rozbaleno[id] === true); kresliStrom(); }
@@ -387,12 +445,13 @@ function editorOblasti(){
     <div class="radky2">
       <div class="pole"><label>Nadřazená oblast</label>
         <select id="f-rodic"><option value="">— žádná (hlavní úroveň) —</option>${moznosti}</select>
-        <p class="napoveda">Podoblast se v aplikaci zobrazí zanořená pod nadřazenou.</p></div>
-      <div class="pole"><label>Pořadí</label><input type="text" id="f-poradi" value="${o.poradi||0}"></div>
+        <p class="napoveda">Podoblast se v aplikaci zobrazí zanořená pod nadřazenou.
+           Pořadí se mění šipkami ve struktuře vlevo.</p></div>
     </div>
-    <div class="prepinac placeny ${o.placeny?'zap':''}" onclick="this.classList.toggle('zap')" id="f-placeny">
-      <div class="txt"><b>Jen s plným přístupem</b>
-        <span>Zapnuto = zamkne <b>všechny články</b> v této oblasti i v jejích podoblastech.</span></div>
+    <div class="prepinac pristup ${o.placeny?'zap':''}" onclick="prepniPristup(this)" id="f-placeny">
+      <div class="txt"><b>Úroveň přístupu</b>
+        <span>Zapnuto = <b>plný přístup</b> pro celou oblast včetně podoblastí. Vypnuto = obsah vidí i uživatel s omezeným přístupem.</span></div>
+      <span class="stav-pristup"></span>
       <div class="knof"></div></div>
     <div class="prepinac ${o.publikovano?'zap':''}" onclick="this.classList.toggle('zap')" id="f-publ">
       <div class="txt"><b>Zobrazit v aplikaci</b><span>Vypnuto = oblast uživatelé nevidí.</span></div>
@@ -422,7 +481,6 @@ async function ulozOblast(){
   const zmeny = {
     nazev: $('f-nazev').value.trim(),
     rodic_id: $('f-rodic').value || null,
-    poradi: parseInt($('f-poradi').value,10) || 0,
     placeny: $('f-placeny').classList.contains('zap'),
     publikovano: $('f-publ').classList.contains('zap')
   };
@@ -464,8 +522,8 @@ function editorClanku(){
         placeholder="Vybodování, Přestupky, Sankce…"></div>
     </div>
     <div class="radky2">
-      <div class="pole"><label>Odkaz na web</label><input type="text" id="f-odkaz" value="${esc(c.odkaz)}"></div>
-      <div class="pole"><label>Pořadí</label><input type="text" id="f-poradi" value="${c.poradi||0}"></div>
+      <div class="pole"><label>Odkaz na web</label><input type="text" id="f-odkaz" value="${esc(c.odkaz)}">
+        <p class="napoveda">Pořadí se mění šipkami ve struktuře vlevo.</p></div>
     </div>
 
     ${(() => { const o = oblasti.find(x => x.id === c.oblast_id);
@@ -473,9 +531,10 @@ function editorClanku(){
         const shora = (o && o.placeny) ? o.nazev : ((r && r.placeny) ? r.nazev : null);
         return shora ? `<div class="upozorneni-shora">Tento článek je zamčený už nastavením oblasti
           <b>${esc(shora)}</b> — platí pro celou oblast, i když je přepínač níž vypnutý.</div>` : ''; })()}
-    <div class="prepinac placeny ${c.placeny?'zap':''}" onclick="this.classList.toggle('zap');nahledZamku()" id="f-placeny">
-      <div class="txt"><b>Jen s plným přístupem</b>
-        <span>Zapnuto = text se nepošle do telefonu, dokud uživatel nemá zaplaceno.</span></div>
+    <div class="prepinac pristup ${c.placeny?'zap':''}" onclick="prepniPristup(this);nahledZamku()" id="f-placeny">
+      <div class="txt"><b>Úroveň přístupu</b>
+        <span>Zapnuto = <b>plný přístup</b>, text se do telefonu vůbec nepošle. Vypnuto = článek si přečte každý.</span></div>
+      <span class="stav-pristup"></span>
       <div class="knof"></div></div>
 
     <div class="prepinac ${c.publikovano?'zap':''}" onclick="this.classList.toggle('zap')" id="f-publ">
@@ -528,7 +587,6 @@ async function ulozClanek(){
     oblast_id: $('f-oblast').value,
     kategorie: $('f-kat').value.trim(),
     odkaz:  $('f-odkaz').value.trim(),
-    poradi: parseInt($('f-poradi').value,10) || 0,
     placeny: $('f-placeny').classList.contains('zap'),
     publikovano: $('f-publ').classList.contains('zap'),
     upravil: uzivatel.email
@@ -552,11 +610,12 @@ async function smazClanek(id){
 
 /* ---------- služby ---------- */
 function kresliSluzby(){
-  $('stromSluzby').innerHTML = sluzby.map(s => {
+  $('stromSluzby').innerHTML = [...sluzby].sort(dlePoradi).map(s => {
     const vyb = vybranaSluzba === s.id;
     return `<li class="uzel"><div class="radek ${vyb?'on':''}" onclick="vyberSluzbu('${s.id}')">
       <span class="sipka"></span><span class="nazev">${esc(s.nazev)}</span>
-      ${s.placeny ? '<span class="odznak o-placeny">plný</span>' : ''}
+      ${s.placeny ? '<span class="odznak o-plny" title="Vyžaduje plný přístup">plný</span>'
+                  : '<span class="odznak o-omezeny" title="Dostupné i s omezeným přístupem">omezený</span>'}
       ${s.publikovano ? '' : '<span class="odznak o-koncept">skryto</span>'}</div></li>`;
   }).join('') || '<div class="prazdno">Zatím žádné služby.</div>';
 }
@@ -577,8 +636,10 @@ function editorSluzby(){
       <textarea id="s-pomoc" style="min-height:130px">${esc((s.pomoc||[]).join('\n'))}</textarea>
       <p class="napoveda">Každý bod na samostatný řádek.</p></div>
     <div class="pole"><label>Pořadí</label><input type="text" id="s-poradi" value="${s.poradi||0}"></div>
-    <div class="prepinac placeny ${s.placeny?'zap':''}" onclick="this.classList.toggle('zap')" id="s-placeny">
-      <div class="txt"><b>Jen s plným přístupem</b><span>Zapnuto = detail služby uvidí jen uživatel se zaplaceným přístupem.</span></div>
+    <div class="prepinac pristup ${s.placeny?'zap':''}" onclick="prepniPristup(this)" id="s-placeny">
+      <div class="txt"><b>Úroveň přístupu</b>
+        <span>Zapnuto = <b>plný přístup</b>, detail služby uvidí jen platící. Vypnuto = vidí ho každý.</span></div>
+      <span class="stav-pristup"></span>
       <div class="knof"></div></div>
     <div class="prepinac ${s.publikovano?'zap':''}" onclick="this.classList.toggle('zap')" id="s-publ">
       <div class="txt"><b>Zobrazit v aplikaci</b><span>Vypnuto = službu uživatelé nevidí.</span></div>
@@ -725,6 +786,8 @@ function nahledBloku(t){
            ${t.odkaz ? `<div class="blok-odkaz">${esc(t.odkaz_text||'Otevřít')} <span>· ${esc(t.odkaz)}${t.nove_okno===false?' · ve stejném okně':''}</span></div>` : ''}`}
     </div>`;
 }
+
+function prepniPristup(el){ el.classList.toggle('zap'); }
 
 function upravBlok(klic){
   const t = texty.find(x => x.klic === klic); if(!t) return;
