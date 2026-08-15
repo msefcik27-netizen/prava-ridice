@@ -576,14 +576,27 @@ function kresliTexty(karta){
   sek.innerHTML = `<h2>${NAZVY_KARET[karta]} — texty v aplikaci</h2>
     <p class="napoveda" style="margin:-6px 0 18px">Změna se v aplikaci projeví po jejím dalším otevření.
        Struktura obrazovky se nemění, upravuje se jen znění.</p>
-    ${polozky.map(t => `
-      <div class="pole">
-        <label for="tx-${t.klic}">${esc(t.popis)}</label>
+    ${polozky.map(t => {
+      const vlastni = t.klic.startsWith('blok.');
+      return `
+      <div class="pole" ${vlastni?'style="background:var(--cream);border:1px solid #EBDCD2;border-radius:12px;padding:13px 14px"':''}>
+        ${vlastni
+          ? `<label>Nadpis bloku</label>
+             <input type="text" id="nadpis-${t.klic}" value="${esc(t.popis)}" style="margin-bottom:10px">
+             <label>Text bloku</label>`
+          : `<label for="tx-${t.klic}">${esc(t.popis)}</label>`}
         ${t.viceradkovy
-          ? `<textarea id="tx-${t.klic}" style="min-height:76px">${esc(t.hodnota)}</textarea>`
+          ? `<textarea id="tx-${t.klic}" style="min-height:${vlastni?'110':'76'}px">${esc(t.hodnota)}</textarea>`
           : `<input type="text" id="tx-${t.klic}" value="${esc(t.hodnota)}">`}
-      </div>`).join('')}
-    <div class="lista"><button class="btn btn-hlavni" onclick="ulozTexty('${karta}')">Uložit texty</button></div>`;
+        ${vlastni
+          ? `<div class="lista"><span class="napoveda" style="flex:1">Vlastní blok — zobrazí se dole na kartě ${NAZVY_KARET[t.karta]}.</span>
+               <button class="btn btn-smaz" style="padding:7px 12px;font-size:13px" onclick="smazBlok('${t.klic}')">Smazat blok</button></div>`
+          : ''}
+      </div>`; }).join('')}
+    <div class="lista">
+      <button class="btn btn-hlavni" onclick="ulozTexty('${karta}')">Uložit texty</button>
+      <button class="btn btn-vedl" onclick="novyBlok('${karta}')">+ Přidat blok</button>
+    </div>`;
 }
 
 async function ulozTexty(karta){
@@ -592,16 +605,41 @@ async function ulozTexty(karta){
   polozky.forEach(t => {
     const pole = $('tx-'+t.klic); if(!pole) return;
     const nova = pole.value.trim();
-    if(nova !== t.hodnota && nova !== '') zmenene.push({...t, hodnota:nova});
+    const poleNadpis = $('nadpis-'+t.klic);
+    const novyPopis = poleNadpis ? poleNadpis.value.trim() : t.popis;
+    if(nova !== t.hodnota || novyPopis !== t.popis) zmenene.push({...t, hodnota:nova, popis:novyPopis});
   });
   if(!zmenene.length){ hlaska('Nic se nezměnilo.'); return; }
   for(const t of zmenene){
     const { error } = await db.from('texty')
-      .update({hodnota:t.hodnota, upravil:uzivatel.email}).eq('klic', t.klic);
+      .update({hodnota:t.hodnota, popis:t.popis, upravil:uzivatel.email}).eq('klic', t.klic);
     if(error){ hlaska('Uložení selhalo: '+error.message, true); return; }
-    Object.assign(texty.find(x => x.klic === t.klic), {hodnota:t.hodnota});
+    Object.assign(texty.find(x => x.klic === t.klic), {hodnota:t.hodnota, popis:t.popis});
   }
   hlaska('Uloženo — změněno '+zmenene.length+' '+(zmenene.length===1?'text':'textů')+'.');
+}
+
+async function novyBlok(karta){
+  const nadpis = prompt('Nadpis nového bloku (může zůstat prázdný):', '');
+  if(nadpis === null) return;
+  const klic = 'blok.'+karta+'.'+Math.random().toString(36).slice(2,8);
+  const poradi = 1000 + texty.filter(t => t.karta===karta && t.klic.startsWith('blok.')).length*10;
+  const { data, error } = await db.from('texty').insert({
+    klic, karta, popis:(nadpis||'').trim(), hodnota:'', poradi, viceradkovy:true, upravil:uzivatel.email
+  }).select().single();
+  if(error){ hlaska('Nepodařilo se přidat: '+error.message, true); return; }
+  texty.push(data); kresliTexty(karta);
+  const pole = $('tx-'+klic); if(pole){ pole.focus(); pole.scrollIntoView({block:'center'}); }
+  hlaska('Blok přidán — napiš text a ulož.');
+}
+
+async function smazBlok(klic){
+  const t = texty.find(x => x.klic === klic); if(!t) return;
+  if(!confirm('Smazat blok „'+(t.popis || 'bez nadpisu')+'"?\n\nZ aplikace zmizí. Tuto akci nelze vzít zpět.')) return;
+  const { error } = await db.from('texty').delete().eq('klic', klic);
+  if(error){ hlaska('Smazání selhalo: '+error.message, true); return; }
+  texty = texty.filter(x => x.klic !== klic);
+  kresliTexty(t.karta); hlaska('Blok smazán.');
 }
 
 /* ---------- pomocné ---------- */

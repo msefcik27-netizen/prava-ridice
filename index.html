@@ -675,6 +675,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="results-label" id="guideResultsLabel" style="display:none;">Výsledky</div>
         <div id="guideResults"></div>
+        <div id="bloky-prehled"></div>
       </div>
     </div>
 
@@ -715,6 +716,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           </div>
           <p>Beta verze přináší stav bodů, upozornění a první podobu předplatného. Vaše zpětná vazba pomáhá určit, co přidáme dál.</p>
         </div>
+        <div id="bloky-zpravy"></div>
       </div>
     </div>
 
@@ -759,7 +761,8 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 1.8.2 · build 56</div>
+        <div id="bloky-profil"></div>
+        <div class="ver">Verze 1.8.3 · build 57</div>
       </div>
     </div>
 
@@ -2131,7 +2134,7 @@ async function nactiObsah(){
       dotaz('oblasti?select=*&publikovano=eq.true&order=poradi'),
       dotaz('v_clanky?select=*&order=poradi'),
       dotaz('sluzby?select=*&publikovano=eq.true&order=poradi'),
-      dotaz('texty?select=klic,hodnota').catch(()=>[])
+      dotaz('texty?select=klic,popis,hodnota').catch(()=>[])
     ]);
     if(!oblasti.length || !clanky.length) return;   // prázdná databáze — nesahat na vestavěný obsah
 
@@ -2158,6 +2161,16 @@ async function nactiObsah(){
       document.querySelectorAll('[data-text]').forEach(el=>{
         const h=mapa[el.dataset.text];
         if(h!==undefined && h!==null && h!=='') el.textContent=h;
+      });
+      /* vlastní bloky přidané v administraci: klíč začíná 'blok.<karta>.' */
+      ['prehled','zpravy','profil'].forEach(karta=>{
+        const cil=document.getElementById('bloky-'+karta); if(!cil) return;
+        const bloky=texty.filter(t=>t.klic.startsWith('blok.'+karta+'.') && (t.hodnota||'').trim());
+        cil.innerHTML = bloky.map(t=>`
+          <div class="card" style="margin-top:10px;">
+            ${t.popis ? `<h3 style="margin:0 0 6px;font-size:15px;font-weight:800;">${t.popis}</h3>` : ''}
+            <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink-soft);white-space:pre-line;">${t.hodnota}</p>
+          </div>`).join('');
       });
     }
 
