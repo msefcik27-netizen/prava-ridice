@@ -305,10 +305,13 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 #s-prehled,#s-sluzby,#s-pruvodce,#s-zpravy,#s-profil{height:100%;}
 #s-prehled.active,#s-sluzby.active,#s-pruvodce.active,#s-zpravy.active,#s-profil.active{display:flex;flex-direction:column;}
 #s-prehled .pad,#s-sluzby .pad,#s-pruvodce .pad,#s-zpravy .pad,#s-profil .pad{
-  display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;box-sizing:border-box;}
-/* vlastní odsazení uvnitř tabů řeší gap */
+  display:flex;flex-direction:column;gap:10px;flex:1 0 auto;box-sizing:border-box;}
+/* vlastní odsazení uvnitř tabů řeší gap
+   flex:0 0 auto je KLÍČOVÉ: bez něj flexbox karty smrskne, aby se vešly do výšky
+   obrazovky, a poslední karta si uřízne text uvnitř. Takhle místo toho přeteče
+   a #view se normálně posouvá. */
 #s-prehled .pad > *,#s-sluzby .pad > *,#s-pruvodce .pad > *,#s-zpravy .pad > *,#s-profil .pad > *{
-  margin-top:0 !important;margin-bottom:0 !important;}
+  margin-top:0 !important;margin-bottom:0 !important;flex:0 0 auto;}
 /* nadpisy sekcí přisedají k obsahu pod sebou */
 #s-prehled .pad .section-label,#s-sluzby .pad .section-label,#s-pruvodce .pad .section-label,
 #s-zpravy .pad .section-label,#s-profil .pad .section-label{margin:2px 2px -4px !important;}
@@ -663,7 +666,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="section-label" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
-        <div class="ver">Verze 1.6.2 · build 47</div>
+        <div class="ver">Verze 1.6.3 · build 48</div>
       </div>
     </div>
 
