@@ -310,7 +310,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 85</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 86</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -1639,6 +1639,15 @@ function zamerZdroj(zdroj){
 
 /* Kliknutí do bloku v náhledu otevře ten blok v editoru článku. */
 function zamerBlok(id){
+  /* Vlastní blok na kartě je text jako každý jiný — jen se v administraci
+     ukazuje jako karta. Pozná se podle klíče blok.<karta>.<...> */
+  if(String(id).startsWith('blok.')){
+    const t = texty.find(x => x.klic === id);
+    if(!t){ hlaska('Tenhle blok se nepodařilo najít.'); return; }
+    if(nahledKarta !== t.karta) prepni(t.karta);
+    upravBlok(id);
+    return;
+  }
   const b = bloky.find(x => x.id === id);
   if(!b){ hlaska('Tenhle blok se nepodařilo najít.'); return; }
   if(nahledKarta !== 'pruvodce') prepni('pruvodce');
@@ -2745,7 +2754,7 @@ async function ulozTexty(karta, potichu, btn){
 function nahledBloku(t){
   const prazdny = !(t.hodnota||'').trim();
   return `
-    <div class="blok-nahled">
+    <div class="blok-nahled" onclick="naNahled('${t.klic}')">
       <div class="blok-hlavicka">
         <span class="blok-stitek">Vlastní blok na kartě ${NAZVY_KARET[t.karta]}</span>
         <button class="blok-akce" onclick="upravBlok('${t.klic}')">Upravit</button>
@@ -2763,7 +2772,12 @@ function prepniPristup(el){ el.classList.toggle('zap'); }
 function upravBlok(klic){
   const t = texty.find(x => x.klic === klic); if(!t) return;
   upravovane.add(klic); kresliTexty(t.karta);
-  const pole = $('tx-'+klic); if(pole){ pole.focus(); }
+  const pole = $('tx-'+klic);
+  if(pole){
+    const det = pole.closest('details'); if(det) det.open = true;
+    pole.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    pole.focus();
+  }
 }
 
 async function ulozBlok(klic){
