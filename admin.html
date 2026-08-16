@@ -2205,6 +2205,12 @@ function vykresliSpravu(){
       ${dlazdice('Bez přístupu', s.bez_pristupu ?? '—', 'registrovaní, ale neplatící')}
       ${dlazdice('Registrovaní bez kódu', bezKodu >= 0 ? bezKodu : '—', 'nepoužili promo kód')}
     </div>
+    <div class="lista" style="margin-top:14px">
+      <button class="btn btn-vedl" onclick="exportVsechRegistrovanych()">Registrované do CSV</button>
+    </div>
+    <p class="napoveda">Seznam e-mailů se nikde nezobrazuje, stáhne se rovnou do souboru.
+       Obsahuje datum registrace, potvrzení e-mailu, úroveň přístupu a případný promo kód.
+       Jsou to osobní údaje — nakládejte s nimi podle zásad zpracování.</p>
 
     ${sekcePoptavek()}
 
@@ -2251,6 +2257,34 @@ async function zmenStavPoptavky(id, stav){
 }
 
 
+/* ---------- kdo se zaregistroval ----------
+   Seznam všech registrovaných čte funkce registrovani(), která si sama ověří,
+   že o něj žádá administrátor. Nikde se nezobrazuje — stahuje se rovnou do CSV,
+   protože jinam než do evidence tenhle seznam nepatří. */
+async function exportVsechRegistrovanych(){
+  const { data, error } = await db.rpc('registrovani');
+  if(error){ hlaska('Seznam se nepodařilo načíst: ' + error.message, true); return; }
+  if(!data || !data.length){ hlaska('Zatím se nikdo nezaregistroval.'); return; }
+  const den = t => t ? new Date(t).toLocaleString('cs-CZ') : '';
+  stahniCsv('registrovani-prava-ridice.csv',
+    [['E-mail','Registrace','Potvrzení e-mailu','Přístup','Zdroj přístupu','Promo kód','Klient']]
+      .concat(data.map(u => [u.email||'', den(u.registrace), den(u.potvrzeno),
+        u.ma_pristup ? 'plný' : 'omezený', u.zdroj || '', u.kod || '', u.klient || ''])));
+  hlaska('Staženo — ' + data.length + ' ' + mnozne(data.length,'registrace','registrace','registrací') + '.');
+}
+
+/* Středník a BOM kvůli Excelu v češtině — jinak rozhodí diakritiku i sloupce. */
+function stahniCsv(nazev, radky){
+  const csv = '\ufeff' + radky.map(r => r.map(x => '"' + String(x).replace(/"/g,'""') + '"').join(';')).join('\r\n');
+  const odkaz = document.createElement('a');
+  odkaz.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  odkaz.download = nazev;
+  /* Odkaz musí být chvíli ve stránce — Safari na odpojený prvek nereaguje. */
+  document.body.appendChild(odkaz);
+  odkaz.click();
+  setTimeout(() => { URL.revokeObjectURL(odkaz.href); odkaz.remove(); }, 0);
+}
+
 /* ---------- kdo kód uplatnil ----------
    Data jsou v tabulce `uplatneni`, čte je jen administrátor. Načítají se
    až na vyžádání — e-maily zaměstnanců nejsou nic, co má viset na obrazovce,
@@ -2265,41 +2299,14 @@ async function nactiUplatneni(kod){
   return uplatneni[kod];
 }
 
-async function prepniRegistrovane(kod){
-  if(!uplatneni[kod] && !await nactiUplatneni(kod)) return;
-  const el = $('reg-' + kod); if(!el) return;
-  el.dataset.otevreno = el.dataset.otevreno ? '' : '1';
-  kresliRegistrovane(kod);
-}
-
-function kresliRegistrovane(kod){
-  const el = $('reg-' + kod); if(!el) return;
-  const sez = uplatneni[kod] || [];
-  if(!el.dataset.otevreno){ el.innerHTML = ''; return; }
-  el.innerHTML = sez.length ? `
-    <table class="tabulka" style="margin-top:10px">
-      <tr><th>E-mail</th><th class="nowrap">Registrace</th></tr>
-      ${sez.map(u => `<tr><td>${esc(u.email || '—')}</td>
-        <td class="nowrap">${u.kdy ? new Date(u.kdy).toLocaleDateString('cs-CZ') : ''}</td></tr>`).join('')}
-    </table>
-    <p class="napoveda">Jsou to osobní údaje zaměstnanců klienta. Nakládejte s nimi podle zásad zpracování.</p>`
-    : '<p class="napoveda" style="margin-top:10px">Kód zatím nikdo neuplatnil.</p>';
-}
-
 async function exportRegistrovanych(kod, nazev){
   if(!uplatneni[kod] && !await nactiUplatneni(kod)) return;
   const sez = uplatneni[kod] || [];
   if(!sez.length){ hlaska('Kód zatím nikdo neuplatnil, není co stáhnout.'); return; }
-  /* Středník a BOM kvůli Excelu v češtině — jinak rozhodí diakritiku i sloupce. */
-  const radky = [['E-mail', 'Registrace', 'Kód', 'Klient']]
-    .concat(sez.map(u => [u.email || '', u.kdy ? new Date(u.kdy).toLocaleString('cs-CZ') : '', kod, nazev]));
-  const csv = '﻿' + radky.map(r => r.map(x => '"' + String(x).replace(/"/g, '""') + '"').join(';')).join('\r\n');
-  const odkaz = document.createElement('a');
-  odkaz.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'}));
-  odkaz.download = 'registrovani-' + kod.toLowerCase() + '.csv';
-  odkaz.click();
-  URL.revokeObjectURL(odkaz.href);
-  hlaska('Staženo — ' + sez.length + ' ' + mnozne(sez.length,'registrace','registrace','registrací') + '.');
+  stahniCsv('uplatneni-' + kod.toLowerCase() + '.csv',
+    [['E-mail', 'Uplatnění kódu', 'Kód', 'Klient']]
+      .concat(sez.map(u => [u.email || '', u.kdy ? new Date(u.kdy).toLocaleString('cs-CZ') : '', kod, nazev])));
+  hlaska('Staženo — ' + sez.length + ' ' + mnozne(sez.length,'uplatnění','uplatnění','uplatnění') + '.');
 }
 
 function nahledKlienta(k){
@@ -2327,10 +2334,8 @@ function nahledKlienta(k){
         <span>${pouzito} z ${limit} ${vycerpano?'· vyčerpáno':'· zbývá '+(k.zbyva ?? (limit-pouzito))}</span>
       </div>
       ${k.kod ? `<div class="lista" style="margin-top:10px">
-        <button class="blok-akce" onclick="prepniRegistrovane('${esc(k.kod)}')">Kdo kód uplatnil</button>
-        <button class="blok-akce" onclick="exportRegistrovanych('${esc(k.kod)}','${esc(k.nazev)}')">Stáhnout do CSV</button>
-      </div>
-      <div id="reg-${esc(k.kod)}"></div>` : ''}
+        <button class="blok-akce" onclick="exportRegistrovanych('${esc(k.kod)}','${esc(k.nazev)}')">Uplatnění do CSV</button>
+      </div>` : ''}
     </div>`;
 }
 
