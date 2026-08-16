@@ -275,6 +275,10 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
   font-size:12.5px;font-weight:800;margin-top:20px}
 .sez-pole{flex:1 1 0;min-width:0}
 .sez-radek .poradi-sipky{margin-top:20px}
+.podsekce{border-top:1px solid var(--line);margin-top:18px;padding-top:14px}
+.podsekce h3{font-size:14px;font-weight:800;margin:0 0 6px}
+.pocitadlo{font-size:11.5px;color:var(--muted);text-align:right;margin-top:4px}
+.pocitadlo.u-konce{color:var(--err);font-weight:700}
 </style>
 </head>
 <body>
@@ -899,17 +903,503 @@ let nahledObrazovkaAkt = 'prehled';
 /* Na kartě Administrace se náhled schová — jsou tam klienti, kódy a statistiky,
    nic z toho v aplikaci není. */
 const BEZ_NAHLEDU = ['sprava'];
-const NAHLED_PODOBRAZOVKY = {
-  prehled:  [['prehled','Přehled'], ['points-help','Jak zjistit body'],
-             ['vozidla','Vozidla a STK'], ['nehoda','Po nehodě']],
-  pruvodce: [['pruvodce','Průvodce'], ['clanek','Otevřený článek'],
-             ['calc','Kalkulačka'], ['oblasti','Právní témata']],
-  sluzby:   [['sluzby','Služby'], ['kontakt','Kontakt'],
-             ['postup','Jak to probíhá'], ['recenze','Recenze']],
-  zpravy:   [['zpravy','Zprávy'], ['konzultace','Formulář']],
-  profil:   [['profil','Profil'], ['predplatne','Předplatné'], ['upozorneni','Upozornění']],
-  sprava:   [['prehled','Přehled'], ['profil','Profil']]
+/* ---------- co kam v aplikaci patří ----------
+   Vygenerováno z běžící aplikace (nastroje/poradi-z-aplikace.js). Sekce
+   v administraci jsou obrazovky aplikace a jdou ve stejném pořadí; pole uvnitř
+   drží pořadí ze sloupce poradi. Kdyby se v aplikaci něco přesunulo, stačí
+   nástroj pustit znovu — ručně se tu nic nepřepisuje. */
+const POLE_OBRAZOVKA = {
+  'prehled.body.nadpis':'prehled',
+  'prehled.body.jednotka':'prehled',
+  'prehled.body.btn1':'prehled',
+  'prehled.body.btn2':'prehled',
+  'prehled.vyzva.stitek':'prehled',
+  'prehled.vyzva.nadpis8':'prehled',
+  'prehled.vyzva.nadpis12':'prehled',
+  'prehled.vyzva.text8':'prehled',
+  'prehled.vyzva.text12':'prehled',
+  'prehled.vyzva.btn1':'prehled',
+  'kontakt.telefon':'prehled',
+  'prehled.vyzva.btn2':'prehled',
+  'prehled.notif.stitek':'prehled',
+  'prehled.notif.nadpis':'prehled',
+  'prehled.notif.zapnuto':'prehled',
+  'prehled.pdf.nadpis':'prehled',
+  'prehled.pdf.popis':'prehled',
+  'prehled.vozidla.nadpis':'prehled',
+  'prehled.vozidla.popis':'prehled',
+  'prehled.nehoda.nadpis':'prehled',
+  'prehled.nehoda.popis':'prehled',
+  'pristup.neprihlasen.nadpis':'prehled',
+  'pristup.neprihlasen.popis':'prehled',
+  'pristup.omezeny.nadpis':'prehled',
+  'pristup.plny.nadpis':'prehled',
+  'pristup.omezeny.popis':'prehled',
+  'pristup.plny.popis':'prehled',
+  'pristup.neprihlasen.btn':'prehled',
+  'pristup.omezeny.btn':'prehled',
+  'nav.prehled':'nav',
+  'nav.pruvodce':'nav',
+  'nav.sluzby':'nav',
+  'nav.zpravy':'nav',
+  'nav.profil':'nav',
+  'pomoc.body.nadpis':'points-help',
+  'pomoc.body.uvod':'points-help',
+  'pomoc.body.1.nadpis':'points-help',
+  'pomoc.body.1.popis':'points-help',
+  'odkaz.portal-obcana':'points-help',
+  'pomoc.body.2.nadpis':'points-help',
+  'pomoc.body.2.popis':'points-help',
+  'pomoc.body.3.nadpis':'points-help',
+  'pomoc.body.3.popis':'points-help',
+  'nadpis.vozidla':'vozidla',
+  'garaz.souhrn.termin':'vozidla',
+  'garaz.souhrn.pokuty':'vozidla',
+  'garaz.vozidla.nadpis':'vozidla',
+  'garaz.vozidla.prazdno':'vozidla',
+  'garaz.upravit':'vozidla',
+  'garaz.vozidla.pridat':'vozidla',
+  'garaz.pokuty.prazdno':'vozidla',
+  'garaz.pokuty.nadpis':'vozidla',
+  'garaz.vozidlo.ulozit':'vozidla',
+  'garaz.vozidlo.chyba':'vozidla',
+  'garaz.vozidlo.pridano':'vozidla',
+  'garaz.vozidlo.upraveno':'vozidla',
+  'garaz.zrusit':'vozidla',
+  'garaz.pokuta.ulozit':'vozidla',
+  'garaz.pokuta.chyba':'vozidla',
+  'garaz.pokuta.pripsat':'vozidla',
+  'garaz.pokuta.zprava':'vozidla',
+  'garaz.pokuta.advokat':'vozidla',
+  'garaz.pokuty.pridat':'vozidla',
+  'garaz.doklady.nadpis':'vozidla',
+  'garaz.doklady.popis':'vozidla',
+  'garaz.nehody.prazdno':'vozidla',
+  'garaz.doklady.pozn':'vozidla',
+  'garaz.nehody.nadpis':'vozidla',
+  'garaz.nehoda.ulozit':'vozidla',
+  'garaz.nehoda.chyba':'vozidla',
+  'garaz.nehoda.tisk.nadpis':'vozidla',
+  'garaz.nehoda.tisk.podnadpis':'vozidla',
+  'garaz.nehoda.tisk':'vozidla',
+  'garaz.nehody.pridat':'vozidla',
+  'garaz.nehody.postup':'vozidla',
+  'garaz.pozn':'vozidla',
+  'nadpis.nehoda':'nehoda',
+  'nehoda.bouracka':'nehoda',
+  'odkaz.bouracka':'nehoda',
+  'pruvodce.stitek':'pruvodce',
+  'pruvodce.nadpis':'pruvodce',
+  'pruvodce.popis':'pruvodce',
+  'pruvodce.pruh.stitek':'pruvodce',
+  'pruvodce.pruh.nadpis':'pruvodce',
+  'pruvodce.kalk.stitek':'pruvodce',
+  'pruvodce.kalk.nadpis':'pruvodce',
+  'pruvodce.kalk.popis':'pruvodce',
+  'pruvodce.hledat.ph':'pruvodce',
+  'pruvodce.vysledky':'pruvodce',
+  'pruvodce.oblasti.stitek':'pruvodce',
+  'nadpis.oblasti':'oblasti',
+  'clanek.zamek':'topic',
+  'clanek.web.nadpis':'topic',
+  'clanek.web.popis':'topic',
+  'clanek.btn.napsat':'topic',
+  'clanek.btn.volat':'topic',
+  'nadpis.kalkulacka':'calc',
+  'kalk.btn.bezodhadu':'calc',
+  'kalk.btn.sodhadem':'calc',
+  'sluzby.stitek':'sluzby',
+  'sluzby.zamek':'service-detail',
+  'sluzby.hrozi.stitek':'service-detail',
+  'sluzby.pomoc.stitek':'service-detail',
+  'sluzby.cena.stitek':'service-detail',
+  'sluzby.cena.nadpis':'service-detail',
+  'sluzby.cena.popis':'service-detail',
+  'sluzby.pruvodce.nadpis':'service-detail',
+  'zpravy.nadpis':'zpravy',
+  'zpravy.hero.stitek':'zpravy',
+  'zpravy.hero.nadpis':'zpravy',
+  'zpravy.hero.popis':'zpravy',
+  'zpravy.hero.btn1':'zpravy',
+  'zpravy.hero.btn2':'zpravy',
+  'zpravy.blog.nadpis':'zpravy',
+  'zpravy.blog.popis':'zpravy',
+  'odkaz.blog':'zpravy',
+  'zpravy.oznameni.stitek':'zpravy',
+  'zpravy.auto.body.nadpis':'zpravy',
+  'zpravy.auto.body.text':'zpravy',
+  'zpravy.auto.body.btn':'zpravy',
+  'zpravy.auto.pokuta.nadpis':'zpravy',
+  'zpravy.auto.pokuta.po':'zpravy',
+  'zpravy.auto.pokuta.pred':'zpravy',
+  'zpravy.auto.pokuta.btn':'zpravy',
+  'zpravy.auto.doklad.nadpis':'zpravy',
+  'zpravy.auto.doklad.vyprselo':'zpravy',
+  'zpravy.auto.doklad.dnes':'zpravy',
+  'zpravy.auto.doklad.btn':'zpravy',
+  'zpravy.auto.doklad.zbyva':'zpravy',
+  'formular.nadpis':'konzultace',
+  'formular.podnadpis':'konzultace',
+  'formular.jmeno':'konzultace',
+  'formular.ph.jmeno':'konzultace',
+  'formular.email':'konzultace',
+  'formular.ph.email':'konzultace',
+  'formular.telefon':'konzultace',
+  'formular.ph.telefon':'konzultace',
+  'formular.telefon.hint':'konzultace',
+  'formular.zprava':'konzultace',
+  'formular.ph.zprava':'konzultace',
+  'formular.prilohy':'konzultace',
+  'formular.priloha.soubor':'konzultace',
+  'formular.priloha.foto':'konzultace',
+  'formular.souhlas':'konzultace',
+  'formular.odkaz':'konzultace',
+  'odkaz.zasady':'konzultace',
+  'formular.odeslat':'konzultace',
+  'profil.nadpis':'profil',
+  'profil.ucet.stitek':'profil',
+  'profil.ucet.neprihlasen':'profil',
+  'profil.ucet.nepr':'profil',
+  'profil.ucet.zaloha':'profil',
+  'profil.ucet.ph':'profil',
+  'profil.ucet.odhlasit':'profil',
+  'profil.ucet.btn':'profil',
+  'profil.predplatne.stitek':'profil',
+  'profil.plan.plny':'profil',
+  'profil.plan.omezeny':'profil',
+  'profil.plan.btn':'profil',
+  'profil.plocha.nadpis':'profil',
+  'profil.plocha.popis':'profil',
+  'profil.upozorneni.nadpis':'profil',
+  'profil.vzhled.stitek':'profil',
+  'profil.tema.auto':'profil',
+  'profil.tema.svetly':'profil',
+  'profil.tema.tmavy':'profil',
+  'profil.odkazy.stitek':'profil',
+  'profil.odkaz.recenze.nadpis':'profil',
+  'profil.odkaz.recenze.popis':'profil',
+  'profil.odkaz.sluzby.nadpis':'profil',
+  'profil.odkaz.sluzby.popis':'profil',
+  'profil.odkaz.postup.nadpis':'profil',
+  'profil.odkaz.postup.popis':'profil',
+  'profil.odkaz.kontakt.nadpis':'profil',
+  'profil.odkaz.kontakt.popis':'profil',
+  'profil.odkaz.media.nadpis':'profil',
+  'profil.odkaz.media.popis':'profil',
+  'odkaz.media':'profil',
+  'nadpis.predplatne':'predplatne',
+  'predplatne.stitek':'predplatne',
+  'predplatne.nazev':'predplatne',
+  'predplatne.popis':'predplatne',
+  'predplatne.kod.label':'predplatne',
+  'predplatne.kod.ph':'predplatne',
+  'predplatne.kod.hint':'predplatne',
+  'predplatne.btn.kod':'predplatne',
+  'predplatne.btn.koupit':'predplatne',
+  'nadpis.upozorneni':'upozorneni',
+  'upozorneni.body.stitek':'upozorneni',
+  'upozorneni.body.nadpis':'upozorneni',
+  'upozorneni.body.popis':'upozorneni',
+  'upozorneni.prah.pozn':'upozorneni',
+  'upozorneni.vozidlo.stitek':'upozorneni',
+  'upozorneni.stk.nadpis':'upozorneni',
+  'upozorneni.stk.popis':'upozorneni',
+  'upozorneni.poj.nadpis':'upozorneni',
+  'upozorneni.poj.popis':'upozorneni',
+  'upozorneni.znamka.nadpis':'upozorneni',
+  'upozorneni.znamka.popis':'upozorneni',
+  'upozorneni.zpravy.stitek':'upozorneni',
+  'upozorneni.zpravy.nadpis':'upozorneni',
+  'upozorneni.zpravy.popis':'upozorneni',
+  'upozorneni.email.stitek':'upozorneni',
+  'upozorneni.email.ph':'upozorneni',
+  'upozorneni.email.zuctu':'upozorneni',
+  'upozorneni.email.btn':'upozorneni',
+  'upozorneni.pozn':'upozorneni',
+  'nadpis.recenze':'recenze',
+  'recenze.praxe.nadpis':'recenze',
+  'recenze.praxe.popis':'recenze',
+  'recenze.zdroj.nadpis':'recenze',
+  'recenze.zdroj.popis':'recenze',
+  'odkaz.recenze':'recenze',
+  'nadpis.postup':'postup',
+  'nadpis.kontakt':'kontakt',
+  'kontakt.tel.stitek':'kontakt',
+  'kontakt.mail.stitek':'kontakt',
+  'kontakt.pobocka.stitek':'kontakt',
+  'kontakt.ico':'kontakt'
 };
+
+/* Obrazovky každé karty: nejdřív samotná karta, pak podobrazovky v pořadí
+   odkazů, které na ně vedou. */
+const OBRAZOVKY_KARTY = {
+  prehled:  ['prehled', 'nav', 'points-help', 'vozidla', 'nehoda'],
+  pruvodce: ['pruvodce', 'oblasti', 'topic', 'calc'],
+  sluzby:   ['sluzby', 'service-detail'],
+  zpravy:   ['zpravy', 'konzultace'],
+  profil:   ['profil', 'predplatne', 'upozorneni', 'recenze', 'postup', 'kontakt']
+};
+
+const NAZEV_OBRAZOVKY = {
+  'prehled': ['Přehled', ''],
+  'nav': ['Spodní lišta', 'Názvy pěti tlačítek dole v aplikaci.'],
+  'points-help': ['Jak zjistit body', 'Otevře se z Přehledu tlačítkem „Jak zjistit body".'],
+  'vozidla': ['Vozidla a STK', 'Otevře se z Přehledu řádkem „Vozidla a STK".'],
+  'nehoda': ['Co dělat po nehodě', 'Otevře se z Přehledu řádkem o dopravní nehodě.'],
+  'pruvodce': ['Průvodce', ''],
+  'oblasti': ['Právní témata', 'Otevře se z Průvodce tmavým proužkem.'],
+  'topic': ['Otevřený článek', 'Společné texty všech článků — zámek, odkaz na web a tlačítka dole.'],
+  'calc': ['Kalkulačka', 'Otevře se z Průvodce kartou kalkulačky.'],
+  'sluzby': ['Služby', ''],
+  'service-detail': ['Detail služby', 'Otevře se klepnutím na službu v seznamu.'],
+  'zpravy': ['Zprávy', ''],
+  'konzultace': ['Napište nám', 'Formulář — otevře se ze Zpráv i z Přehledu.'],
+  'profil': ['Profil', ''],
+  'predplatne': ['Předplatné', 'Otevře se z Profilu tlačítkem u předplatného.'],
+  'upozorneni': ['Upozornění', 'Otevře se z Profilu řádkem „Upozornění".'],
+  'recenze': ['Recenze klientů', 'Otevře se z Profilu, sekce Odkazy.'],
+  'postup': ['Jak to probíhá', 'Otevře se z Profilu, sekce Odkazy.'],
+  'kontakt': ['Kontakt', 'Otevře se z Profilu, sekce Odkazy.']
+};
+
+/* Kolik znaků se do pole vejde. Delší text administrace nepustí — v aplikaci
+   by přetekl z karty nebo rozhodil řádek. Vygenerováno (nastroje/admin-limity.py). */
+const LIMIT_POLE = {
+  'prehled.body.nadpis':60,
+  'prehled.body.jednotka':30,
+  'prehled.body.btn1':30,
+  'prehled.body.btn2':30,
+  'prehled.vyzva.stitek':30,
+  'prehled.vyzva.nadpis8':120,
+  'prehled.vyzva.nadpis12':120,
+  'prehled.vyzva.text8':400,
+  'prehled.vyzva.text12':400,
+  'prehled.vyzva.btn1':30,
+  'kontakt.telefon':40,
+  'prehled.vyzva.btn2':30,
+  'prehled.notif.stitek':40,
+  'prehled.notif.nadpis':60,
+  'prehled.notif.zapnuto':400,
+  'prehled.pdf.nadpis':60,
+  'prehled.pdf.popis':160,
+  'prehled.vozidla.nadpis':60,
+  'prehled.vozidla.popis':400,
+  'prehled.nehoda.nadpis':60,
+  'prehled.nehoda.popis':160,
+  'pristup.neprihlasen.nadpis':60,
+  'pristup.neprihlasen.popis':400,
+  'pristup.omezeny.nadpis':60,
+  'pristup.plny.nadpis':60,
+  'pristup.omezeny.popis':400,
+  'pristup.plny.popis':400,
+  'pristup.neprihlasen.btn':30,
+  'pristup.omezeny.btn':30,
+  'nav.prehled':30,
+  'nav.pruvodce':30,
+  'nav.sluzby':30,
+  'nav.zpravy':30,
+  'nav.profil':30,
+  'pomoc.body.nadpis':60,
+  'pomoc.body.uvod':400,
+  'pomoc.body.1.nadpis':60,
+  'pomoc.body.1.popis':160,
+  'odkaz.portal-obcana':300,
+  'pomoc.body.2.nadpis':60,
+  'pomoc.body.2.popis':160,
+  'pomoc.body.3.nadpis':60,
+  'pomoc.body.3.popis':160,
+  'nadpis.vozidla':60,
+  'garaz.souhrn.termin':120,
+  'garaz.souhrn.pokuty':120,
+  'garaz.vozidla.nadpis':60,
+  'garaz.vozidla.prazdno':120,
+  'garaz.upravit':30,
+  'garaz.vozidla.pridat':30,
+  'garaz.pokuty.prazdno':120,
+  'garaz.pokuty.nadpis':60,
+  'garaz.vozidlo.ulozit':30,
+  'garaz.vozidlo.chyba':120,
+  'garaz.vozidlo.pridano':120,
+  'garaz.vozidlo.upraveno':120,
+  'garaz.zrusit':30,
+  'garaz.pokuta.ulozit':30,
+  'garaz.pokuta.chyba':120,
+  'garaz.pokuta.pripsat':400,
+  'garaz.pokuta.zprava':400,
+  'garaz.pokuta.advokat':30,
+  'garaz.pokuty.pridat':30,
+  'garaz.doklady.nadpis':60,
+  'garaz.doklady.popis':160,
+  'garaz.nehody.prazdno':120,
+  'garaz.doklady.pozn':400,
+  'garaz.nehody.nadpis':60,
+  'garaz.nehoda.ulozit':30,
+  'garaz.nehoda.chyba':120,
+  'garaz.nehoda.tisk.nadpis':60,
+  'garaz.nehoda.tisk.podnadpis':120,
+  'garaz.nehoda.tisk':40,
+  'garaz.nehody.pridat':30,
+  'garaz.nehody.postup':30,
+  'garaz.pozn':400,
+  'nadpis.nehoda':60,
+  'nehoda.bouracka':120,
+  'odkaz.bouracka':300,
+  'pruvodce.stitek':30,
+  'pruvodce.nadpis':60,
+  'pruvodce.popis':400,
+  'pruvodce.pruh.stitek':30,
+  'pruvodce.pruh.nadpis':60,
+  'pruvodce.kalk.stitek':40,
+  'pruvodce.kalk.nadpis':60,
+  'pruvodce.kalk.popis':400,
+  'pruvodce.hledat.ph':60,
+  'pruvodce.vysledky':120,
+  'pruvodce.oblasti.stitek':30,
+  'nadpis.oblasti':60,
+  'clanek.zamek':120,
+  'clanek.web.nadpis':60,
+  'clanek.web.popis':160,
+  'clanek.btn.napsat':30,
+  'clanek.btn.volat':30,
+  'nadpis.kalkulacka':60,
+  'kalk.btn.bezodhadu':30,
+  'kalk.btn.sodhadem':30,
+  'sluzby.stitek':30,
+  'sluzby.zamek':120,
+  'sluzby.hrozi.stitek':30,
+  'sluzby.pomoc.stitek':30,
+  'sluzby.cena.stitek':30,
+  'sluzby.cena.nadpis':60,
+  'sluzby.cena.popis':400,
+  'sluzby.pruvodce.nadpis':60,
+  'zpravy.nadpis':60,
+  'zpravy.hero.stitek':50,
+  'zpravy.hero.nadpis':60,
+  'zpravy.hero.popis':160,
+  'zpravy.hero.btn1':30,
+  'zpravy.hero.btn2':30,
+  'zpravy.blog.nadpis':60,
+  'zpravy.blog.popis':160,
+  'odkaz.blog':300,
+  'zpravy.oznameni.stitek':30,
+  'zpravy.auto.body.nadpis':60,
+  'zpravy.auto.body.text':400,
+  'zpravy.auto.body.btn':30,
+  'zpravy.auto.pokuta.nadpis':60,
+  'zpravy.auto.pokuta.po':400,
+  'zpravy.auto.pokuta.pred':400,
+  'zpravy.auto.pokuta.btn':30,
+  'zpravy.auto.doklad.nadpis':60,
+  'zpravy.auto.doklad.vyprselo':120,
+  'zpravy.auto.doklad.dnes':120,
+  'zpravy.auto.doklad.btn':30,
+  'zpravy.auto.doklad.zbyva':120,
+  'formular.nadpis':60,
+  'formular.podnadpis':400,
+  'formular.jmeno':120,
+  'formular.ph.jmeno':120,
+  'formular.email':120,
+  'formular.ph.email':120,
+  'formular.telefon':120,
+  'formular.ph.telefon':120,
+  'formular.telefon.hint':400,
+  'formular.zprava':120,
+  'formular.ph.zprava':120,
+  'formular.prilohy':120,
+  'formular.priloha.soubor':120,
+  'formular.priloha.foto':120,
+  'formular.souhlas':400,
+  'formular.odkaz':120,
+  'odkaz.zasady':300,
+  'formular.odeslat':120,
+  'profil.nadpis':60,
+  'profil.ucet.stitek':30,
+  'profil.ucet.neprihlasen':120,
+  'profil.ucet.nepr':400,
+  'profil.ucet.zaloha':120,
+  'profil.ucet.ph':60,
+  'profil.ucet.odhlasit':30,
+  'profil.ucet.btn':40,
+  'profil.predplatne.stitek':30,
+  'profil.plan.plny':120,
+  'profil.plan.omezeny':120,
+  'profil.plan.btn':30,
+  'profil.plocha.nadpis':60,
+  'profil.plocha.popis':160,
+  'profil.upozorneni.nadpis':60,
+  'profil.vzhled.stitek':30,
+  'profil.tema.auto':120,
+  'profil.tema.svetly':120,
+  'profil.tema.tmavy':120,
+  'profil.odkazy.stitek':30,
+  'profil.odkaz.recenze.nadpis':60,
+  'profil.odkaz.recenze.popis':160,
+  'profil.odkaz.sluzby.nadpis':60,
+  'profil.odkaz.sluzby.popis':160,
+  'profil.odkaz.postup.nadpis':60,
+  'profil.odkaz.postup.popis':160,
+  'profil.odkaz.kontakt.nadpis':60,
+  'profil.odkaz.kontakt.popis':160,
+  'profil.odkaz.media.nadpis':60,
+  'profil.odkaz.media.popis':160,
+  'odkaz.media':300,
+  'nadpis.predplatne':60,
+  'predplatne.stitek':30,
+  'predplatne.nazev':120,
+  'predplatne.popis':400,
+  'predplatne.kod.label':120,
+  'predplatne.kod.ph':60,
+  'predplatne.kod.hint':400,
+  'predplatne.btn.kod':30,
+  'predplatne.btn.koupit':40,
+  'nadpis.upozorneni':60,
+  'upozorneni.body.stitek':30,
+  'upozorneni.body.nadpis':60,
+  'upozorneni.body.popis':160,
+  'upozorneni.prah.pozn':400,
+  'upozorneni.vozidlo.stitek':30,
+  'upozorneni.stk.nadpis':60,
+  'upozorneni.stk.popis':160,
+  'upozorneni.poj.nadpis':60,
+  'upozorneni.poj.popis':160,
+  'upozorneni.znamka.nadpis':60,
+  'upozorneni.znamka.popis':160,
+  'upozorneni.zpravy.stitek':30,
+  'upozorneni.zpravy.nadpis':60,
+  'upozorneni.zpravy.popis':160,
+  'upozorneni.email.stitek':40,
+  'upozorneni.email.ph':60,
+  'upozorneni.email.zuctu':400,
+  'upozorneni.email.btn':30,
+  'upozorneni.pozn':400,
+  'nadpis.recenze':60,
+  'recenze.praxe.nadpis':60,
+  'recenze.praxe.popis':160,
+  'recenze.zdroj.nadpis':60,
+  'recenze.zdroj.popis':160,
+  'odkaz.recenze':300,
+  'nadpis.postup':30,
+  'nadpis.kontakt':60,
+  'kontakt.tel.stitek':30,
+  'kontakt.mail.stitek':30,
+  'kontakt.pobocka.stitek':30,
+  'kontakt.ico':120
+};
+/* Vlastní bloky a co v tabulce přibylo později: rozumný strop, ať to nikdy
+   nespadne na „bez omezení". */
+function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ? 400 : 200); }
+
+function nazevObrazovky(o){ return (NAZEV_OBRAZOVKY[o] || [o, ''])[0]; }
+function popisObrazovky(o){ return (NAZEV_OBRAZOVKY[o] || [o, ''])[1]; }
+
+const NAHLED_PODOBRAZOVKY = (() => {
+  const m = {};
+  for(const karta in OBRAZOVKY_KARTY)
+    m[karta] = OBRAZOVKY_KARTY[karta].filter(o => o !== 'nav')
+                 .map(o => [o, nazevObrazovky(o)]);
+  m.sprava = [['prehled', 'Přehled']];
+  return m;
+})();
 const NAZEV_KARTY = {prehled:'Přehled', pruvodce:'Průvodce', sluzby:'Služby',
                      zpravy:'Zprávy', profil:'Profil', sprava:'Administrace'};
 
@@ -925,26 +1415,9 @@ let nahledJako = 'plny';
 
 /* Kam který text patří — podle toho náhled sám přepne obrazovku. */
 function obrazovkaKlice(klic){
-  if(klic.startsWith('formular.'))   return 'konzultace';
-  if(klic.startsWith('predplatne.')) return 'predplatne';
-  if(klic.startsWith('pomoc.'))      return 'points-help';
-  if(klic.startsWith('nav.'))        return 'prehled';
-  if(klic.startsWith('clanek.'))     return 'pruvodce';
-  if(klic.startsWith('kalk.'))       return 'calc';
-  if(klic === 'odkaz.blog')          return 'zpravy';
-  if(klic === 'odkaz.zasady')        return 'konzultace';
-  if(klic === 'odkaz.portal-obcana') return 'points-help';
-  if(klic === 'odkaz.media')         return 'profil';
-  if(klic.startsWith('odkaz.') || klic.startsWith('nehoda.')) return 'nehoda';
-  if(klic.startsWith('kontakt.'))    return 'kontakt';
-  if(klic.startsWith('nadpis.')){
-    const m = {'nadpis.kalkulacka':'calc','nadpis.oblasti':'oblasti','nadpis.recenze':'recenze',
-               'nadpis.postup':'postup','nadpis.kontakt':'kontakt','nadpis.upozorneni':'upozorneni',
-               'nadpis.nehoda':'nehoda','nadpis.vozidla':'vozidla','nadpis.predplatne':'predplatne',
-               'nadpis.body':'points-help'};
-    return m[klic] || 'prehled';
-  }
+  if(POLE_OBRAZOVKA[klic]) return POLE_OBRAZOVKA[klic];
   if(klic.startsWith('blok.')) return klic.split('.')[1] || 'prehled';
+  if(klic.startsWith('kalk.')) return 'calc';
   return klic.split('.')[0];
 }
 
@@ -1037,7 +1510,6 @@ function kresliOvladaceNahledu(){
   const el = $('telOvladace'); if(!el) return;
   const nadpis = $('telNadpis');
   if(nadpis) nadpis.textContent = 'Náhled — ' + (NAZEV_KARTY[nahledKarta] || '');
-  const sez = NAHLED_PODOBRAZOVKY[nahledKarta] || NAHLED_PODOBRAZOVKY.prehled;
   /* Řada s obrazovkami tu byla, ale mátla — vypadala jako druhá sada záložek
      a hlavně byla zbytečná: náhled se sám přepne na tu obrazovku, kde je pole
      nebo sekce, kterou právě upravujete. Zůstává jen volba, komu se ukazuje. */
@@ -1141,54 +1613,11 @@ window.addEventListener('message', ev => {
 /* Názvy sekcí říkají, co je v aplikaci vidět — ne jak je poskládaná uvnitř.
    V uvozovkách je text, který Nela na obrazovce opravdu čte, takže sekci
    pozná i bez náhledu. */
-const SKUPINY = [
-  ['prehled.body',      'Karta „Váš bodový stav"'],
-  ['prehled.vyzva',     'Výzva při 8 a více bodech'],
-  ['prehled.notif',     'Karta „Včasná výstraha před 12 body"'],
-  ['prehled.pdf',       'Řádek „Načíst body z PDF výpisu"'],
-  ['prehled.vozidla',   'Řádek „Vozidla a STK"'],
-  ['prehled.nehoda',    'Řádek „Stala se vám dopravní nehoda?"'],
-  ['pristup',           'Proužek se stavem přístupu'],
-  ['pomoc.body',        'Obrazovka „Jak zjistit body"'],
-  ['nehoda',            'Obrazovka „Co dělat po nehodě"'],
-  ['pruvodce.pruh',     'Tmavý pruh „Právní témata podle oblastí"'],
-  ['pruvodce.kalk',     'Karta „Kalkulačka a asistent při kontrole"'],
-  ['pruvodce.oblasti',  'Nadpis „Oblasti"'],
-  ['pruvodce.hledat',   'Vyhledávací pole'],
-  ['zpravy.hero',       'Karta „Mgr. Horáček odpovídá do 2 hodin."'],
-  ['zpravy.blog',       'Řádek „Blog Práva řidiče"'],
-  ['zpravy.oznameni',   'Nadpis „Oznámení"'],
-  ['zpravy.auto',       'Upozornění, která aplikace pošle sama'],
-  ['formular.ph',       'Formulář — šedý text v prázdných políčkách'],
-  ['formular',          'Formulář „Napište nám"'],
-  ['profil.ucet',       'Karta „Účet"'],
-  ['profil.plan',       'Karta „Předplatné" v profilu'],
-  ['profil.plocha',     'Řádek „Přidat na plochu"'],
-  ['profil.tema',       'Volby vzhledu (Podle telefonu / Světlý / Tmavý)'],
-  ['profil.upozorneni', 'Řádek „Upozornění"'],
-  ['profil.odkazy',     'Nadpis „Odkazy"'],
-  ['profil.predplatne', 'Nadpis „Předplatné"'],
-  ['predplatne',        'Obrazovka „Předplatné"'],
-  ['odkaz',             'Adresy, kam odkazy vedou'],
-  ['kontakt',           'Telefonní číslo pro tlačítko Zavolat'],
-  ['kalk',              'Kalkulačka — texty výsledků'],
-  ['nadpis',            'Názvy obrazovek v horní liště'],
-  ['nav',               'Spodní lišta (Přehled, Průvodce, …)'],
-  ['clanek',            'Článek — zámek a tlačítka dole'],
-  ['sluzby',            'Nadpis „S čím vám pomůžeme"'],
-  ['pruvodce',          'Úvod obrazovky Průvodce'],
-  ['prehled',           'Karta Přehled'],
-  ['profil',            'Karta Profil'],
-  ['zpravy',            'Nadpis „Zprávy"']
-];
 
+/* Sekce v administraci = obrazovka v aplikaci. */
 function skupinaKlice(klic){
-  if(klic.startsWith('blok.')) return 'Vlastní bloky';
   if(klic.startsWith('kalk.')) return 'Kalkulačka — texty výsledků';
-  for(const [predpona, nazev] of SKUPINY){
-    if(klic === predpona || klic.startsWith(predpona + '.')) return nazev;
-  }
-  return 'Ostatní';
+  return nazevObrazovky(obrazovkaKlice(klic));
 }
 
 
@@ -1781,10 +2210,10 @@ function importSazeb(vstup){
 let seznamy = [], seznamyZmenene = new Set(), seznamySmazane = [];
 
 const DRUHY_SEZNAMU = {
-  recenze: {karta:'sluzby',  nazev:'Recenze klientů',
+  recenze: {karta:'profil',  nazev:'Recenze klientů',
             popis:'Zobrazí se na obrazovce Recenze klientů, na kterou vede odkaz z Profilu.',
             a:'Jméno', b:'Text recenze', c:'Čeho se případ týkal', obrazovka:'recenze'},
-  postup:  {karta:'sluzby',  nazev:'Jak to probíhá — kroky spolupráce',
+  postup:  {karta:'profil',  nazev:'Jak to probíhá — kroky spolupráce',
             popis:'Číslované kroky na obrazovce Jak to probíhá. Číslo se doplní podle pořadí.',
             a:'Název kroku', b:'Popis kroku', c:null, obrazovka:'postup'},
   tel:     {karta:'profil',  nazev:'Telefonní čísla',
@@ -1817,9 +2246,9 @@ function polozkySeznamu(druh){
 
 function sekceSeznamu(druh){
   const d = DRUHY_SEZNAMU[druh];
-  return `<div class="panel" style="margin-top:16px">
-    <h2>${esc(d.nazev)}</h2>
-    <p class="napoveda" style="margin:-6px 0 14px">${esc(d.popis)}</p>
+  return `<div class="podsekce">
+    <h3>${esc(d.nazev)}</h3>
+    <p class="napoveda" style="margin:-4px 0 12px">${esc(d.popis)}</p>
     <div id="sez-${druh}"></div>
     <div class="lista" style="margin-top:12px">
       <button class="btn btn-hlavni" data-ulozit onclick="ulozSeznam('${druh}')">Uložit</button>
@@ -1828,9 +2257,15 @@ function sekceSeznamu(druh){
   </div>`;
 }
 
+/* I v seznamech platí strop — recenze přes celou obrazovku by kartu roztáhla. */
+const LIMIT_SEZNAMU = {recenze:{a:40, b:260, c:60}, postup:{a:60, b:200, c:60},
+                       nehoda:{a:60, b:200, c:60}, tel:{a:40, b:24, c:60},
+                       mail:{a:40, b:60, c:60}, pobocka:{a:40, b:80, c:60}};
+
 function kresliSeznam(druh){
   const el = $('sez-' + druh); if(!el) return;
   const d = DRUHY_SEZNAMU[druh];
+  const lim = LIMIT_SEZNAMU[druh] || {a:60, b:200, c:60};
   const p = polozkySeznamu(druh);
   el.innerHTML = p.length ? p.map((s, i) => `
     <div class="sez-radek">
@@ -1838,12 +2273,12 @@ function kresliSeznam(druh){
       <div class="sez-pole">
         <div class="radky2">
           <div><label>${esc(d.a)}</label>
-            <input type="text" value="${esc(s.nadpis)}" oninput="zmenPolozku('${s.id}','nadpis',this.value)"></div>
+            <input type="text" maxlength="${lim.a}" value="${esc(s.nadpis)}" oninput="zmenPolozku('${s.id}','nadpis',this.value)"></div>
           <div><label>${esc(d.b)}</label>
-            <input type="text" value="${esc(s.text)}" oninput="zmenPolozku('${s.id}','text',this.value)"></div>
+            <input type="text" maxlength="${lim.b}" value="${esc(s.text)}" oninput="zmenPolozku('${s.id}','text',this.value)"></div>
         </div>
         ${d.c ? `<div class="pole" style="margin:10px 0 0"><label>${esc(d.c)}</label>
-          <input type="text" value="${esc(s.doplnek||'')}" oninput="zmenPolozku('${s.id}','doplnek',this.value)"></div>` : ''}
+          <input type="text" maxlength="${lim.c}" value="${esc(s.doplnek||'')}" oninput="zmenPolozku('${s.id}','doplnek',this.value)"></div>` : ''}
       </div>
       <div class="poradi-sipky">
         <button type="button" title="Nahoru" ${i === 0 ? 'disabled' : ''} onclick="posunPolozku('${s.id}',-1)">▲</button>
@@ -1915,9 +2350,9 @@ async function ulozSeznam(druh){
   hlaska(ulozeno ? ('Uloženo — ' + ulozeno + ' ' + mnozne(ulozeno,'položka','položky','položek') + '.') : 'Nic se nezměnilo.');
 }
 
-/* Které seznamy patří pod kterou kartu administrace. */
-function seznamyKarty(karta){
-  return Object.keys(DRUHY_SEZNAMU).filter(d => DRUHY_SEZNAMU[d].karta === karta);
+/* Seznam se ukazuje u obrazovky, na které v aplikaci je. */
+function seznamyObrazovky(obrazovka){
+  return Object.keys(DRUHY_SEZNAMU).filter(d => DRUHY_SEZNAMU[d].obrazovka === obrazovka);
 }
 
 /* ---------- texty karet ---------- */
@@ -1935,24 +2370,35 @@ function kresliTexty(karta){
     return;
   }
 
-  /* rozdělení do sekcí podle místa v aplikaci — pořadí zůstává podle databáze */
-  const skupiny = [];
+  /* Sekce jsou obrazovky aplikace ve stejném pořadí, v jakém se v ní procházejí.
+     Pole uvnitř jdou tak, jak jdou na obrazovce — pořadí drží databáze. */
+  const obrazovky = (OBRAZOVKY_KARTY[karta] || []).slice();
   polozky.forEach(t => {
-    const nazev = skupinaKlice(t.klic);
-    let s = skupiny.find(x => x.nazev === nazev);
-    if(!s){ s = {nazev, polozky: []}; skupiny.push(s); }
-    s.polozky.push(t);
+    const o = obrazovkaKlice(t.klic);
+    if(!obrazovky.includes(o)) obrazovky.push(o);
   });
+
+  const skupiny = obrazovky.map(o => ({
+    obrazovka: o,
+    nazev: nazevObrazovky(o),
+    popis: popisObrazovky(o),
+    polozky: polozky.filter(t => obrazovkaKlice(t.klic) === o),
+    seznamy: seznamyObrazovky(o)
+  })).filter(s => s.polozky.length || s.seznamy.length);
 
   sek.innerHTML = `<div class="panel">
     <h2>${NAZVY_KARET[karta]||karta} — texty v aplikaci</h2>
-    <p class="napoveda" style="margin:-6px 0 12px">Vpravo běží aplikace. Jakmile začnete psát,
-       změna je hned vidět — uložit ji ale musíte tlačítkem dole. Struktura obrazovky se nemění,
-       upravuje se jen znění.</p>
+    <p class="napoveda" style="margin:-6px 0 12px">Vpravo běží aplikace. Sekce jdou ve stejném
+       pořadí jako obrazovky v aplikaci a pole v nich taky. Jakmile začnete psát, změna je hned
+       vidět — uložit ji ale musíte tlačítkem dole.</p>
     ${skupiny.map((s, i) => `
       <details class="sekce" data-skupina="${esc(s.nazev)}" ontoggle="sekceOtevrena(this)" ${i === 0 ? 'open' : ''}>
         <summary>${esc(s.nazev)}<span class="pocet">${s.polozky.length} ${mnozne(s.polozky.length,'pole','pole','polí')}</span></summary>
-        <div class="sekce-telo">${s.polozky.map(poleTextu).join('')}</div>
+        <div class="sekce-telo">
+          ${s.popis ? `<p class="napoveda" style="margin:-2px 0 12px">${esc(s.popis)}</p>` : ''}
+          ${s.polozky.map(poleTextu).join('')}
+          ${s.seznamy.map(sekceSeznamu).join('')}
+        </div>
       </details>`).join('')}
     <div class="lista" style="margin-top:14px">
       <button class="btn btn-hlavni" data-ulozit onclick="ulozTexty('${karta}')">Uložit</button>
@@ -1960,15 +2406,10 @@ function kresliTexty(karta){
     </div>
     </div>
     ${karta === 'zpravy' ? '<div class="panel" style="margin-top:16px">' + sekceZprav() + '</div>' : ''}`;
-  const druhy = seznamyKarty(karta);
-  if(druhy.length){
-    sek.insertAdjacentHTML('beforeend', druhy.map(sekceSeznamu).join(''));
-    druhy.forEach(kresliSeznam);
-  }
+  skupiny.forEach(s => s.seznamy.forEach(kresliSeznam));
   hlidejFormular(sek);
   nahledTexty();
 }
-
 function mnozne(n, jeden, few, mnoho){ return n === 1 ? jeden : (n >= 2 && n <= 4 ? few : mnoho); }
 
 /* Jedno pole. onfocus přepne náhled na správnou obrazovku a text v něm zvýrazní,
@@ -1976,23 +2417,26 @@ function mnozne(n, jeden, few, mnoho){ return n === 1 ? jeden : (n >= 2 && n <= 
 function poleTextu(t){
   const vlastni = t.klic.startsWith('blok.');
   if(vlastni && !upravovane.has(t.klic)) return nahledBloku(t);
-  const spolecne = `oninput="nahledTexty()" onfocus="naNahled('${t.klic}')"`;
+  const max = limitPole(t.klic);
+  const spolecne = `maxlength="${max}" oninput="poleZmeneno(this)" onfocus="naNahled('${t.klic}')"`;
   return `
   <div class="pole ${vlastni ? 'blok-edit' : ''}">
     ${vlastni
       ? `<label>Nadpis bloku</label>
-         <input type="text" id="nadpis-${t.klic}" value="${esc(t.popis)}" style="margin-bottom:10px">
+         <input type="text" id="nadpis-${t.klic}" maxlength="60" value="${esc(t.popis)}" style="margin-bottom:10px">
          <label>Text bloku</label>`
       : `<label for="tx-${t.klic}">${esc(t.popis)}</label>`}
     ${t.viceradkovy
       ? `<textarea id="tx-${t.klic}" ${spolecne} style="min-height:${vlastni ? '110' : '72'}px">${esc(t.hodnota)}</textarea>`
       : `<input type="text" id="tx-${t.klic}" ${spolecne} value="${esc(t.hodnota)}">`}
+    <div class="pocitadlo${(t.hodnota||'').length > max * 0.9 ? ' u-konce' : ''}"
+         id="poc-${t.klic}">${(t.hodnota||'').length} / ${max}</div>
     ${vlastni
       ? `<div class="radky2" style="margin-top:12px">
            <div><label>Odkaz (nepovinné)</label>
-             <input type="text" id="odkaz-${t.klic}" value="${esc(t.odkaz||'')}" placeholder="https://www.pravaridice.cz/…"></div>
+             <input type="text" id="odkaz-${t.klic}" maxlength="300" value="${esc(t.odkaz||'')}" placeholder="https://www.pravaridice.cz/…"></div>
            <div><label>Text tlačítka</label>
-             <input type="text" id="odkaztext-${t.klic}" value="${esc(t.odkaz_text||'')}" placeholder="Přečíst více"></div>
+             <input type="text" id="odkaztext-${t.klic}" maxlength="30" value="${esc(t.odkaz_text||'')}" placeholder="Přečíst více"></div>
          </div>
          <div class="prepinac ${t.nove_okno!==false ? 'zap' : ''}" onclick="this.classList.toggle('zap')" id="okno-${t.klic}">
            <div class="txt"><b>Otevřít v novém okně</b><span>Vypnuto = odkaz se otevře přímo v aplikaci.</span></div>
@@ -2003,6 +2447,18 @@ function poleTextu(t){
          </div>`
       : ''}
   </div>`;
+}
+
+/* Při psaní se hlídá délka a náhled se překreslí. */
+function poleZmeneno(el){
+  const klic = el.id.replace(/^tx-/, '');
+  const poc = $('poc-' + klic);
+  if(poc){
+    const max = limitPole(klic);
+    poc.textContent = el.value.length + ' / ' + max;
+    poc.classList.toggle('u-konce', el.value.length >= max * 0.9);
+  }
+  nahledTexty();
 }
 
 /* Přepnutí náhledu na obrazovku, kde ten text je, a jeho zvýraznění. */
