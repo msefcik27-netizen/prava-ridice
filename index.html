@@ -559,6 +559,8 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 .g-polozka .g-hlava{display:flex;align-items:flex-start;gap:10px;}
 .g-polozka .g-hlava b{flex:1;min-width:0;font-size:15px;font-weight:800;}
 .g-polozka .g-smaz{background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:0 0 0 6px;line-height:1;}
+.g-polozka .g-upr{flex:0 0 auto;background:var(--bg);border:1px solid var(--line);color:var(--ink);
+  border-radius:8px;padding:5px 11px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;}
 .g-radka{font-size:13px;color:var(--ink-soft);line-height:1.5;margin-top:4px;}
 .g-stitek{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
   padding:3px 8px;border-radius:7px;margin-top:7px;}
@@ -905,7 +907,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 73</div>
+        <div class="ver">Verze 2.5 · build 74</div>
       </div>
     </div>
 
@@ -2744,9 +2746,18 @@ const URADY_VYCHOZI = [
   {nadpis:'Dálniční známka', text:'Nákup a ověření platnosti podle SPZ',           doplnek:'https://edalnice.gov.cz/'}
 ];
 
-let garazForm = null;   // 'vozidlo' | 'pokuta' | 'nehoda'
+/* Co je zrovna otevřené k vyplnění: {druh, id}. id je u vozidla pořadí
+   v seznamu, u pokuty a nehody jejich vlastní id. Prázdné id = nový záznam. */
+let garazForm = null;
 
-function garazPrepni(co){ garazForm = (garazForm === co ? null : co); renderVozidla(); }
+function garazPrepni(druh, id){
+  const stejne = garazForm && garazForm.druh === druh &&
+                 String(garazForm.id) === String(id === undefined ? '' : id);
+  garazForm = stejne ? null : {druh, id: (id === undefined ? null : id)};
+  renderVozidla();
+}
+const garazOtevreno = druh => garazForm && garazForm.druh === druh;
+const garazUpravuje = (druh, id) => garazOtevreno(druh) && String(garazForm.id) === String(id);
 
 function dnu(datum){
   if(!datum) return null;
@@ -2778,9 +2789,11 @@ function ulozPokutu(){
   };
   if(!z.duvod && !z.castka){ toast(txt('garaz.pokuta.chyba',
     'Vyplňte aspoň za co pokuta je, nebo částku.')); return; }
-  p.unshift(z); setPokuty(p);
+  const stary = garazForm && garazForm.id ? p.findIndex(x => x.id === garazForm.id) : -1;
+  if(stary >= 0){ z.id = p[stary].id; p[stary] = z; } else { p.unshift(z); }
+  setPokuty(p);
   garazForm = null; renderVozidla(); renderZpravy(); renderUnread();
-  if(body > 0){
+  if(body > 0 && stary < 0){
     setTimeout(() => {
       if(confirm(txt('garaz.pokuta.pripsat',
         'Připsat {body} bodů k vašemu bodovému stavu? Body se připisují až po nabytí právní moci — pokud řízení běží, počkejte.', {body: body}))){
@@ -2827,7 +2840,9 @@ function ulozNehodu(){
   };
   if(!z.datum && !z.misto){ toast(txt('garaz.nehoda.chyba',
     'Vyplňte aspoň datum nebo místo.')); return; }
-  n.unshift(z); setNehody(n);
+  const stary = garazForm && garazForm.id ? n.findIndex(x => x.id === garazForm.id) : -1;
+  if(stary >= 0){ z.id = n[stary].id; n[stary] = z; } else { n.unshift(z); }
+  setNehody(n);
   garazForm = null; renderVozidla();
 }
 function smazNehodu(id){ setNehody(getNehody().filter(x => x.id !== id)); renderVozidla(); }
@@ -2878,15 +2893,18 @@ function renderVozidla(){
   const vozidla = (vs.length ? vs.map((v, i) => {
       const w = vehWorst(v), l = vehLabel(w);
       return '<div class="g-polozka"><div class="g-hlava"><b>' + escT(v.spz) + '</b>' +
+        '<button class="g-upr" onclick="garazPrepni(\'vozidlo\', ' + i + ')">' + txt('garaz.upravit','Upravit') + '</button>' +
         '<button class="g-smaz" onclick="rmVehicle(' + i + ')" title="Smazat">✕</button></div>' +
         '<div class="g-radka">STK ' + (cesky(v.stk)||'—') + ' · pojištění ' + (cesky(v.poj)||'—') + ' · známka ' + (cesky(v.znamka)||'—') + '</div>' +
         (v.ins || v.asist ? '<div class="g-radka">' + escT(v.ins||'') +
           (v.asist ? ' · <a href="tel:' + v.asist.replace(/\s/g,'') + '" style="color:var(--turq-deep);font-weight:700;">☎ ' + escT(v.asist) + '</a>' : '') + '</div>' : '') +
         (l ? '<div class="g-radka" style="font-weight:700;color:' + l.c + '">' + l.t + '</div>' : '') +
+        (garazUpravuje('vozidlo', i) ? formVozidla(v) : '') +
       '</div>';
     }).join('') : '<div class="g-radka" style="color:var(--muted)">' +
       txt('garaz.vozidla.prazdno','Zatím žádné vozidlo. Bez něj neumíme hlídat termíny.') + '</div>') +
-    (garazForm === 'vozidlo' ? formVozidla() :
+    (garazOtevreno('vozidlo') && garazForm.id === null ? formVozidla() :
+     garazOtevreno('vozidlo') ? '' :
       '<button class="btn btn-outline-dark btn-sm" style="margin-top:6px" onclick="garazPrepni(\'vozidlo\')">' +
       txt('garaz.vozidla.pridat','+ Přidat vozidlo') + '</button>');
 
@@ -2895,6 +2913,7 @@ function renderVozidla(){
       const s = stavPokuty(p.stav);
       const doSplatnosti = dnu(p.splatnost);
       return '<div class="g-polozka"><div class="g-hlava"><b>' + escT(p.duvod || 'Pokuta') + '</b>' +
+        '<button class="g-upr" onclick="garazPrepni(\'pokuta\', \'' + p.id + '\')">' + txt('garaz.upravit','Upravit') + '</button>' +
         '<button class="g-smaz" onclick="smazPokutu(\'' + p.id + '\')" title="Smazat">✕</button></div>' +
         '<div class="g-radka">' + [castka(p.castka), p.body ? p.body + ' b.' : '', p.spz, cesky(p.datum)].filter(Boolean).join(' · ') + '</div>' +
         (p.splatnost ? '<div class="g-radka">Splatnost ' + cesky(p.splatnost) +
@@ -2906,10 +2925,11 @@ function renderVozidla(){
             STAVY_POKUT.map(x => '<option value="' + x[0] + '"' + (p.stav === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select>' +
           '<button class="btn btn-outline-dark btn-sm" style="flex:1 1 130px;width:auto;" onclick="pokutaKAdvokatovi(\'' + p.id + '\')">' +
             txt('garaz.pokuta.advokat','Nechat prověřit') + '</button>' +
-        '</div></div>';
+        '</div>' + (garazUpravuje('pokuta', p.id) ? formPokuty(p) : '') + '</div>';
     }).join('') : '<div class="g-radka" style="color:var(--muted)">' +
       txt('garaz.pokuty.prazdno','Zatím žádná pokuta. Uložená pokuta vám připomene splatnost.') + '</div>') +
-    (garazForm === 'pokuta' ? formPokuty() :
+    (garazOtevreno('pokuta') && garazForm.id === null ? formPokuty() :
+     garazOtevreno('pokuta') ? '' :
       '<button class="btn btn-outline-dark btn-sm" style="margin-top:6px" onclick="garazPrepni(\'pokuta\')">' +
       txt('garaz.pokuty.pridat','+ Přidat pokutu') + '</button>');
 
@@ -2925,20 +2945,22 @@ function renderVozidla(){
   /* --- nehody --- */
   const nehody = (nh.length ? nh.map(z =>
       '<div class="g-polozka"><div class="g-hlava"><b>' + (cesky(z.datum) || 'Bez data') + '</b>' +
+        '<button class="g-upr" onclick="garazPrepni(\'nehoda\', \'' + z.id + '\')">' + txt('garaz.upravit','Upravit') + '</button>' +
         '<button class="g-smaz" onclick="smazNehodu(\'' + z.id + '\')" title="Smazat">✕</button></div>' +
       (z.misto ? '<div class="g-radka">' + escT(z.misto) + '</div>' : '') +
       (z.ucastnik || z.spzDruhy ? '<div class="g-radka">Druhý účastník: ' + escT([z.ucastnik, z.spzDruhy].filter(Boolean).join(' · ')) + '</div>' : '') +
       '<button class="btn btn-outline-dark btn-sm" style="margin-top:9px" onclick="tiskniNehodu(\'' + z.id + '\')">' +
-        txt('garaz.nehoda.tisk','Vytisknout nebo uložit do PDF') + '</button></div>').join('')
+        txt('garaz.nehoda.tisk','Vytisknout nebo uložit do PDF') + '</button>' +
+      (garazUpravuje('nehoda', z.id) ? formNehody(z) : '') + '</div>').join('')
     : '<div class="g-radka" style="color:var(--muted)">' +
       txt('garaz.nehody.prazdno','Zatím žádný záznam.') + '</div>') +
     '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:6px;">' +
-      (garazForm === 'nehoda' ? '' :
+      (garazOtevreno('nehoda') ? '' :
         '<button class="btn btn-outline-dark btn-sm" style="flex:1 1 140px;width:auto;" onclick="garazPrepni(\'nehoda\')">' +
         txt('garaz.nehody.pridat','+ Nový záznam') + '</button>') +
       '<button class="btn btn-dark btn-sm" style="flex:1 1 140px;width:auto;" onclick="openNehoda()">' +
         txt('garaz.nehody.postup','Co dělat po nehodě') + '</button></div>' +
-    (garazForm === 'nehoda' ? formNehody() : '');
+    (garazOtevreno('nehoda') && garazForm.id === null ? formNehody() : '');
 
   el.innerHTML = souhrn +
     sekce('car',   txt('garaz.vozidla.nadpis','Vozidla a termíny'),
@@ -2955,49 +2977,63 @@ function renderVozidla(){
 }
 
 /* ---------- formuláře ---------- */
-function formVozidla(){
-  const d = (id, popisek, typ, ph) => '<div class="field"><label>' + popisek + '</label>' +
-    '<input type="' + typ + '" id="' + id + '"' + (ph ? ' placeholder="' + ph + '"' : '') + (typ === 'text' && id === 'vSpz' ? ' autocapitalize="characters"' : '') + '/></div>';
+function formVozidla(v){
+  v = v || {};
+  const h = x => x ? ' value="' + escT(x) + '"' : '';
+  const d = (id, popisek, typ, ph, hodnota) => '<div class="field"><label>' + popisek + '</label>' +
+    '<input type="' + typ + '" id="' + id + '"' + h(hodnota) + (ph ? ' placeholder="' + ph + '"' : '') + (typ === 'text' && id === 'vSpz' ? ' autocapitalize="characters"' : '') + '/></div>';
   return '<div class="g-form" style="margin-top:10px;border-top:1px solid var(--line);padding-top:13px;">' +
-    d('vSpz','SPZ nebo název','text','1AB 2345') +
-    d('vStk','STK platí do','date') + d('vPoj','Pojištění platí do','date') + d('vZn','Dálniční známka do','date') +
-    d('vIns','Pojišťovna','text','například Kooperativa') +
-    d('vAsist','Asistenční linka','tel','například 957 105 105') +
+    d('vSpz','SPZ nebo název','text','1AB 2345', v.spz) +
+    d('vStk','STK platí do','date','', v.stk) +
+    d('vPoj','Pojištění platí do','date','', v.poj) +
+    d('vZn','Dálniční známka do','date','', v.znamka) +
+    d('vIns','Pojišťovna','text','například Kooperativa', v.ins) +
+    d('vAsist','Asistenční linka','tel','například 957 105 105', v.asist) +
     '<label class="attach" style="margin-bottom:12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg> Vytěžit z pojistné smlouvy (PDF)<input type="file" accept="application/pdf,.pdf" hidden onchange="smlouvaPicked(this)"/></label>' +
-    '<div style="display:flex;gap:8px;"><button class="btn btn-dark btn-sm" style="flex:1;" onclick="addVehicle()">Uložit vozidlo</button>' +
-    '<button class="btn btn-outline-dark btn-sm" style="flex:0 0 auto;width:auto;padding:0 16px;" onclick="garazPrepni(\'vozidlo\')">Zrušit</button></div></div>';
+    '<div style="display:flex;gap:8px;"><button class="btn btn-dark btn-sm" style="flex:1;" onclick="addVehicle()">' +
+      txt('garaz.vozidlo.ulozit','Uložit vozidlo') + '</button>' +
+    '<button class="btn btn-outline-dark btn-sm" style="flex:0 0 auto;width:auto;padding:0 16px;" onclick="garazForm=null;renderVozidla()">' +
+      txt('garaz.zrusit','Zrušit') + '</button></div></div>';
 }
 
-function formPokuty(){
+function formPokuty(p){
+  p = p || {};
   const vs = getVehicles();
+  const h = x => x ? ' value="' + escT(x) + '"' : '';
   return '<div class="g-form" style="margin-top:10px;border-top:1px solid var(--line);padding-top:13px;">' +
-    '<div class="field"><label>Za co</label><input type="text" id="pDuvod" placeholder="například překročení rychlosti v obci"/></div>' +
+    '<div class="field"><label>Za co</label><input type="text" id="pDuvod"' + h(p.duvod) + ' placeholder="například překročení rychlosti v obci"/></div>' +
     '<div class="field"><label>Vozidlo</label><select id="pSpz"><option value="">Neuvedeno</option>' +
-      vs.map(v => '<option>' + escT(v.spz) + '</option>').join('') + '</select></div>' +
-    '<div class="field"><label>Částka (Kč)</label><input type="text" id="pCastka" inputmode="numeric" placeholder="2500"/></div>' +
-    '<div class="field"><label>Datum</label><input type="date" id="pDatum"/></div>' +
-    '<div class="field"><label>Splatnost</label><input type="date" id="pSplatnost"/></div>' +
-    '<div class="field"><label>Body</label><input type="text" id="pBody" inputmode="numeric" placeholder="0"/></div>' +
+      vs.map(v => '<option' + (p.spz === v.spz ? ' selected' : '') + '>' + escT(v.spz) + '</option>').join('') + '</select></div>' +
+    '<div class="field"><label>Částka (Kč)</label><input type="text" id="pCastka" inputmode="numeric"' + h(p.castka) + ' placeholder="2500"/></div>' +
+    '<div class="field"><label>Datum</label><input type="date" id="pDatum"' + h(p.datum) + '/></div>' +
+    '<div class="field"><label>Splatnost</label><input type="date" id="pSplatnost"' + h(p.splatnost) + '/></div>' +
+    '<div class="field"><label>Body</label><input type="text" id="pBody" inputmode="numeric"' + h(p.body) + ' placeholder="0"/></div>' +
     '<div class="field"><label>Stav</label><select id="pStav">' +
-      STAVY_POKUT.map(x => '<option value="' + x[0] + '">' + x[1] + '</option>').join('') + '</select></div>' +
-    '<div style="display:flex;gap:8px;"><button class="btn btn-dark btn-sm" style="flex:1;" onclick="ulozPokutu()">Uložit pokutu</button>' +
-    '<button class="btn btn-outline-dark btn-sm" style="flex:0 0 auto;width:auto;padding:0 16px;" onclick="garazPrepni(\'pokuta\')">Zrušit</button></div></div>';
+      STAVY_POKUT.map(x => '<option value="' + x[0] + '"' + (p.stav === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select></div>' +
+    '<div style="display:flex;gap:8px;"><button class="btn btn-dark btn-sm" style="flex:1;" onclick="ulozPokutu()">' +
+      txt('garaz.pokuta.ulozit','Uložit pokutu') + '</button>' +
+    '<button class="btn btn-outline-dark btn-sm" style="flex:0 0 auto;width:auto;padding:0 16px;" onclick="garazForm=null;renderVozidla()">' +
+      txt('garaz.zrusit','Zrušit') + '</button></div></div>';
 }
 
-function formNehody(){
+function formNehody(z){
+  z = z || {};
   const vs = getVehicles();
+  const h = x => x ? ' value="' + escT(x) + '"' : '';
   return '<div class="g-form" style="margin-top:10px;border-top:1px solid var(--line);padding-top:13px;">' +
-    '<div class="field"><label>Datum a čas</label><input type="datetime-local" id="nDatum"/></div>' +
-    '<div class="field"><label>Místo</label><input type="text" id="nMisto" placeholder="ulice, obec, případně kilometr"/></div>' +
+    '<div class="field"><label>Datum a čas</label><input type="datetime-local" id="nDatum"' + h(z.datum) + '/></div>' +
+    '<div class="field"><label>Místo</label><input type="text" id="nMisto"' + h(z.misto) + ' placeholder="ulice, obec, případně kilometr"/></div>' +
     '<div class="field"><label>Moje vozidlo</label><select id="nSpz"><option value="">Neuvedeno</option>' +
-      vs.map(v => '<option>' + escT(v.spz) + '</option>').join('') + '</select></div>' +
-    '<div class="field"><label>Druhý účastník</label><input type="text" id="nUcastnik" placeholder="jméno a telefon"/></div>' +
-    '<div class="field"><label>SPZ druhého vozidla</label><input type="text" id="nSpzDruhy" autocapitalize="characters"/></div>' +
-    '<div class="field"><label>Pojišťovna druhého</label><input type="text" id="nPojDruhy"/></div>' +
-    '<div class="field"><label>Svědci</label><input type="text" id="nSvedci" placeholder="jméno a telefon"/></div>' +
-    '<div class="field"><label>Co se stalo</label><textarea id="nPopis"></textarea></div>' +
-    '<div style="display:flex;gap:8px;"><button class="btn btn-dark btn-sm" style="flex:1;" onclick="ulozNehodu()">Uložit záznam</button>' +
-    '<button class="btn btn-outline-dark btn-sm" style="flex:0 0 auto;width:auto;padding:0 16px;" onclick="garazPrepni(\'nehoda\')">Zrušit</button></div>' +
+      vs.map(v => '<option' + (z.spz === v.spz ? ' selected' : '') + '>' + escT(v.spz) + '</option>').join('') + '</select></div>' +
+    '<div class="field"><label>Druhý účastník</label><input type="text" id="nUcastnik"' + h(z.ucastnik) + ' placeholder="jméno a telefon"/></div>' +
+    '<div class="field"><label>SPZ druhého vozidla</label><input type="text" id="nSpzDruhy"' + h(z.spzDruhy) + ' autocapitalize="characters"/></div>' +
+    '<div class="field"><label>Pojišťovna druhého</label><input type="text" id="nPojDruhy"' + h(z.pojistovnaDruhy) + '/></div>' +
+    '<div class="field"><label>Svědci</label><input type="text" id="nSvedci"' + h(z.svedci) + ' placeholder="jméno a telefon"/></div>' +
+    '<div class="field"><label>Co se stalo</label><textarea id="nPopis">' + escT(z.popis || '') + '</textarea></div>' +
+    '<div style="display:flex;gap:8px;"><button class="btn btn-dark btn-sm" style="flex:1;" onclick="ulozNehodu()">' +
+      txt('garaz.nehoda.ulozit','Uložit záznam') + '</button>' +
+    '<button class="btn btn-outline-dark btn-sm" style="flex:0 0 auto;width:auto;padding:0 16px;" onclick="garazForm=null;renderVozidla()">' +
+      txt('garaz.zrusit','Zrušit') + '</button></div>' +
     '<div class="g-radka" style="color:var(--muted);margin-top:10px">Fotky si uložte do telefonu — aplikace je neukládá.</div></div>';
 }
 const INSURERS=['Kooperativa','Generali Česká pojišťovna','Česká pojišťovna','Allianz','ČSOB Pojišťovna','UNIQA','Česká podnikatelská pojišťovna','ČPP','Direct','Pillow','Slavia pojišťovna','Hasičská vzájemná pojišťovna'];
@@ -3032,11 +3068,20 @@ async function smlouvaPicked(inp){
 }
 function addVehicle(){
   const spz=(document.getElementById('vSpz').value||'').trim().toUpperCase();
-  if(!spz){ toast('Zadejte prosím SPZ nebo název vozidla.'); return; }
-  const vs=getVehicles();
-  vs.push({spz, stk:document.getElementById('vStk').value||'', poj:document.getElementById('vPoj').value||'', znamka:document.getElementById('vZn').value||'',
-    ins:(document.getElementById('vIns').value||'').trim(), asist:(document.getElementById('vAsist').value||'').trim()});
-  setVehicles(vs); renderVozidla(); toast('Vozidlo přidáno.');
+  if(!spz){ toast(txt('garaz.vozidlo.chyba','Zadejte prosím SPZ nebo název vozidla.')); return; }
+  const zaznam = {spz,
+    stk:document.getElementById('vStk').value||'',
+    poj:document.getElementById('vPoj').value||'',
+    znamka:document.getElementById('vZn').value||'',
+    ins:(document.getElementById('vIns').value||'').trim(),
+    asist:(document.getElementById('vAsist').value||'').trim()};
+  const vs = getVehicles();
+  const i = garazForm && garazForm.id !== null ? +garazForm.id : -1;
+  const uprava = i >= 0 && vs[i];
+  if(uprava) vs[i] = zaznam; else vs.push(zaznam);
+  setVehicles(vs);
+  garazForm = null; renderVozidla(); renderZpravy(); renderUnread();
+  toast(uprava ? txt('garaz.vozidlo.upraveno','Vozidlo upraveno.') : txt('garaz.vozidlo.pridano','Vozidlo přidáno.'));
 }
 function rmVehicle(i){
   const vs=getVehicles();
