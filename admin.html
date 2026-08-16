@@ -314,7 +314,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 94</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 95</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -699,9 +699,33 @@ function editorClanku(){
       <p class="napoveda">Zobrazí se v seznamu pod nadpisem. <b>Je vidět vždy</b>, i u placeného článku.</p></div>
 
     <div class="krok"><span class="krok-cislo">2</span>Obsah</div>
-    <div id="bl-seznam"></div>
-    <div id="bl-osnova"></div>
-    <details class="pridat" id="bl-pridat">
+
+    <div class="pole">
+      <label for="f-telo">Text článku</label>
+      <p class="napoveda" style="margin:0 0 8px">Nejjednodušší cesta: napište článek jako běžný
+         text. Prázdný řádek dělí odstavce. Aplikace ho takhle zobrazí — <b>dokud článek nemá
+         žádný blok</b>.</p>
+      <textarea id="f-telo" oninput="nahledClanku()">${esc(c.telo)}</textarea>
+    </div>
+
+    <details class="sekce" style="margin-top:14px" id="bl-sekce"
+      ${bloky.some(b => b.clanek_id === c.id && !b._smazany) ? 'open' : ''}>
+      <summary>Bloky — když má článek vypadat jinak než jako odstavce<span class="pocet"
+        id="bl-pocet">${bloky.filter(b => b.clanek_id === c.id && !b._smazany).length
+          ? bloky.filter(b => b.clanek_id === c.id && !b._smazany).length + ' ' +
+            mnozne(bloky.filter(b => b.clanek_id === c.id && !b._smazany).length,'blok','bloky','bloků')
+          : 'zatím žádný'}</span></summary>
+      <div class="sekce-telo">
+        <p class="sekce-popis">Blok je pojmenovaný kus článku, který aplikace vykreslí ve svém
+           stylu — úvodní karta s ikonou, mezinadpis, karta s odkazem, dvousloupcová tabulka,
+           odrážky, oranžové <b>Pozor</b> nebo tyrkysová <b>Rada</b>. U každého se dá vybrat
+           barva pozadí z manuálu a velikost písma; písmo samo se nemění, aby aplikace držela
+           jednotný vzhled. Bloky se dají přesouvat nahoru a dolů.<br><br>
+           <b>Jakmile přidáte první blok, řídí se článek bloky</b> a text nahoře se přestane
+           používat. Tlačítkem níž si ho můžete nechat převést.</p>
+        <div id="bl-seznam"></div>
+        <div id="bl-osnova"></div>
+        <details class="pridat" id="bl-pridat">
       <summary>+ Přidat blok</summary>
       <div class="typy-telo">
         <p class="typy-popis">Nejčastější</p>
@@ -714,6 +738,10 @@ function editorClanku(){
           ${TYPY_BLOKU.filter(t => !TYPY_CASTE.includes(t[0])).map(([t, nazev, popis]) =>
             `<button type="button" onclick="pridejBlok('${t}')"><b>${nazev}</b><span>${popis}</span></button>`).join('')}
         </div>
+      </div>
+        </details>
+        <button type="button" class="btn btn-vedl" style="margin-top:12px"
+          onclick="prevedNaBloky()">Převést text nahoře na bloky</button>
       </div>
     </details>
 
@@ -745,17 +773,6 @@ function editorClanku(){
         <div class="prepinac ${c.publikovano?'zap':''}" onclick="this.classList.toggle('zap')" id="f-publ">
           <div class="txt"><b>Publikováno</b><span>Vypnuto = koncept, uživatelé článek nevidí.</span></div>
           <div class="knof"></div></div>
-
-        <details class="sekce" style="margin-top:14px">
-          <summary>Text článku napsaný najednou<span class="pocet">${(c.telo||'').trim() ? 'vyplněno' : 'prázdné'}</span></summary>
-          <div class="sekce-telo">
-            <p class="sekce-popis">Článek jde napsat i takhle — jedním polem místo bloků.
-               Aplikace ho zobrazí, ale <b>jen dokud článek nemá žádný blok</b>. Jakmile přidáte
-               první blok, řídí se článek bloky a tohle pole se přestane používat.</p>
-            <div class="pole"><textarea id="f-telo" oninput="nahledClanku()">${esc(c.telo)}</textarea></div>
-            <button type="button" class="btn btn-vedl" onclick="prevedNaBloky()">Převést text na bloky</button>
-          </div>
-        </details>
 
         <div id="nahled"></div>
       </div>
