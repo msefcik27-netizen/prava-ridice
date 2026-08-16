@@ -310,7 +310,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 91</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 92</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -1025,11 +1025,6 @@ const POLE_OBRAZOVKA = {
   'pristup.plny.popis':'prehled',
   'pristup.neprihlasen.btn':'prehled',
   'pristup.omezeny.btn':'prehled',
-  'nav.prehled':'nav',
-  'nav.pruvodce':'nav',
-  'nav.sluzby':'nav',
-  'nav.zpravy':'nav',
-  'nav.profil':'nav',
   'pomoc.body.nadpis':'points-help',
   'pomoc.body.uvod':'points-help',
   'pomoc.body.1.nadpis':'points-help',
@@ -1075,6 +1070,11 @@ const POLE_OBRAZOVKA = {
   'nadpis.nehoda':'nehoda',
   'nehoda.bouracka':'nehoda',
   'odkaz.bouracka':'nehoda',
+  'nav.prehled':'nav',
+  'nav.pruvodce':'nav',
+  'nav.sluzby':'nav',
+  'nav.zpravy':'nav',
+  'nav.profil':'nav',
   'pruvodce.stitek':'pruvodce',
   'pruvodce.nadpis':'pruvodce',
   'pruvodce.popis':'pruvodce',
@@ -1221,8 +1221,8 @@ const POLE_OBRAZOVKA = {
    poradi u polí, takže se texty a seznamy dají seřadit dohromady — telefony
    se ukážou hned pod štítkem Telefony, ne až pod všemi texty. */
 const SEZNAM_MISTO = {
-  urady:    {obrazovka:'vozidla', poradi:660},
-  nehoda:   {obrazovka:'nehoda', poradi:790},
+  urady:    {obrazovka:'vozidla', poradi:610},
+  nehoda:   {obrazovka:'nehoda', poradi:740},
   recenze:  {obrazovka:'recenze', poradi:670},
   postup:   {obrazovka:'postup', poradi:690},
   tel:      {obrazovka:'kontakt', poradi:720},
@@ -1234,7 +1234,7 @@ const SEZNAM_MISTO = {
    odkazů, které na ně vedou. */
 const OBRAZOVKY_KARTY = {
   uvod:     ['uvod', 'uvod-body', 'uvod-stav', 'uvod-reg', 'uvod-cekani'],
-  prehled:  ['prehled', 'nav', 'points-help', 'vozidla', 'nehoda'],
+  prehled:  ['prehled', 'points-help', 'vozidla', 'nehoda', 'nav'],
   pruvodce: ['pruvodce', 'oblasti', 'topic', 'calc'],
   sluzby:   ['sluzby', 'service-detail'],
   zpravy:   ['zpravy', 'konzultace'],
@@ -1365,11 +1365,6 @@ const LIMIT_POLE = {
   'pristup.plny.popis':400,
   'pristup.neprihlasen.btn':30,
   'pristup.omezeny.btn':30,
-  'nav.prehled':30,
-  'nav.pruvodce':30,
-  'nav.sluzby':30,
-  'nav.zpravy':30,
-  'nav.profil':30,
   'pomoc.body.nadpis':60,
   'pomoc.body.uvod':400,
   'pomoc.body.1.nadpis':60,
@@ -1415,6 +1410,11 @@ const LIMIT_POLE = {
   'nadpis.nehoda':60,
   'nehoda.bouracka':120,
   'odkaz.bouracka':300,
+  'nav.prehled':30,
+  'nav.pruvodce':30,
+  'nav.sluzby':30,
+  'nav.zpravy':30,
+  'nav.profil':30,
   'pruvodce.stitek':30,
   'pruvodce.nadpis':60,
   'pruvodce.popis':400,
@@ -1559,6 +1559,7 @@ const LIMIT_POLE = {
 /* Vlastní bloky a co v tabulce přibylo později: rozumný strop, ať to nikdy
    nespadne na „bez omezení". */
 function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ? 400 : 200); }
+
 
 
 
