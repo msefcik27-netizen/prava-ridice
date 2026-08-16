@@ -728,7 +728,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
           </div>
         </div>
-        <div id="stavPristupu" class="pristup-pruh omezeny"></div>
+        <div id="stavPristupu" class="pristup-pruh omezeny stav-pristupu"></div>
         <div id="bloky-prehled"></div>
       </div>
     </div>
@@ -736,6 +736,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
     <!-- SLUŽBY -->
     <div class="screen" id="s-sluzby">
       <div class="pad safe-top">
+        <div class="pristup-pruh omezeny stav-pristupu"></div>
         <div class="section-label" data-text="sluzby.stitek">S čím vám pomůžeme</div>
         <div class="list-card" id="serviceList"></div>
         <div id="bloky-sluzby"></div>
@@ -774,6 +775,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="results-label" id="guideResultsLabel" style="display:none;" data-text="pruvodce.vysledky">Výsledky</div>
         <div id="guideResults"></div>
+        <div class="pristup-pruh omezeny stav-pristupu"></div>
         <div class="section-label" id="oblastiLabel" style="margin-top:12px;" data-text="pruvodce.oblasti.stitek">Oblasti</div>
         <div class="list-card" id="guideOblasti"></div>
         <div id="bloky-pruvodce"></div>
@@ -809,6 +811,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
           </div>
         </div>
+        <div class="pristup-pruh omezeny stav-pristupu"></div>
         <div class="section-label" style="margin-top:12px;" data-text="zpravy.oznameni.stitek">Oznámení</div>
         <div id="seznamZprav"></div>
         <div id="bloky-zpravy"></div>
@@ -857,7 +860,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.4 · build 70</div>
+        <div class="ver">Verze 2.4 · build 71</div>
       </div>
     </div>
 
@@ -2122,7 +2125,8 @@ async function authInit(){
 }
 async function authSignOut(){
   if(sb){ await sb.auth.signOut(); }
-  authUser=null; renderAccount(); toast('Odhlášeno.');
+  authUser=null; pristupZeServeru=null; state.promoOk=false; saveState();
+  renderAccount(); renderStavPristupu(); renderPlan(); toast('Odhlášeno.');
 }
 function authName(){
   if(!authUser) return null;
@@ -2132,6 +2136,7 @@ function authName(){
 /* Synchronizace bodů a nastavení do tabulky profiles */
 async function afterLogin(){
   if(!sb||!authUser) return;
+  renderStavPristupu();
   try{
     const {data}=await sb.from('profiles').select('points,notif,updated_at').eq('id',authUser.id).maybeSingle();
     if(data && typeof data.points==='number'){
@@ -2185,18 +2190,31 @@ async function zjistiPristup(){
 }
 
 function renderStavPristupu(){
-  const el = document.getElementById('stavPristupu'); if(!el) return;
+  const pruhy = document.querySelectorAll('.stav-pristupu');
+  if(!pruhy.length) return;
   const plny = maPlnyPristup();
-  el.className = 'pristup-pruh ' + (plny ? 'plny' : 'omezeny');
-  el.innerHTML =
-    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+
-      (plny ? '<path d="M12 2.9l7.6 2.8v5.7c0 4.7-3.3 8-7.6 10.4-4.3-2.4-7.6-5.7-7.6-10.4V5.7z"/><path d="M8.9 12.1l2.2 2.2 4-4.2"/>'
-            : '<rect x="4.4" y="10.4" width="15.2" height="9.6" rx="2.4"/><path d="M8 10.4V7.8a4 4 0 0 1 8 0v2.6"/>')+
-    '</svg>'+
-    '<div class="pp-text"><b>'+(plny ? 'Plný přístup' : 'Omezený přístup')+'</b>'+
-      '<span>'+(plny ? 'Máte otevřený veškerý obsah aplikace.'
-                     : 'Část článků a služeb je uzamčená. Odemkne je firemní kód.')+'</span></div>'+
-    (plny ? '' : '<button class="btn btn-outline-dark btn-sm pp-btn" onclick="go(\'predplatne\')">Odemknout</button>');
+  /* Tři stavy, ne dva. Nepřihlášený uživatel nemá „koupit si přístup", ale
+     přihlásit se — přístup je navázaný na účet, ne na telefon. Bez tohohle
+     rozlišení vypadá i správce jako někdo, kdo si nezaplatil. */
+  const nepr = !plny && !authUser;
+  const stav = plny ? 'plny' : 'omezeny';
+  const ikona = plny
+    ? '<path d="M12 2.9l7.6 2.8v5.7c0 4.7-3.3 8-7.6 10.4-4.3-2.4-7.6-5.7-7.6-10.4V5.7z"/><path d="M8.9 12.1l2.2 2.2 4-4.2"/>'
+    : (nepr ? '<path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/>'
+            : '<rect x="4.4" y="10.4" width="15.2" height="9.6" rx="2.4"/><path d="M8 10.4V7.8a4 4 0 0 1 8 0v2.6"/>');
+  const nadpis = plny ? txt('pristup.plny.nadpis','Plný přístup')
+    : (nepr ? txt('pristup.neprihlasen.nadpis','Nepřihlášeno')
+            : txt('pristup.omezeny.nadpis','Omezený přístup'));
+  const popis = plny ? txt('pristup.plny.popis','Máte otevřený veškerý obsah aplikace.')
+    : (nepr ? txt('pristup.neprihlasen.popis','Přístup je navázaný na váš účet. Přihlaste se v Profilu.')
+            : txt('pristup.omezeny.popis','Část článků a služeb je uzamčená. Odemkne je firemní kód.'));
+  const tlacitko = plny ? ''
+    : (nepr ? '<button class="btn btn-outline-dark btn-sm pp-btn" onclick="tab(\'profil\')">'+txt('pristup.neprihlasen.btn','Přihlásit')+'</button>'
+            : '<button class="btn btn-outline-dark btn-sm pp-btn" onclick="go(\'predplatne\')">'+txt('pristup.omezeny.btn','Odemknout')+'</button>');
+  const obsah =
+    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+ikona+'</svg>'+
+    '<div class="pp-text"><b>'+nadpis+'</b><span>'+popis+'</span></div>'+tlacitko;
+  pruhy.forEach(el => { el.className = 'pristup-pruh stav-pristupu ' + stav; el.innerHTML = obsah; });
 }
 
 function renderAccount(){
@@ -2980,6 +2998,10 @@ if(NAHLED){
       if(z.texty){ TXT = z.texty; pouzijTexty();
         renderPoints(); renderPlan(); renderAccount(); renderVehSub(); renderZpravy(); renderUnread(); }
       if(typeof z.body === 'number'){ state.points = z.body; renderPoints(); }
+      if(typeof z.prihlasen === 'boolean'){
+        authUser = z.prihlasen ? {email:'nahled@pravaridice.cz'} : null;
+        renderAccount(); renderStavPristupu(); renderPlan();
+      }
       if(typeof z.pristup === 'boolean'){ pristupZeServeru = z.pristup; renderStavPristupu(); renderPlan(); renderServices(); }
       if(z.tema){ nastavTema(z.tema); }
       if(z.obrazovka){
