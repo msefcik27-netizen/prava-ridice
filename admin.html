@@ -310,7 +310,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 89</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 90</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -329,7 +329,10 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
     <!-- ===== ČLÁNKY ===== -->
     <div id="sek-pruvodce" class="wrap">
       <div class="panel">
-        <h2>Struktura</h2>
+        <h2>Oblasti a články</h2>
+        <p class="napoveda" style="margin:-6px 0 12px">Obsah Průvodce: oblasti a články v nich.
+           Vyberte řádek a vpravo se otevře k úpravě. Texty, které aplikace používá kolem obsahu
+           (nadpisy, tlačítka, zámek), jsou níž na stránce.</p>
         <ul class="strom" id="strom"></ul>
         <div class="lista" style="margin-top:14px">
           <button class="btn btn-vedl" onclick="novaOblast(null)">+ Oblast</button>
@@ -337,7 +340,8 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
         </div>
       </div>
       <div class="panel" id="editor">
-        <div class="prazdno">Vyberte vlevo článek nebo oblast, nebo přidejte nový.</div>
+        <div class="prazdno">Vyberte vlevo oblast nebo článek — otevře se tady k úpravě.
+          Nový přidáte tlačítkem <b>+ Oblast</b> nebo <b>+ Článek</b>.</div>
       </div>
       <div id="texty-pruvodce" style="grid-column:1/-1"></div>
       <div id="sek-kalk" style="grid-column:1/-1"></div>
@@ -1242,11 +1246,11 @@ const NAZEV_OBRAZOVKY = {
   'vozidla': ['Vozidla a STK', 'Otevře se z Přehledu řádkem „Vozidla a STK".'],
   'nehoda': ['Co dělat po nehodě', 'Otevře se z Přehledu řádkem o dopravní nehodě.'],
   'pruvodce': ['Průvodce', ''],
-  'oblasti': ['Právní témata', 'Otevře se z Průvodce tmavým proužkem.'],
-  'topic': ['Otevřený článek', 'Společné texty všech článků — zámek, odkaz na web a tlačítka dole.'],
-  'calc': ['Kalkulačka', 'Otevře se z Průvodce kartou kalkulačky.'],
+  'oblasti': ['Seznam oblastí', 'Nadpis obrazovky se seznamem oblastí. Které oblasti a články v ní jsou, se určuje nahoře v Oblastech a článcích.'],
+  'topic': ['Uvnitř článku', 'Texty, které jsou v každém článku stejné — zámek u zamčené části, odkaz na web a tlačítka dole. Samotné články se upravují nahoře v Oblastech a článcích.'],
+  'calc': ['Kalkulačka', 'Texty kolem kalkulačky. Sazby, hranice a texty výsledků jsou v samostatném panelu níž.'],
   'sluzby': ['Služby', ''],
-  'service-detail': ['Detail služby', 'Otevře se klepnutím na službu v seznamu.'],
+  'service-detail': ['Detail služby', 'Texty společné všem službám. Název, popis a body u konkrétní služby se upravují nahoře v seznamu služeb.'],
   'zpravy': ['Zprávy', ''],
   'konzultace': ['Napište nám', 'Formulář — otevře se ze Zpráv i z Přehledu.'],
   'profil': ['Profil', ''],
@@ -1554,14 +1558,22 @@ function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ?
 
 
 
+
 /* Jméno obrazovky se bere z aplikace — z pole, které ten nadpis drží.
    Když ho Nela přejmenuje, přejmenuje se i sekce v administraci. */
 function hodnotaPole(klic){
   const t = (typeof texty !== 'undefined') && texty.find(x => x.klic === klic);
   return t ? (t.hodnota || '').trim() : '';
 }
+/* U dvou obrazovek nadpis z aplikace sám o sobě neřekne, k čemu obrazovka je
+   („Alkohol za volantem" je kalkulačka), proto se role přidá do závorky.
+   Jinde by závorka jen překážela — třeba po přejmenování obrazovky. */
+const ROLE = { calc: 'kalkulačka', oblasti: 'seznam oblastí' };
+
 function nazevObrazovky(o){
-  return hodnotaPole(NAZEV_Z[o]) || (NAZEV_OBRAZOVKY[o] || [o, ''])[0];
+  const zAplikace = hodnotaPole(NAZEV_Z[o]);
+  if(!zAplikace) return (NAZEV_OBRAZOVKY[o] || [o, ''])[0];
+  return ROLE[o] ? zAplikace + ' (' + ROLE[o] + ')' : zAplikace;
 }
 function nazevKarty(k){ return hodnotaPole(NAZEV_Z[k]) || NAZEV_KARTY[k] || k; }
 /* Popis pod nadpisem sekce: odkud se obrazovka otevírá. Název řádku se taky
