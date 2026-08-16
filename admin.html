@@ -2188,7 +2188,6 @@ function vykresliSpravu(){
        protože se dá používat i bez přihlášení.</p>
     ${c(s.klientu) ? `<div class="dlazdice-rada" style="margin-top:14px">
       ${dlazdice('Firemních klientů', s.klientu, 'aktivních smluv')}
-      ${dlazdice('Zaplacených míst', c(s.mist_celkem), c(s.mist_pouzitych) + ' už uplatněno')}
     </div>` : ''}
     <div class="lista" style="margin-top:14px">
       <button class="btn btn-vedl" onclick="exportVsechRegistrovanych()">Uložit registrované do CSV</button>
@@ -2310,7 +2309,7 @@ function nahledKlienta(k){
       <div class="kod-radek">
         ${k.kod
           ? `<code class="kod">${esc(k.kod)}</code>
-             <button class="blok-akce" onclick="zkopirujKod('${esc(k.kod)}')">Kopírovat</button>`
+             <button class="blok-akce" onclick="zkopirujKod('${esc(k.kod)}')" title="Zkopíruje samotný kód do schránky">Kopírovat kód</button>`
           : `<span class="kod-chybi">Bez kódu</span>
              <button class="blok-akce" onclick="novyKodProKlienta('${k.id}', false)">Vygenerovat kód</button>`}
       </div>
@@ -2331,7 +2330,7 @@ function formularKlienta(k){
       <div class="kod-radek" style="margin:0 0 14px">
         ${k.kod
           ? `<code class="kod">${esc(k.kod)}</code>
-             <button class="blok-akce" onclick="zkopirujKod('${esc(k.kod)}')">Kopírovat</button>
+             <button class="blok-akce" onclick="zkopirujKod('${esc(k.kod)}')" title="Zkopíruje samotný kód do schránky">Kopírovat kód</button>
              <button class="blok-akce" onclick="novyKodProKlienta('${k.id}', true)">Vygenerovat nový</button>`
           : `<span class="kod-chybi">Klient zatím nemá kód</span>
              <button class="blok-akce" onclick="novyKodProKlienta('${k.id}', false)">Vygenerovat kód</button>`}
