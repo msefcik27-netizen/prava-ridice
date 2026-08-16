@@ -314,7 +314,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 93</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 94</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -606,20 +606,13 @@ function vyberClanek(id){ vybrano = {typ:'clanek', id}; kresliStrom(); editorCla
 function editorOblasti(){
   const o = oblasti.find(x => x.id === vybrano.id);
   if(!o) return;
-  const moznosti = oblasti.filter(x => x.id !== o.id && !x.rodic_id)
-    .map(x => `<option value="${x.id}" ${o.rodic_id===x.id?'selected':''}>${esc(x.nazev)}</option>`).join('');
   $('editor').innerHTML = `
     <h2>Oblast</h2>
-    <p class="napoveda" style="margin:-6px 0 14px">Oblast je jen složka — sama žádný text nemá.
-       Obsah se píše do článků uvnitř ní: tlačítkem <b>+ Článek do této oblasti</b> dole
-       a pak v editoru článku (perex a stavebnice odstavců, mezinadpisů, upozornění…).</p>
+    <p class="napoveda" style="margin:-6px 0 14px">Struktura má dvě úrovně: <b>oblast → článek</b>.
+       Oblast je jen složka a sama žádný text nemá — obsah se píše do článků uvnitř ní
+       (tlačítko <b>+ Článek do této oblasti</b> dole nebo <b>+ článek</b> u oblasti vlevo).</p>
     <div class="pole"><label>Název</label><input type="text" id="f-nazev" value="${esc(o.nazev)}"></div>
-    <div class="radky2">
-      <div class="pole"><label>Nadřazená oblast</label>
-        <select id="f-rodic"><option value="">— žádná (hlavní úroveň) —</option>${moznosti}</select>
-        <p class="napoveda">Podoblast se v aplikaci zobrazí zanořená pod nadřazenou.
-           Pořadí se mění šipkami ve struktuře vlevo.</p></div>
-    </div>
+    <p class="napoveda" style="margin:0 0 14px">Pořadí oblastí se mění šipkami ve struktuře vlevo.</p>
     <div class="prepinac pristup ${o.placeny?'zap':''}" onclick="prepniPristup(this)" id="f-placeny">
       <div class="txt"><b>Úroveň přístupu</b>
         <span>Zapnuto = celá oblast včetně podoblastí vyžaduje <b>plný přístup</b>.
@@ -632,13 +625,13 @@ function editorOblasti(){
     <div class="lista">
       <button class="btn btn-hlavni" data-ulozit onclick="ulozOblast()">Uložit</button>
       <button class="btn btn-vedl" onclick="vyberOblast('${o.id}'); novyClanek()">+ Článek do této oblasti</button>
-      <button class="btn btn-vedl" onclick="novaOblast('${o.id}')">+ Podoblast</button>
       <button class="btn btn-smaz vpravo" onclick="smazOblast('${o.id}')">Smazat oblast</button>
     </div>`;
   hlidejFormular($('editor'));
 }
 
-async function novaOblast(rodicId){
+async function novaOblast(){
+  const rodicId = null;   // dvě úrovně: oblast → článek
   const nazev = prompt(rodicId ? 'Název nové podoblasti:' : 'Název nové oblasti:');
   if(!nazev) return;
   const { data, error } = await db.from('oblasti').insert({
@@ -655,7 +648,9 @@ async function novaOblast(rodicId){
 async function ulozOblast(){
   const zmeny = {
     nazev: $('f-nazev').value.trim(),
-    rodic_id: $('f-rodic').value || null,
+    /* Struktura je dvouúrovňová: oblast → článek. Zanoření se ruší i u záznamů,
+       které vznikly dřív. */
+    rodic_id: null,
     placeny: $('f-placeny').classList.contains('zap'),
     publikovano: $('f-publ').classList.contains('zap')
   };
