@@ -487,7 +487,13 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 #obBody{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .ob-coderow{display:flex;gap:8px;}
 .ob-coderow .pole-input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:15px;outline:none;box-sizing:border-box;}
-.pole-input:focus{border-color:var(--teal-800);}
+/* Pole pro e-mail v Profilu — dřív bylo bez vlastního stylu, takže ho
+   prohlížeč vykreslil drobné. Rozměr odpovídá ostatním polím v aplikaci. */
+.pole-input{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;
+  padding:14px 15px;background:var(--card);color:var(--ink);font-family:inherit;font-size:16px;
+  line-height:1.3;outline:none;-webkit-appearance:none;}
+.pole-input::placeholder{color:var(--muted);opacity:.75;}
+.pole-input:focus{border-color:var(--turq-deep);box-shadow:0 0 0 3px rgba(0,212,212,.16);}
 .ob-chyba{display:none;background:rgba(229,72,77,.16);border:1px solid rgba(229,72,77,.4);color:#FFD9DA;border-radius:11px;padding:10px 13px;font-size:13px;margin-top:12px;line-height:1.4;}
 .ob-code{flex:1;text-align:left;}
 .ob-coderow button{flex:0 0 auto;padding:0 18px;border-radius:14px;border:none;background:var(--peach);color:var(--accent-ink);font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;}
@@ -602,6 +608,9 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 
 /* zvýraznění pole při editaci v administraci */
 .nahled-zvyrazneno{outline:2px solid var(--turq);outline-offset:3px;border-radius:6px;}
+/* Řádek bez šipky si drží stejné místo jako řádek se šipkou — jinak by měl
+   text jinou šířku a seznam by vypadal rozházeně. */
+.chev-misto{flex:0 0 auto;width:18px;height:18px;}
 
 .zamek-blok{display:flex;gap:10px;align-items:center;background:var(--cream);
   border:1px solid var(--cream-line);border-radius:12px;padding:13px 14px;
@@ -805,7 +814,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           </div>
         </div>
         <div class="list-card" style="margin-top:8px;">
-          <div class="list-item" onclick="openExt('https://www.pravaridice.cz/')">
+          <div class="list-item" onclick="openExt(odk('odkaz.blog','https://www.pravaridice.cz/'))">
             <div class="li-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V6a2 2 0 0 1 2-2h11a1 1 0 0 1 1 1v14"/><path d="M6 17h12"/></svg></div>
             <div class="li-body"><h4 data-text="zpravy.blog.nadpis">Blog Práva řidiče</h4><p data-text="zpravy.blog.popis">Aktuální články a tipy pro řidiče.</p></div>
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
@@ -860,7 +869,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.4 · build 71</div>
+        <div class="ver">Verze 2.4 · build 72</div>
       </div>
     </div>
 
@@ -870,9 +879,9 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
       <div class="pad">
         <p class="muted" style="line-height:1.6;margin-top:0;" data-text="pomoc.body.uvod">Přesný počet bodů zjistíte třemi způsoby:</p>
         <div class="list-card">
-          <div class="list-item" onclick="openExt('https://obcan.portal.gov.cz/')"><div class="li-icon">1</div><div class="li-body"><h4 data-text="pomoc.body.1.nadpis">Portál občana</h4><p data-text="pomoc.body.1.popis">Online, s bankovní identitou nebo datovou schránkou.</p></div><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></div>
-          <div class="list-item"><div class="li-icon">2</div><div class="li-body"><h4 data-text="pomoc.body.2.nadpis">Czech POINT</h4><p data-text="pomoc.body.2.popis">Na poště nebo úřadě proti dokladu totožnosti.</p></div></div>
-          <div class="list-item"><div class="li-icon">3</div><div class="li-body"><h4 data-text="pomoc.body.3.nadpis">Úřad obce s rozšířenou působností</h4><p data-text="pomoc.body.3.popis">Osobně na odboru dopravy dle trvalého bydliště.</p></div></div>
+          <div class="list-item" onclick="openExt(odk('odkaz.portal-obcana','https://obcan.portal.gov.cz/'))"><div class="li-icon">1</div><div class="li-body"><h4 data-text="pomoc.body.1.nadpis">Portál občana</h4><p data-text="pomoc.body.1.popis">Online, s bankovní identitou nebo datovou schránkou.</p></div><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></div>
+          <div class="list-item"><div class="li-icon">2</div><div class="li-body"><h4 data-text="pomoc.body.2.nadpis">Czech POINT</h4><p data-text="pomoc.body.2.popis">Na poště nebo úřadě proti dokladu totožnosti.</p></div><span class="chev-misto"></span></div>
+          <div class="list-item"><div class="li-icon">3</div><div class="li-body"><h4 data-text="pomoc.body.3.nadpis">Úřad obce s rozšířenou působností</h4><p data-text="pomoc.body.3.popis">Osobně na odboru dopravy dle trvalého bydliště.</p></div><span class="chev-misto"></span></div>
         </div>
       </div>
     </div>
@@ -916,7 +925,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         </div>
         <div class="consent">
           <div class="check" id="fConsent" onclick="this.classList.toggle('on')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
-          <div style="flex:1 1 0;min-width:0;"><span data-text="formular.souhlas">Odesláním souhlasíte se zpracováním osobních údajů.</span> <span class="link" onclick="openExt('https://www.pravaridice.cz/')" data-text="formular.odkaz">Zásady zpracování osobních údajů</span></div>
+          <div style="flex:1 1 0;min-width:0;"><span data-text="formular.souhlas">Odesláním souhlasíte se zpracováním osobních údajů.</span> <span class="link" onclick="openExt(odk('odkaz.zasady','https://www.pravaridice.cz/'))" data-text="formular.odkaz">Zásady zpracování osobních údajů</span></div>
         </div>
         <button class="btn btn-dark" id="fSend" onclick="submitForm()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -1198,12 +1207,14 @@ function guideKategorie(){
   }));
   return videne;
 }
+/* Popisky se berou z administrace, akce zůstávají v kódu — kam řádek vede,
+   není obsah, ale funkce aplikace. */
 const PROFILE_LINKS = [
-  {t:'Recenze klientů',s:'5574+ vyřešených případů',a:"openRecenze()"},
-  {t:'Přehled služeb',s:'S čím vám pomůžeme',a:"tab('sluzby')"},
-  {t:'Jak to probíhá',s:'7 kroků spolupráce s pevnou cenou',a:"openPostup()"},
-  {t:'Kontakt',s:'Telefony, e-maily a pobočky',a:"openKontakt()"},
-  {t:'Média a rozhovory',s:'Otevře web pravaridice.cz',a:"openExt('https://www.pravaridice.cz/')",ext:true},
+  {k:'recenze', t:'Recenze klientů',  s:'5574+ vyřešených případů',        a:"openRecenze()"},
+  {k:'sluzby',  t:'Přehled služeb',   s:'S čím vám pomůžeme',              a:"tab('sluzby')"},
+  {k:'postup',  t:'Jak to probíhá',   s:'7 kroků spolupráce s pevnou cenou',a:"openPostup()"},
+  {k:'kontakt', t:'Kontakt',          s:'Telefony, e-maily a pobočky',     a:"openKontakt()"},
+  {k:'media',   t:'Média a rozhovory',s:'Otevře web pravaridice.cz',       a:"openExt(odk('odkaz.media','https://www.pravaridice.cz/'))",ext:true},
 ];
 /* ============ STATE ============ */
 let state = {tab:'prehled', screen:'prehled', points:6, notif:true, unread:1, fileName:'', promoOk:false, guideChip:null,
@@ -1379,7 +1390,8 @@ function escT(s){
 const SIPKA_SVG = '<svg class="sip" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>';
 
 function vykresliBlok(b){
-  const tridy = 'blok blok-' + (b.typ||'odstavec') + ' b-' + (b.pozadi||'bila') + ' v-' + (b.velikost||'normalni');
+  const tridy = 'blok blok-' + (b.typ||'odstavec') + ' b-' + (b.pozadi||'bila') + ' v-' + (b.velikost||'normalni')
+    + (b.id ? '" data-blok="' + b.id : '');
   const nadpis = escT(b.nadpis), text = escT(b.text);
   const odstavce = t => t.split(/\n\s*\n/).filter(x => x.trim()).map(x => '<p>' + x.replace(/\n/g,'<br>') + '</p>').join('');
   const d = b.data || {};
@@ -1457,6 +1469,10 @@ function txt(klic, vychozi, nahrady){
     (SAZBY[k] === undefined || SAZBY[k] === null || SAZBY[k] === '') ? cele : SAZBY[k]);
   return s;
 }
+/* Odkazy a telefonní čísla se mění stejně jako texty — v administraci.
+   Aby se nemusel kvůli změně adresy sahat do kódu. */
+function odk(klic, vychozi){ return txt(klic, vychozi); }
+
 function pouzijTexty(koren){
   const k = koren || document;
   k.querySelectorAll('[data-text]').forEach(el => {
@@ -1668,7 +1684,7 @@ function openTopic(oblastId,title){
   const t=o.topics.find(x=>x.t===title);
   document.getElementById('topicBody').innerHTML=`
     <div class="card" style="margin-bottom:12px;">
-      <div class="cat" style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink-2);margin-bottom:6px;">${o.n} · ${t.c}</div>
+      <div class="cat" style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink-2);margin-bottom:6px;">${[o.n, t.c].filter((x,i,p) => x && p.indexOf(x) === i).join(' · ')}</div>
       <h2 class="title-md" style="margin-bottom:10px;">${t.t}${znackaPristupu(!!t.zamceno)}</h2>
       ${t.d ? `<p style="margin:0 0 10px;line-height:1.5;font-size:13px;color:var(--muted);">${t.d}</p>` : ''}
       ${t.zamceno
@@ -1720,9 +1736,11 @@ function vlastniUpozorneni(){
   const dnes = new Date();
   const zaDni = d => Math.ceil((new Date(d) - dnes)/86400000);
   if(n.body && state.points >= (n.prah||9)){
-    out.push({ id:'auto-body-'+state.points, nadpis:'Blížíte se hranici 12 bodů',
-      telo:'Máte '+state.points+' z 12 bodů. Doporučujeme situaci řešit — konzultace je zdarma.',
-      datum:'', dulezita:true, akce:"go('konzultace')", akceText:'Napsat nám' });
+    out.push({ id:'auto-body-'+state.points, zdroj:'text:zpravy.auto.body.nadpis',
+      nadpis: txt('zpravy.auto.body.nadpis','Blížíte se hranici 12 bodů'),
+      telo: txt('zpravy.auto.body.text','Máte {body} z 12 bodů. Doporučujeme situaci řešit — konzultace je zdarma.', {body: state.points}),
+      datum:'', dulezita:true, akce:"go('konzultace')",
+      akceText: txt('zpravy.auto.body.btn','Napsat nám') });
   }
   getVehicles().forEach((v,i)=>{
     const spz = v.spz || ('vozidlo '+(i+1));
@@ -1731,10 +1749,13 @@ function vlastniUpozorneni(){
         if(!zapnuto || !v[klic]) return;
         const dni = zaDni(v[klic]);
         if(dni <= (n.predstih||30)){
-          out.push({ id:'auto-'+klic+'-'+i+'-'+v[klic], nadpis:nazev+' končí — '+spz,
-            telo: dni < 0 ? 'Platnost vypršela před '+Math.abs(dni)+' dny.'
-                          : (dni === 0 ? 'Platnost končí dnes.' : 'Zbývá '+dni+' '+plural(dni,'den','dny','dní')+'.'),
-            datum:'', dulezita: dni <= 7, akce:"openVozidla()", akceText:'Otevřít vozidla' });
+          out.push({ id:'auto-'+klic+'-'+i+'-'+v[klic], zdroj:'text:zpravy.auto.doklad.nadpis',
+            nadpis: txt('zpravy.auto.doklad.nadpis','{doklad} končí — {vozidlo}', {doklad: nazev, vozidlo: spz}),
+            telo: dni < 0 ? txt('zpravy.auto.doklad.vyprselo','Platnost vypršela před {dni} dny.', {dni: Math.abs(dni)})
+                : (dni === 0 ? txt('zpravy.auto.doklad.dnes','Platnost končí dnes.')
+                             : txt('zpravy.auto.doklad.zbyva','Zbývá {dni} {jednotka}.', {dni: dni, jednotka: plural(dni,'den','dny','dní')})),
+            datum:'', dulezita: dni <= 7, akce:"openVozidla()",
+            akceText: txt('zpravy.auto.doklad.btn','Otevřít vozidla') });
         }
       });
   });
@@ -1744,7 +1765,7 @@ function vlastniUpozorneni(){
 function vsechnyZpravy(){
   const sm = smazaneZpravy();
   const zDb = ZPRAVY_DB.map(z => ({
-    id:'db-'+z.id, nadpis:z.nadpis, telo:z.telo||'', datum:z.datum||'',
+    id:'db-'+z.id, zdroj:'zprava:'+z.id, nadpis:z.nadpis, telo:z.telo||'', datum:z.datum||'',
     dulezita:!!z.dulezita, odkaz:z.odkaz||'', odkazText:z.odkaz_text||'Otevřít',
     noveOkno: z.nove_okno !== false
   }));
@@ -1763,7 +1784,7 @@ function renderZpravy(){
     return;
   }
   cil.innerHTML = zpr.map(z => `
-    <div class="notice${z.dulezita?' dulezita':''}">
+    <div class="notice${z.dulezita?' dulezita':''}"${z.zdroj ? ` data-zdroj="${z.zdroj}"` : ''}>
       <div class="top">
         <h4>${z.dulezita?'<span class="unread-dot"></span> ':''}${z.nadpis}</h4>
         <span class="date">${z.datum ? formatDatum(z.datum) : ''}
@@ -1797,7 +1818,9 @@ function renderProfileLinks(){
       <div class="li-icon">${l.ext
         ?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>'
         :'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M9 12h6M12 9v6"/></svg>'}</div>
-      <div class="li-body"><h4>${l.t}</h4>${l.s?`<p>${l.s}</p>`:''}</div>
+      <div class="li-body">
+        <h4 data-text="profil.odkaz.${l.k}.nadpis">${txt('profil.odkaz.'+l.k+'.nadpis', l.t)}</h4>
+        <p data-text="profil.odkaz.${l.k}.popis">${txt('profil.odkaz.'+l.k+'.popis', l.s)}</p></div>
       <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
     </div>`).join('');
 }
@@ -1849,6 +1872,15 @@ function renderPlan(){
 }
 
 /* ============ OBSAH Z WEBU (nativně v appce) ============ */
+/* Seznamy, které se dají měnit v administraci: recenze, kroky spolupráce,
+   telefony, e-maily, pobočky a postup po nehodě. Dokud se nenačtou z databáze,
+   platí vestavěné hodnoty níž — aplikace tedy funguje i offline. */
+let SEZNAMY = {};
+function seznam(druh, vychozi){
+  const s = SEZNAMY[druh];
+  return (s && s.length) ? s : vychozi;
+}
+
 const REVIEWS=[
  {n:'Lindus',q:'Všem řidičům vřele doporučuji PRÁVA ŘIDIČE. Je to advokátní kancelář na svém místě.',k:''},
  {n:'Tomáš',q:'Oba pánové jsou profesionálové na svém místě. Cena byla dopředu domluvena, byla beze změny.',k:'Rychlé zastoupení'},
@@ -1875,32 +1907,37 @@ function openRecenze(){
    `<div class="stat-card" style="cursor:default;margin-bottom:12px;">
       <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17.3l-5.4 3 1-6-4.4-4.2 6-.9L12 3.7l2.8 5.5 6 .9-4.4 4.2 1 6z"/></svg></div>
       <div><div class="lbl">Ověřená praxe</div><div class="val">5574+ vyřešených případů · 35 let praxe</div></div></div>`+
-   REVIEWS.map(r=>`<div class="notice" style="margin-top:8px;">
-      <div class="top"><h4>${r.n}</h4>${r.k?`<span class="date">${r.k}</span>`:''}</div>
-      <p>„${r.q}"</p></div>`).join('')+
+   seznam('recenze', REVIEWS.map(r=>({nadpis:r.n, text:r.q, doplnek:r.k})))
+     .map(r=>`<div class="notice" style="margin-top:8px;">
+      <div class="top"><h4>${r.nadpis}</h4>${r.doplnek?`<span class="date">${r.doplnek}</span>`:''}</div>
+      <p>„${r.text}"</p></div>`).join('')+
    `<p class="small muted" style="text-align:center;margin:14px 0 0;">Zdroj: recenze klientů na Google (pravaridice.cz)</p>`;
   go('recenze');
 }
 function openPostup(){
   document.getElementById('postupBody').innerHTML=
-   STEPS7.map((st,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="tx"><b>${st[0]}</b><br/><span style="color:var(--muted);font-size:13px;">${st[1]}</span></div></div>`).join('')+
+   seznam('postup', STEPS7.map(s=>({nadpis:s[0], text:s[1]})))
+     .map((st,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="tx"><b>${st.nadpis}</b><br/><span style="color:var(--muted);font-size:13px;">${st.text}</span></div></div>`).join('')+
    `<button class="btn btn-dark" style="margin-top:16px;" onclick="go('konzultace')">Konzultace zdarma</button>`;
   go('postup');
 }
 function openKontakt(){
   document.getElementById('kontaktBody').innerHTML=
    `<div class="section-label">Telefony</div><div class="list-card">`+
-   KONTAKTY.tel.map(t=>`<div class="list-item" onclick="window.location.href='tel:${t[1].replace(/ /g,'')}'">
+   seznam('tel', KONTAKTY.tel.map(t=>({nadpis:t[0], text:t[1]})))
+   .map(t=>`<div class="list-item" onclick="window.location.href='tel:${t.text.replace(/ /g,'')}'">
      <div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.8.6a2 2 0 0 1 1.7 2.1z"/></svg></div>
-     <div class="li-body"><h4>${t[1]}</h4><p>${t[0]}</p></div></div>`).join('')+`</div>
+     <div class="li-body"><h4>${t.text}</h4><p>${t.nadpis}</p></div></div>`).join('')+`</div>
     <div class="section-label" style="margin-top:12px;">E-mail</div><div class="list-card">`+
-   KONTAKTY.mail.map(m=>`<div class="list-item" onclick="window.location.href='mailto:${m[1]}'">
+   seznam('mail', KONTAKTY.mail.map(m=>({nadpis:m[0], text:m[1]})))
+   .map(m=>`<div class="list-item" onclick="window.location.href='mailto:${m.text}'">
      <div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg></div>
-     <div class="li-body"><h4>${m[1]}</h4><p>${m[0]}</p></div></div>`).join('')+`</div>
+     <div class="li-body"><h4>${m.text}</h4><p>${m.nadpis}</p></div></div>`).join('')+`</div>
     <div class="section-label" style="margin-top:12px;">Pobočky</div><div class="list-card">`+
-   KONTAKTY.pobocky.map(p=>`<div class="list-item">
+   seznam('pobocka', KONTAKTY.pobocky.map(p=>({nadpis:p[0], text:p[1]})))
+   .map(p=>`<div class="list-item">
      <div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-     <div class="li-body"><h4>${p[0]}</h4><p>${p[1]}</p></div></div>`).join('')+`</div>
+     <div class="li-body"><h4>${p.nadpis}</h4><p>${p.text}</p></div></div>`).join('')+`</div>
     <p class="small muted" style="text-align:center;margin:12px 0 0;">IČO 17670080 · DIČ CZ17670080</p>`;
   go('kontakt');
 }
@@ -1956,7 +1993,7 @@ async function submitForm(){
     toast('Odeslání se nepovedlo — zavolejte nám prosím na '+TELTXT+'.');
   }
 }
-function callUs(){ window.location.href='tel:+420739662266'; }
+function callUs(){ window.location.href = 'tel:' + odk('kontakt.telefon','+420739662266').replace(/\s/g,''); }
 
 /* ============ PRŮVODCE POLICEJNÍ KONTROLOU (dle PRAVA_RIDICE_kompletni kalkulačka.xlsx) ============ */
 let DRINKS=[["Pivo světlé 10°",500,4],["Pivo světlé 11°",500,4.5],["Pivo světlé 12°",500,5],["Pivo malé 10°",300,4],["Pivo malé 12°",300,5],["Pivo tmavé 13°",500,5.5],["Pivo nealko",500,0.4],["Radler 2%",500,2],["Cider 4,5%",330,4.5],["Víno bílé/červené (2 dcl)",200,12],["Víno rosé",200,11.5],["Prosecco / sekt",150,11],["Šampaňské",150,12],["Víno celá lahev",750,12],["Svařené víno",200,10],["Portské 20%",100,20],["Vermouth / Martini",75,15],["Vodka / Rum / Gin 40% (panák)",50,40],["Whisky 43%",50,43],["Tequila 38%",50,38],["Slivovice 52%",50,52],["Destilát 60%",50,60],["Fernet / Becherovka",50,38],["Rum 44%",50,44],["Aperol 11%",50,11],["Campari 25%",50,25],["Kahlúa 20%",50,20],["Baileys 17%",50,17],["Malibu 21%",50,21],["Jägermeister 35%",50,35],["Borovička 37,5%",50,37.5],["Aperol Spritz",300,8.3],["Hugo",300,7],["Mojito",300,10],["Cuba Libre",300,10.7],["Gin & Tonic",300,10.7],["Vodka Tonic",300,10],["Beton",300,10.7],["Margarita",200,20],["Cosmopolitan",150,22],["Espresso Martini",150,22],["Negroni",150,24],["Vinný střik",300,9],["Sangria",300,9],["Long Island Ice Tea",350,17.1],["Moscow Mule",300,10],["Sex on the Beach",300,10.7],["White Russian",200,17],["Tequila Sunrise",300,10],["Piña Colada",300,10],["Caipirinha",200,15],["Mimosa",200,7.5],["Bellini",150,8],["Shot 40% (2,5 cl)",25,40],["Chupito / Jäger shot",20,35],["Bomb shot (pivo+shot)",350,7],["Hard seltzer 5%",330,5],["Alcopop / Mix 5,5%",275,5.5],["Vodka + energeťák",250,8]].map(x=>({n:x[0],ml:x[1],abv:x[2]}));
@@ -2034,7 +2071,7 @@ function renderCalcG(){
       '<div class="field-label-sm">Nápoje</div><div class="search-box" style="margin-top:0;"><div class="search-input"><input id="drinkQ" placeholder="Hledat (pivo, panák, mojito…)" oninput="drawDrinkOpts()"/></div><div id="drinkOpts"></div></div>'+
       '<div style="margin-top:10px;">'+cg.drinks.map((d,i)=>'<div class="added"><div class="info"><h5>'+d.n+'</h5><small>'+d.ml+' ml · '+d.abv+'%</small></div><button class="qbtn" onclick="cg.drinks['+i+'].q--;if(cg.drinks['+i+'].q<1)cg.drinks.splice('+i+',1);renderCalcG()">−</button><span class="qty">'+d.q+'</span><button class="qbtn" onclick="cg.drinks['+i+'].q++;renderCalcG()">+</button></div>').join('')+'</div>'+
       (bac!==null?'<div class="prefill"><span>Odhad: <b>'+bac.toFixed(2)+' ‰</b> · '+sanA(bac)[1]+'</span></div>':'')+
-      '<button class="btn btn-dark" style="margin-top:10px;" onclick="cg.bac=widmark();cg.node=\'A1\';renderCalcG()">'+(bac!==null?'Pokračovat s odhadem':'Přeskočit kalkulačku')+'</button>'+
+      '<button class="btn btn-dark" style="margin-top:10px;" onclick="cg.bac=widmark();cg.node=\'A1\';renderCalcG()">'+(bac!==null?txt('kalk.btn.sodhadem','Pokračovat s odhadem'):txt('kalk.btn.bezodhadu','Přejít na průvodce'))+'</button>'+
       '<div class="disclaimer" style="margin-top:10px;"><span>Orientační výpočet (Widmark, přesnost ~70–80 %). Policie od naměřené hodnoty odečítá 0,24 ‰ (odečet přístroje + fyziologická hladina). Nenahrazuje alkotest ani znalecký posudek.</span></div>';
     return;
   }
@@ -2051,7 +2088,7 @@ function renderCalcG(){
       '<div class="field-label-sm">Hodin od užití</div><div class="stepper"><button class="step-min" onclick="cg.hours=Math.max(0,+(cg.hours-1).toFixed(1));renderCalcG()">−</button><div class="val">'+cg.hours.toFixed(1)+'<small>h</small></div><button class="step-min" onclick="cg.hours=Math.min(72,+(cg.hours+1).toFixed(1));renderCalcG()">+</button></div>'+
       '<div class="result '+cls[0]+'" style="margin-top:12px;"><div class="big">~'+est.toFixed(0)+' ng/ml</div><h4>'+D.n+': '+cls[1]+'</h4><p>Přestupek: '+hr.pMin+'–'+hr.pMax+' ng/ml · Trestný čin od: '+Math.round(hr.pMax+0.01)+' ng/ml</p></div>'+
       '<button class="btn btn-dark" style="margin-top:10px;" onclick="cg.node=\'D1\';renderCalcG()">Pokračovat</button>'+
-      '<button class="btn btn-outline-dark btn-sm" style="margin-top:8px;" onclick="cg.dEst=null;cg.dClass=null;cg.node=\'D1\';renderCalcG()">Přeskočit kalkulačku</button>'+
+      '<button class="btn btn-outline-dark btn-sm" style="margin-top:8px;" onclick="cg.dEst=null;cg.dClass=null;cg.node=\'D1\';renderCalcG()">'+txt('kalk.btn.bezodhadu','Přejít na průvodce')+'</button>'+
       '<div class="disclaimer" style="margin-top:10px;"><span>Orientační farmakokinetický model (odchylka 30–50 %). Nenahrazuje laboratorní rozbor ani znalecký posudek.</span></div>';
     return;
   }
@@ -2060,7 +2097,9 @@ function renderCalcG(){
     const cls=o.c==='ok'?'ok':(o.c==='danger'?'bad':'mid');
     const nadpis=txt('kalk.'+node+'.nadpis', o.t);
     const telo=txt('kalk.'+node+'.text', o.x);
-    B.innerHTML='<div class="result '+cls+'"><h4 style="font-size:18px;">'+nadpis+'</h4><p style="white-space:pre-line;margin-top:8px;">'+telo+'</p></div>'+outBtns(o);
+    B.innerHTML='<div class="result '+cls+'">'+
+      '<h4 style="font-size:18px;" data-text="kalk.'+node+'.nadpis">'+nadpis+'</h4>'+
+      '<p style="white-space:pre-line;margin-top:8px;" data-text="kalk.'+node+'.text">'+telo+'</p></div>'+outBtns(o);
     return;
   }
   const T=cg.mode==='alko'?ATREE:DTREE;
@@ -2137,6 +2176,7 @@ function authName(){
 async function afterLogin(){
   if(!sb||!authUser) return;
   renderStavPristupu();
+  try{ if(state.screen === 'upozorneni') renderUpozorneni(); }catch(e){}
   try{
     const {data}=await sb.from('profiles').select('points,notif,updated_at').eq('id',authUser.id).maybeSingle();
     if(data && typeof data.points==='number'){
@@ -2523,17 +2563,18 @@ function renderUpozorneni(){
   const c=getNotifCfg();
   const vs=getVehicles();
   document.getElementById('upozorneniBody').innerHTML=
-    '<div class="section-label">Bodový stav</div>'+
-    sw('body','Upozornění na body','Když se přiblížíte hranici 12 bodů',c.body)+
+    '<div class="section-label">'+txt('upozorneni.body.stitek','Bodový stav')+'</div>'+
+    sw('body',txt('upozorneni.body.nadpis','Upozornění na body'),
+            txt('upozorneni.body.popis','Když se přiblížíte hranici 12 bodů'),c.body)+
     '<div class="card" style="margin-top:8px;"><div class="eyebrow" style="margin-bottom:8px;">Od kolika bodů upozornit</div>'+
       '<div class="chips">'+[6,7,8,9,10,11].map(v=>'<div class="chip '+(c.prah===v?'active':'')+'" onclick="setPrah('+v+')">'+v+' bodů</div>').join('')+'</div>'+
-      '<div class="alert-line" style="margin-top:10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b5a3f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span>Už 6 bodů je rizikových — jediný 6bodový přestupek pak znamená vybodování.</span></div></div>'+
-    '<div class="section-label" style="margin-top:14px;">Vozidlo a termíny</div>'+
-    sw('stk','STK','Blížící se konec platnosti se ukáže ve Zprávách',c.stk)+
+      '<div class="alert-line" style="margin-top:10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b5a3f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span>'+txt('upozorneni.prah.pozn','Už 6 bodů je rizikových — jediný 6bodový přestupek pak znamená vybodování.')+'</span></div></div>'+
+    '<div class="section-label" style="margin-top:14px;">'+txt('upozorneni.vozidlo.stitek','Vozidlo a termíny')+'</div>'+
+    sw('stk',txt('upozorneni.stk.nadpis','STK'),txt('upozorneni.stk.popis','Blížící se konec platnosti se ukáže ve Zprávách'),c.stk)+
     '<div style="height:8px;"></div>'+
-    sw('poj','Pojištění vozidla','Konec platnosti povinného ručení',c.poj)+
+    sw('poj',txt('upozorneni.poj.nadpis','Pojištění vozidla'),txt('upozorneni.poj.popis','Konec platnosti povinného ručení'),c.poj)+
     '<div style="height:8px;"></div>'+
-    sw('znamka','Dálniční známka','Konec platnosti dálniční známky',c.znamka)+
+    sw('znamka',txt('upozorneni.znamka.nadpis','Dálniční známka'),txt('upozorneni.znamka.popis','Konec platnosti dálniční známky'),c.znamka)+
     '<div class="card" style="margin-top:8px;"><div class="eyebrow" style="margin-bottom:8px;">S jakým předstihem</div>'+
       '<div class="chips">'+[7,14,30,60].map(v=>'<div class="chip '+(c.predstih===v?'active':'')+'" onclick="setPredstih('+v+')">'+(v===7?'týden':(v===14?'2 týdny':(v===30?'měsíc':'2 měsíce')))+'</div>').join('')+'</div>'+
       '<div class="small muted" style="margin-top:8px;line-height:1.4;">Upozornění se objeví ve Zprávách '+(c.predstih===7?'týden':(c.predstih===14?'dva týdny':(c.predstih===30?'měsíc':'dva měsíce')))+' předem. <b>Zatím jen v aplikaci — push do telefonu připravujeme.</b></div></div>'+
@@ -2542,12 +2583,26 @@ function renderUpozorneni(){
         '<div class="li-body"><h4>Spravovat vozidla</h4><p>'+vs.length+' '+plural(vs.length,'vozidlo','vozidla','vozidel')+' · termíny a asistence</p></div>'+
         '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div></div>'
       : '<div class="alert-line warn" style="margin-top:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a3a26" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span>Zatím nemáte přidané vozidlo — bez něj termíny hlídat neumíme. <b onclick="openVozidla()" style="text-decoration:underline;">Přidat vozidlo</b></span></div>')+
-    '<div class="section-label" style="margin-top:14px;">Zprávy a kontakt</div>'+
-    sw('zpravy','Zprávy od advokáta','Novinky a oznámení z kanceláře',c.zpravy)+
-    '<div class="card" style="margin-top:8px;"><div class="eyebrow" style="margin-bottom:8px;">E-mail pro upozornění</div>'+
-      '<div class="field" style="margin-bottom:8px;"><input type="text" id="nEmail" inputmode="email" autocapitalize="none" placeholder="jan.novak@email.cz" value="'+(c.email||'')+'" /></div>'+
-      '<button class="btn btn-outline-dark btn-sm" onclick="saveNotifMail()">Uložit e-mail</button></div>'+
-    '<div class="disclaimer" style="margin-top:12px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#77837f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span>Nastavení se ukládá ve vašem telefonu (a po přihlášení i na účtu). Odesílání push a e-mailových upozornění doplní backend.</span></div>';
+    '<div class="section-label" style="margin-top:14px;">'+txt('upozorneni.zpravy.stitek','Zprávy a kontakt')+'</div>'+
+    sw('zpravy',txt('upozorneni.zpravy.nadpis','Zprávy od advokáta'),
+               txt('upozorneni.zpravy.popis','Novinky a oznámení z kanceláře'),c.zpravy)+
+    /* Přihlášený člověk už svůj e-mail jednou zadal — nemá důvod psát ho znovu.
+       Předvyplní se z účtu; přepsat ho jde, když chce upozornění jinam. */
+    (function(){
+      const zUctu = authUser && authUser.email ? authUser.email : '';
+      const hodnota = c.email || zUctu;
+      return '<div class="card" style="margin-top:8px;">'+
+        '<div class="eyebrow" style="margin-bottom:8px;">'+txt('upozorneni.email.stitek','E-mail pro upozornění')+'</div>'+
+        '<div class="field" style="margin-bottom:8px;"><input class="pole-input" type="email" id="nEmail" inputmode="email" '+
+          'autocapitalize="none" autocomplete="email" spellcheck="false" placeholder="'+txt('upozorneni.email.ph','jan.novak@email.cz')+'" '+
+          'value="'+hodnota.replace(/"/g,'&quot;')+'" /></div>'+
+        (zUctu && !c.email
+          ? '<div class="small muted" style="margin:-2px 0 9px;line-height:1.4;">'+
+            txt('upozorneni.email.zuctu','Doplněno z vašeho účtu. Chcete-li upozornění jinam, přepište to a uložte.')+'</div>'
+          : '')+
+        '<button class="btn btn-outline-dark btn-sm" onclick="saveNotifMail()">'+txt('upozorneni.email.btn','Uložit e-mail')+'</button></div>';
+    })()+
+    '<div class="disclaimer" style="margin-top:12px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#77837f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span>'+txt('upozorneni.pozn','Nastavení zůstává ve vašem telefonu. Když jste přihlášení, uloží se i k účtu, takže se vám po přechodu na nový telefon vrátí. Upozornění se dnes ukazují v aplikaci na kartě Zprávy — posílání do telefonu a na e-mail připravujeme.')+'</span></div>';
 }
 
 /* ============ VOZIDLA A STK (082/093/101) ============ */
@@ -2599,8 +2654,9 @@ function openNehoda(){
     ['Volejte asistenci a pojišťovnu','Odtah a hlášení škody — kontakty máte níže.'],
     ['Hrozí vám postih?','Nepodepisujte nic, čím si nejste jistí, a ozvěte se nám — konzultace je zdarma.']];
   document.getElementById('nehodaBody').innerHTML=
-    KROKY.map((k,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="tx"><b>${k[0]}</b><br/><span style="color:var(--muted);font-size:13px;line-height:1.45;">${k[1]}</span></div></div>`).join('')+
-    `<button class="btn btn-ghost" style="margin-top:14px;" onclick="openExt('https://www.bouracka.cz/')">Otevřít Bouračka.cz — záznam o nehodě</button>
+    seznam('nehoda', KROKY.map(k=>({nadpis:k[0], text:k[1]})))
+    .map((k,i)=>`<div class="step-row"><div class="step-num">${i+1}</div><div class="tx"><b>${k.nadpis}</b><br/><span style="color:var(--muted);font-size:13px;line-height:1.45;">${k.text}</span></div></div>`).join('')+
+    `<button class="btn btn-ghost" style="margin-top:14px;" onclick="openExt(odk('odkaz.bouracka','https://www.bouracka.cz/'))">${txt('nehoda.bouracka','Otevřít Bouračka.cz — záznam o nehodě')}</button>
     <div class="section-label" style="margin-top:14px;">Vaše asistence a pojišťovna</div>
     <div class="list-card">${kontakty}</div>
     <button class="btn btn-dark" style="margin-top:14px;" onclick="go('konzultace')">Konzultace zdarma</button>`;
@@ -2846,7 +2902,7 @@ async function nactiObsah(){
   const dotaz = (cesta) => fetch(PR_CFG.SUPABASE_URL + '/rest/v1/' + cesta, { headers: hlavicky })
                             .then(r => r.ok ? r.json() : Promise.reject(r.status));
   try{
-    const [oblasti, clanky, sluzby, texty, zpravy, bloky, sazby, napoje] = await Promise.all([
+    const [oblasti, clanky, sluzby, texty, zpravy, bloky, sazby, napoje, seznamy] = await Promise.all([
       dotaz('oblasti?select=*&publikovano=eq.true&order=poradi'),
       dotaz('v_clanky?select=*&order=poradi'),
       dotaz('v_sluzby?select=*&order=poradi'),
@@ -2854,8 +2910,13 @@ async function nactiObsah(){
       dotaz('zpravy?select=*&publikovano=eq.true&order=datum.desc,poradi').catch(()=>[]),
       dotaz('v_bloky?select=*&order=poradi').catch(()=>[]),
       dotaz('sazby?select=klic,hodnota').catch(()=>[]),
-      dotaz('napoje?select=nazev,objem_ml,procenta&order=poradi').catch(()=>[])
+      dotaz('napoje?select=nazev,objem_ml,procenta&order=poradi').catch(()=>[]),
+      dotaz('seznamy?select=druh,poradi,nadpis,text,doplnek&order=poradi').catch(()=>[])
     ]);
+    if(Array.isArray(seznamy) && seznamy.length){
+      SEZNAMY = {};
+      seznamy.forEach(s => { (SEZNAMY[s.druh] = SEZNAMY[s.druh] || []).push(s); });
+    }
     if(Array.isArray(sazby) && sazby.length){
       sazby.forEach(s => { if(s.hodnota !== null && s.hodnota !== '') SAZBY[s.klic] = s.hodnota; });
     }
@@ -2913,7 +2974,7 @@ async function nactiObsah(){
 
     /* překreslit, co je zrovna vidět */
     if(Array.isArray(zpravy)){ ZPRAVY_DB = zpravy; try{ renderZpravy(); renderUnread(); }catch(e){} }
-    try{ renderPoints(); renderPlan(); renderAccount(); renderVehSub(); }catch(e){}
+    try{ renderPoints(); renderPlan(); renderAccount(); renderVehSub(); renderProfileLinks(); }catch(e){}
     try{ if(typeof renderGuide === 'function') renderGuide(); }catch(e){}
     try{ if(typeof renderChips === 'function') renderChips(); }catch(e){}
     try{ if(typeof renderServices === 'function') renderServices(); }catch(e){}
@@ -2975,7 +3036,7 @@ function nahledClanku(d){
 function nahledZvyrazni(klic){
   document.querySelectorAll('.nahled-zvyrazneno').forEach(e => e.classList.remove('nahled-zvyrazneno'));
   if(!klic) return;
-  const el = document.querySelector('[data-text="' + klic + '"], [data-ph="' + klic + '"]');
+  const el = document.querySelector('[data-text="' + klic + '"], [data-ph="' + klic + '"], [data-blok="' + klic + '"]');
   if(!el) return;
   el.classList.add('nahled-zvyrazneno');
   el.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -3005,8 +3066,15 @@ if(NAHLED){
       if(typeof z.pristup === 'boolean'){ pristupZeServeru = z.pristup; renderStavPristupu(); renderPlan(); renderServices(); }
       if(z.tema){ nastavTema(z.tema); }
       if(z.obrazovka){
+        /* Některé obrazovky se před zobrazením musí sestavit — bez toho by
+           v náhledu zůstaly prázdné. */
+        const stavitele = {
+          calc: openCalc, upozorneni: openUpozorneni, vozidla: openVozidla,
+          nehoda: openNehoda, kontakt: openKontakt, postup: openPostup,
+          recenze: openRecenze, oblasti: openOblasti
+        };
         if(TABS.includes(z.obrazovka)) tab(z.obrazovka);
-        else if(z.obrazovka === 'calc') openCalc();
+        else if(stavitele[z.obrazovka]) stavitele[z.obrazovka]();
         else go(z.obrazovka);
       }
       if(z.clanek){ nahledClanku(z.clanek); }
@@ -3017,10 +3085,13 @@ if(NAHLED){
 
   /* kliknutím v náhledu se v administraci otevře příslušné pole */
   document.addEventListener('click', function(ev){
-    const el = ev.target.closest('[data-text],[data-ph]');
+    const el = ev.target.closest('[data-text],[data-ph],[data-blok],[data-zdroj]');
     if(!el) return;
     ev.preventDefault(); ev.stopPropagation();
-    try { parent.postMessage({ pr: 'nahled', kliknuto: el.dataset.text || el.dataset.ph }, '*'); } catch(e) {}
+    try { parent.postMessage({ pr: 'nahled',
+      kliknuto: el.dataset.text || el.dataset.ph,
+      blok: el.dataset.blok || null,
+      zdroj: el.dataset.zdroj || null }, '*'); } catch(e) {}
   }, true);
 
   try { parent.postMessage({ pr: 'nahled', pripraveno: true }, '*'); } catch(e) {}

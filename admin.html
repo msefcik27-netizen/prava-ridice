@@ -214,6 +214,9 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 .sekce-telo{padding:15px 15px 3px}
 .sekce-popis{font-size:12.5px;color:var(--muted);margin:-4px 0 14px;line-height:1.45}
 .pole.zamereno > input,.pole.zamereno > textarea{border-color:var(--turq-deep);box-shadow:0 0 0 3px rgba(0,212,212,.16)}
+.sekce.sekce-aktivni{border-color:var(--turq-deep);box-shadow:0 0 0 3px rgba(0,212,212,.14)}
+.sekce.sekce-aktivni > summary{background:rgba(0,212,212,.13);color:var(--petrol)}
+.bl-karta.bl-zvyrazneno{border-color:var(--turq-deep);box-shadow:0 0 0 3px rgba(0,212,212,.18)}
 
 /* ---------- stavebnice článku ---------- */
 .bl-karta{border:1px solid var(--line);border-radius:12px;margin-bottom:9px;background:#fff}
@@ -244,6 +247,42 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 .radky-tab{display:grid;grid-template-columns:1fr 1fr 34px;gap:8px;margin-bottom:8px;align-items:start}
 .radky-tab .smaz{border:1px solid var(--line);background:#fff;border-radius:8px;color:var(--err);
   cursor:pointer;height:38px;font-size:16px;line-height:1}
+.tel-jako{display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%;margin-top:4px;
+  padding-top:9px;border-top:1px solid var(--line)}
+.tel-jako > span{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);margin-right:2px}
+.tel-jako button{padding:5px 9px;font-size:12px}
+.cojeco{border:1px solid var(--line);border-radius:11px;background:var(--cream);margin-bottom:16px}
+.cojeco > summary{list-style:none;cursor:pointer;padding:10px 14px;font-weight:700;font-size:13px;
+  color:var(--petrol);display:flex;align-items:center;gap:8px}
+.cojeco > summary::-webkit-details-marker{display:none}
+.cojeco > summary::before{content:'?';display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:50%;background:var(--petrol);color:#fff;font-size:12px;flex:0 0 auto}
+.cojeco > div{padding:0 14px 6px}
+.cojeco p{margin:0 0 9px;font-size:13px;line-height:1.5;color:var(--ink-soft)}
+.cojeco code{background:#fff;padding:1px 5px;border-radius:4px;font-size:12.5px}
+.krok{display:flex;align-items:center;gap:9px;margin:22px 0 12px;font-weight:800;font-size:15px;color:var(--ink)}
+.krok-cislo{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
+  border-radius:50%;background:var(--grad);color:#fff;font-size:13px;font-weight:800;flex:0 0 auto}
+.pridat{border:1px dashed var(--line);border-radius:12px;background:#fff}
+.pridat > summary{list-style:none;cursor:pointer;padding:13px 15px;font-weight:700;font-size:14px;
+  color:var(--petrol);text-align:center}
+.pridat > summary::-webkit-details-marker{display:none}
+.pridat[open] > summary{border-bottom:1px solid var(--line)}
+.typy-telo{padding:12px 14px 14px}
+.typy-popis{margin:2px 0 0;font-size:11px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted)}
+.typy-popis + .typy{margin-bottom:14px}
+.osnova{border:1px solid var(--line);border-radius:12px;background:var(--cream);padding:14px 15px;margin-bottom:10px}
+.osnova b{display:block;font-size:14px;margin-bottom:4px}
+.osnova span{display:block;font-size:13px;line-height:1.5;color:var(--ink-soft);margin-bottom:11px}
+.sez-radek{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);
+  border-radius:12px;padding:12px 13px;margin-bottom:9px;background:#fff}
+.sez-poradi{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--cream);
+  color:var(--petrol);display:flex;align-items:center;justify-content:center;
+  font-size:12.5px;font-weight:800;margin-top:20px}
+.sez-pole{flex:1 1 0;min-width:0}
+.sez-radek .poradi-sipky{margin-top:20px}
 </style>
 </head>
 <body>
@@ -324,11 +363,11 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
     <!-- ===== ŽIVÝ NÁHLED ===== -->
     <aside class="telefon" id="telefon">
-      <h2>Náhled aplikace</h2>
+      <h2 id="telNadpis">Náhled aplikace</h2>
       <div class="tel-ovladace" id="telOvladace"></div>
       <div class="tel-ramecek"><iframe id="telRam" src="index.html?nahled=1" title="Náhled aplikace"></iframe></div>
       <p class="tel-pozn">Není to obrázek — běží tu skutečná aplikace. Co vidíte tady,
-         uvidí i řidič. Klepnutím do náhledu se otevře pole, které daný text mění.</p>
+         uvidí i uživatel aplikace. Klepnutím do náhledu se otevře pole, které daný text mění.</p>
     </aside>
   </main>
 </div>
@@ -424,6 +463,7 @@ async function nactiVse(){
   bloky = bl.error ? [] : bl.data.map(b => ({...b, data: b.data || {}}));
   if(bl.error) console.warn('Tabulka bloků zatím neexistuje — spusť bloky.sql', bl.error.message);
   await nactiKalkulacky();
+  await nactiSeznamy();
   kresliStrom(); kresliSluzby();
 }
 
@@ -435,12 +475,10 @@ function prepni(co){
     const jeMrizka = (k==='pruvodce' || k==='sluzby');
     sek.style.display = (k===co) ? (jeMrizka ? 'grid' : 'block') : 'none';
   });
-  if(['prehled','pruvodce','sluzby','zpravy','profil'].includes(co)){
-    kresliTexty(co);
-    nahledObrazovka(co === 'pruvodce' ? 'pruvodce' : co);
-  }
-  if(co==='kalk'){ kresliKalkulacky(); nahledObrazovka('calc'); }
+  if(['prehled','pruvodce','sluzby','zpravy','profil'].includes(co)) kresliTexty(co);
+  if(co==='kalk') kresliKalkulacky();   // ta si texty vykreslí sama
   if(co==='sprava') kresliSpravu();
+  nahledKartaNastav(co);
 }
 
 /* ---------- strom oblastí a článků ---------- */
@@ -613,65 +651,100 @@ function editorClanku(){
   if(!c) return;
   const moznosti = oblasti.map(o =>
     `<option value="${o.id}" ${c.oblast_id===o.id?'selected':''}>${esc(cesta(o))}</option>`).join('');
+  const zamekShora = (() => {
+    const o = oblasti.find(x => x.id === c.oblast_id);
+    const r = o && o.rodic_id ? oblasti.find(x => x.id === o.rodic_id) : null;
+    const shora = (o && o.placeny) ? o.nazev : ((r && r.placeny) ? r.nazev : null);
+    return shora ? `<div class="upozorneni-shora">Tento článek je zamčený už nastavením oblasti
+      <b>${esc(shora)}</b> — platí pro celou oblast, i když je přepínač níž vypnutý.</div>` : '';
+  })();
+
+  /* Tři kroky: o čem to je → obsah → nastavení.
+     Nastavení se vyplní jednou a pak se k němu nikdo nevrací, proto je sbalené. */
   $('editor').innerHTML = `
     <h2>Článek</h2>
-    <div class="pole"><label>Nadpis</label><input type="text" id="f-nadpis" value="${esc(c.nadpis)}"></div>
-    <div class="pole"><label>Krátký popis</label><input type="text" id="f-perex" value="${esc(c.perex)}">
-      <p class="napoveda">Zobrazí se v seznamu pod nadpisem. <b>Je vidět vždy</b>, i u placeného článku.</p></div>
-    <h2 style="margin-top:22px">Obsah článku</h2>
-    <p class="napoveda" style="margin:-6px 0 12px">Článek se skládá z bloků. Vpravo je hned vidět,
-       jak bude vypadat. Uloží se všechno najednou tlačítkem dole.</p>
-    <div id="bl-seznam"></div>
-    <label style="margin-top:14px">Přidat blok</label>
-    <div class="typy">
-      ${TYPY_BLOKU.map(([t, nazev, popis]) =>
-        `<button type="button" onclick="pridejBlok('${t}')"><b>${nazev}</b><span>${popis}</span></button>`).join('')}
-    </div>
+    ${cojeco('pruvodce')}
 
-    <details class="sekce" style="margin-top:18px">
-      <summary>Starší text článku<span class="pocet">${(c.telo||'').trim() ? 'vyplněno' : 'prázdné'}</span></summary>
-      <div class="sekce-telo">
-        <p class="sekce-popis">Takhle se článek psal dřív — jedním polem. Aplikace ho pořád umí zobrazit,
-           ale jen dokud článek nemá žádný blok. Jakmile přidáte první blok, řídí se článek bloky.</p>
-        <div class="pole"><textarea id="f-telo" oninput="nahledClanku()">${esc(c.telo)}</textarea></div>
-        <button type="button" class="btn btn-vedl" onclick="prevedNaBloky()">Převést text na bloky</button>
+    <div class="krok"><span class="krok-cislo">1</span>O čem článek je</div>
+    <div class="pole"><label>Nadpis</label>
+      <input type="text" id="f-nadpis" value="${esc(c.nadpis)}" oninput="nahledClanku()"></div>
+    <div class="pole"><label>Krátký popis</label>
+      <input type="text" id="f-perex" value="${esc(c.perex)}" oninput="nahledClanku()">
+      <p class="napoveda">Zobrazí se v seznamu pod nadpisem. <b>Je vidět vždy</b>, i u placeného článku.</p></div>
+
+    <div class="krok"><span class="krok-cislo">2</span>Obsah</div>
+    <div id="bl-seznam"></div>
+    <div id="bl-osnova"></div>
+    <details class="pridat" id="bl-pridat">
+      <summary>+ Přidat blok</summary>
+      <div class="typy-telo">
+        <p class="typy-popis">Nejčastější</p>
+        <div class="typy">
+          ${TYPY_BLOKU.filter(t => TYPY_CASTE.includes(t[0])).map(([t, nazev, popis]) =>
+            `<button type="button" onclick="pridejBlok('${t}')"><b>${nazev}</b><span>${popis}</span></button>`).join('')}
+        </div>
+        <p class="typy-popis">Další</p>
+        <div class="typy">
+          ${TYPY_BLOKU.filter(t => !TYPY_CASTE.includes(t[0])).map(([t, nazev, popis]) =>
+            `<button type="button" onclick="pridejBlok('${t}')"><b>${nazev}</b><span>${popis}</span></button>`).join('')}
+        </div>
       </div>
     </details>
-    <div class="radky2">
-      <div class="pole"><label>Oblast</label><select id="f-oblast">${moznosti}</select></div>
-      <div class="pole"><label>Štítek</label><input type="text" id="f-kat" value="${esc(c.kategorie)}"
-        placeholder="Vybodování, Přestupky, Sankce…"></div>
-    </div>
-    <div class="radky2">
-      <div class="pole"><label>Odkaz na web</label><input type="text" id="f-odkaz" value="${esc(c.odkaz)}">
-        <p class="napoveda">Pořadí se mění šipkami ve struktuře vlevo.</p></div>
-    </div>
 
-    ${(() => { const o = oblasti.find(x => x.id === c.oblast_id);
-        const r = o && o.rodic_id ? oblasti.find(x => x.id === o.rodic_id) : null;
-        const shora = (o && o.placeny) ? o.nazev : ((r && r.placeny) ? r.nazev : null);
-        return shora ? `<div class="upozorneni-shora">Tento článek je zamčený už nastavením oblasti
-          <b>${esc(shora)}</b> — platí pro celou oblast, i když je přepínač níž vypnutý.</div>` : ''; })()}
-    <div class="prepinac pristup ${c.placeny?'zap':''}" onclick="prepniPristup(this);nahledZamku()" id="f-placeny">
-      <div class="txt"><b>Úroveň přístupu</b>
-        <span>Zapnuto = vyžaduje <b>plný přístup</b>, text se do telefonu vůbec nepošle.
-          Vypnuto = článek spadá do <b>omezeného přístupu</b>, přečte si ho i uživatel bez zaplacení.</span></div>
-      <span class="stav-pristup"></span>
-      <div class="knof"></div></div>
+    <div class="krok"><span class="krok-cislo">3</span>Nastavení</div>
+    <details class="sekce" data-skupina="Nastavení článku">
+      <summary>Zařazení, odkaz a přístup<span class="pocet">nastavíte jednou</span></summary>
+      <div class="sekce-telo">
+        <div class="radky2">
+          <div class="pole"><label>Oblast</label><select id="f-oblast" onchange="nahledClanku()">${moznosti}</select>
+            <p class="napoveda">Složka, do které článek patří.</p></div>
+          <div class="pole"><label>Popisek nad nadpisem</label>
+            <input type="text" id="f-kat" value="${esc(c.kategorie)}"
+              placeholder="například Lhůty, Sankce, Postup" oninput="nahledClanku()">
+            <p class="napoveda">Ukáže se v článku nad nadpisem vedle názvu oblasti.
+               Nechte prázdné, když stačí samotný název oblasti.</p></div>
+        </div>
+        <div class="pole"><label>Odkaz na web</label>
+          <input type="text" id="f-odkaz" value="${esc(c.odkaz)}" oninput="nahledClanku()">
+          <p class="napoveda">Kam vede řádek „Celý článek na webu“ dole v článku.</p></div>
 
-    <div class="prepinac ${c.publikovano?'zap':''}" onclick="this.classList.toggle('zap')" id="f-publ">
-      <div class="txt"><b>Publikováno</b><span>Vypnuto = koncept, uživatelé článek nevidí.</span></div>
-      <div class="knof"></div></div>
+        ${zamekShora}
+        <div class="prepinac pristup ${c.placeny?'zap':''}" onclick="prepniPristup(this);nahledZamku()" id="f-placeny">
+          <div class="txt"><b>Úroveň přístupu</b>
+            <span>Zapnuto = vyžaduje <b>plný přístup</b>, text se do telefonu vůbec nepošle.
+              Vypnuto = článek spadá do <b>omezeného přístupu</b>, přečte si ho i uživatel bez zaplacení.</span></div>
+          <span class="stav-pristup"></span>
+          <div class="knof"></div></div>
 
-    <div id="nahled"></div>
+        <div class="prepinac ${c.publikovano?'zap':''}" onclick="this.classList.toggle('zap')" id="f-publ">
+          <div class="txt"><b>Publikováno</b><span>Vypnuto = koncept, uživatelé článek nevidí.</span></div>
+          <div class="knof"></div></div>
 
-    <div class="lista">
+        <details class="sekce" style="margin-top:14px">
+          <summary>Text článku napsaný najednou<span class="pocet">${(c.telo||'').trim() ? 'vyplněno' : 'prázdné'}</span></summary>
+          <div class="sekce-telo">
+            <p class="sekce-popis">Článek jde napsat i takhle — jedním polem místo bloků.
+               Aplikace ho zobrazí, ale <b>jen dokud článek nemá žádný blok</b>. Jakmile přidáte
+               první blok, řídí se článek bloky a tohle pole se přestane používat.</p>
+            <div class="pole"><textarea id="f-telo" oninput="nahledClanku()">${esc(c.telo)}</textarea></div>
+            <button type="button" class="btn btn-vedl" onclick="prevedNaBloky()">Převést text na bloky</button>
+          </div>
+        </details>
+
+        <div id="nahled"></div>
+      </div>
+    </details>
+
+    <div class="lista" style="margin-top:16px">
       <button class="btn btn-hlavni" data-ulozit onclick="ulozClanek()">Uložit</button>
       <button class="btn btn-smaz vpravo" onclick="smazClanek('${c.id}')">Smazat článek</button>
     </div>`;
+
   nahledZamku();
   kresliBloky();
+  nahledObrazovkaAkt = 'clanek';
   nahledClanku();
+  kresliOvladaceNahledu();
   hlidejFormular($('editor'));
 }
 
@@ -829,11 +902,32 @@ let nahledPripraven = false;
 const nahledFronta = [];
 let nahledObrazovkaAkt = 'prehled';
 
-const NAHLED_OBRAZOVKY = [
-  ['prehled','Přehled'], ['pruvodce','Průvodce'], ['sluzby','Služby'],
-  ['zpravy','Zprávy'], ['profil','Profil'], ['konzultace','Formulář'],
-  ['predplatne','Předplatné'], ['points-help','Jak zjistit body']
+/* Náhled sleduje záložku administrace — jedna volba, ne dvě.
+   Nabízí jen podobrazovky té karty, na které zrovna jste. */
+const NAHLED_PODOBRAZOVKY = {
+  prehled:  [['prehled','Přehled'], ['points-help','Jak zjistit body'],
+             ['vozidla','Vozidla a STK'], ['nehoda','Po nehodě']],
+  pruvodce: [['pruvodce','Průvodce'], ['clanek','Otevřený článek'],
+             ['calc','Kalkulačka'], ['oblasti','Právní témata']],
+  sluzby:   [['sluzby','Služby'], ['kontakt','Kontakt'],
+             ['postup','Jak to probíhá'], ['recenze','Recenze']],
+  zpravy:   [['zpravy','Zprávy'], ['konzultace','Formulář']],
+  profil:   [['profil','Profil'], ['predplatne','Předplatné'], ['upozorneni','Upozornění']],
+  kalk:     [['calc','Kalkulačka'], ['pruvodce','Průvodce']],
+  sprava:   [['prehled','Přehled'], ['profil','Profil']]
+};
+const NAZEV_KARTY = {prehled:'Přehled', pruvodce:'Průvodce', sluzby:'Služby',
+                     zpravy:'Zprávy', profil:'Profil', kalk:'Kalkulačky', sprava:'Administrace'};
+
+/* Z čí perspektivy se náhled kreslí. Bez tohohle je snadné zapomenout,
+   že běžný uživatel vidí něco jiného než správce. */
+const NAHLED_JAKO = [
+  ['plny',        'Plný přístup'],
+  ['omezeny',     'Omezený'],
+  ['neprihlasen', 'Nepřihlášený']
 ];
+let nahledKarta = 'pruvodce';
+let nahledJako = 'plny';
 
 /* Kam který text patří — podle toho náhled sám přepne obrazovku. */
 function obrazovkaKlice(klic){
@@ -843,6 +937,12 @@ function obrazovkaKlice(klic){
   if(klic.startsWith('nav.'))        return 'prehled';
   if(klic.startsWith('clanek.'))     return 'pruvodce';
   if(klic.startsWith('kalk.'))       return 'calc';
+  if(klic === 'odkaz.blog')          return 'zpravy';
+  if(klic === 'odkaz.zasady')        return 'konzultace';
+  if(klic === 'odkaz.portal-obcana') return 'points-help';
+  if(klic === 'odkaz.media')         return 'profil';
+  if(klic.startsWith('odkaz.') || klic.startsWith('nehoda.')) return 'nehoda';
+  if(klic.startsWith('kontakt.'))    return 'kontakt';
   if(klic.startsWith('nadpis.')){
     const m = {'nadpis.kalkulacka':'calc','nadpis.oblasti':'oblasti','nadpis.recenze':'recenze',
                'nadpis.postup':'postup','nadpis.kontakt':'kontakt','nadpis.upozorneni':'upozorneni',
@@ -873,21 +973,131 @@ function nahledTexty(){ posliNahled({ texty: mapaTextu() }); }
 
 function nahledObrazovka(id, tise){
   nahledObrazovkaAkt = id;
-  posliNahled({ obrazovka: id });
+  if(id === 'clanek'){
+    if(vybrano && vybrano.typ === 'clanek') nahledClanku();
+    else posliNahled({ obrazovka: 'pruvodce' });
+  } else {
+    posliNahled({ obrazovka: id });
+  }
   kresliOvladaceNahledu();
+  zvyrazniSekce(id);
   if(!tise) nahledTexty();
+}
+
+/* ---------- sekce vlevo a obrazovka vpravo drží krok ----------
+   Když se přepne náhled, otevře se odpovídající sekce. Když Nela rozbalí sekci,
+   náhled skočí na obrazovku, kde ta sekce je. Aby se to navzájem nehonilo,
+   hlídá to jednoduchý zámek. */
+let synchronizuji = false;
+
+function zvyrazniSekce(obrazovka){
+  const sekce = document.querySelectorAll('.sekce[data-skupina]');
+  if(!sekce.length) return;
+  const chtene = new Set(texty
+    .filter(t => t.karta === nahledKarta && obrazovkaKlice(t.klic) === obrazovka)
+    .map(t => skupinaKlice(t.klic)));
+  if(!chtene.size) return;
+  synchronizuji = true;
+  let prvni = null;
+  sekce.forEach(d => {
+    const patri = chtene.has(d.dataset.skupina);
+    d.open = patri;
+    /* Zvýrazní se jen první — víc rámečků naráz je zmatek, ne pomoc. */
+    d.classList.toggle('sekce-aktivni', patri && !prvni);
+    if(patri && !prvni) prvni = d;
+  });
+  if(prvni) prvni.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  setTimeout(() => { synchronizuji = false; }, 0);
+}
+
+function sekceOtevrena(el){
+  if(synchronizuji || !el.open) return;
+  const t = texty.find(x => x.karta === nahledKarta && skupinaKlice(x.klic) === el.dataset.skupina);
+  if(!t) return;
+  const kam = obrazovkaKlice(t.klic);
+  if(kam !== nahledObrazovkaAkt) nahledObrazovka(kam, true);
+  posliNahled({ zvyrazni: t.klic });
+  document.querySelectorAll('.sekce-aktivni').forEach(d => d.classList.remove('sekce-aktivni'));
+  el.classList.add('sekce-aktivni');
+}
+
+/* Přepnutí záložky přepne i náhled — na první podobrazovku té karty. */
+function nahledKartaNastav(karta){
+  nahledKarta = karta;
+  const sez = NAHLED_PODOBRAZOVKY[karta] || NAHLED_PODOBRAZOVKY.prehled;
+  nahledObrazovka(sez[0][0]);
+}
+
+function nahledJakoNastav(kdo){
+  nahledJako = kdo;
+  posliNahled(kdo === 'neprihlasen' ? {prihlasen:false, pristup:false}
+            : kdo === 'omezeny'     ? {prihlasen:true,  pristup:false}
+                                    : {prihlasen:true,  pristup:true});
+  kresliOvladaceNahledu();
 }
 
 function kresliOvladaceNahledu(){
   const el = $('telOvladace'); if(!el) return;
-  el.innerHTML = NAHLED_OBRAZOVKY.map(([id, nazev]) =>
-    `<button class="${id === nahledObrazovkaAkt ? 'on' : ''}" onclick="nahledObrazovka('${id}')">${nazev}</button>`
-  ).join('');
+  const nadpis = $('telNadpis');
+  if(nadpis) nadpis.textContent = 'Náhled — ' + (NAZEV_KARTY[nahledKarta] || '');
+  const sez = NAHLED_PODOBRAZOVKY[nahledKarta] || NAHLED_PODOBRAZOVKY.prehled;
+  el.innerHTML =
+    sez.map(([id, nazev]) =>
+      `<button class="${id === nahledObrazovkaAkt ? 'on' : ''}" onclick="nahledObrazovka('${id}')">${nazev}</button>`
+    ).join('') +
+    '<div class="tel-jako"><span>Zobrazit jako</span>' +
+    NAHLED_JAKO.map(([k, nazev]) =>
+      `<button class="${k === nahledJako ? 'on' : ''}" onclick="nahledJakoNastav('${k}')">${nazev}</button>`
+    ).join('') + '</div>';
+}
+
+/* Oznámení má dva původy: buď je to zpráva z databáze, kterou někdo napsal,
+   nebo upozornění, které si aplikace spočítá sama. Každé se edituje jinde,
+   proto si každé nese, odkud pochází. */
+function zamerZdroj(zdroj){
+  const [druh, hodnota] = zdroj.split(/:(.+)/);
+  if(druh === 'text'){ zamerPole(hodnota); return; }
+  if(druh === 'zprava'){
+    if(nahledKarta !== 'zpravy') prepni('zpravy');
+    upravZpravu(hodnota);
+    setTimeout(() => {
+      const pole = $('z-nadpis');
+      if(pole){ pole.scrollIntoView({block:'center', behavior:'smooth'}); pole.focus(); }
+    }, 60);
+  }
+}
+
+/* Kliknutí do bloku v náhledu otevře ten blok v editoru článku. */
+function zamerBlok(id){
+  const b = bloky.find(x => x.id === id);
+  if(!b){ hlaska('Tenhle blok se nepodařilo najít.'); return; }
+  if(nahledKarta !== 'pruvodce') prepni('pruvodce');
+  if(!vybrano || vybrano.typ !== 'clanek' || vybrano.id !== b.clanek_id){
+    vybrano = {typ: 'clanek', id: b.clanek_id};
+    kresliStrom(); editorClanku();
+  }
+  bloky.forEach(x => { if(x.clanek_id === b.clanek_id) x._otevreny = (x.id === id); });
+  kresliBloky();
+  const karta = document.querySelector('.bl-karta[data-blok="' + id + '"]');
+  if(karta){
+    karta.scrollIntoView({block: 'center', behavior: 'smooth'});
+    karta.classList.add('bl-zvyrazneno');
+    setTimeout(() => karta.classList.remove('bl-zvyrazneno'), 1600);
+    const prvni = karta.querySelector('input, textarea');
+    if(prvni) prvni.focus();
+  }
+  posliNahled({ zvyrazni: id });
 }
 
 /* Kliknutí do náhledu otevře pole, které ten text mění. */
 function zamerPole(klic){
-  const pole = $('tx-' + klic);
+  let pole = $('tx-' + klic);
+  if(!pole){
+    /* Text patří jiné kartě — přepneme na ni a zkusíme to znovu. */
+    const t = texty.find(x => x.klic === klic);
+    const kam = (t && t.karta) || (klic.startsWith('kalk.') ? 'kalk' : null);
+    if(kam && kam !== nahledKarta){ prepni(kam); pole = $('tx-' + klic); }
+  }
   if(!pole){ hlaska('Tenhle text se mění jinde v administraci.'); return; }
   const det = pole.closest('details');
   if(det) det.open = true;
@@ -901,6 +1111,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const ram = $('telRam'); if(!ram) return;
   const spust = () => { if(!nahledPripraven){ nahledPripraven = true;
     nahledFronta.splice(0).forEach(posliNahled); nahledTexty();
+    nahledJakoNastav(nahledJako);
     posliNahled({ obrazovka: nahledObrazovkaAkt }); kresliOvladaceNahledu(); } };
   ram.addEventListener('load', spust);
   if(ram.contentDocument && ram.contentDocument.readyState === 'complete') spust();
@@ -913,48 +1124,87 @@ window.addEventListener('message', ev => {
     nahledPripraven = true;
     const fronta = nahledFronta.splice(0);
     nahledTexty();
+    nahledJakoNastav(nahledJako);
     posliNahled({ obrazovka: nahledObrazovkaAkt });
     fronta.forEach(posliNahled);
     kresliOvladaceNahledu();
   }
-  if(z.kliknuto) zamerPole(z.kliknuto);
+  if(z.zdroj) zamerZdroj(z.zdroj);
+  else if(z.blok) zamerBlok(z.blok);
+  else if(z.kliknuto) zamerPole(z.kliknuto);
 });
 
+
+/* Krátké vysvětlení pojmů. Zavřené nepřekáží, poprvé pomůže. */
+function cojeco(karta){
+  const spolecne = `
+    <p><b>Text</b> — jedno políčko, jedna věta v aplikaci. Změní se jen znění,
+       obrazovka zůstane, jak je.</p>
+    <p><b>Vlastní blok</b> — karta navíc, kterou přidáte na konec obrazovky.
+       Má nadpis, text a nepovinné tlačítko s odkazem. Prázdný blok se nezobrazí.</p>`;
+  const pruvodce = `
+    <p><b>Oblast</b> — složka, do které patří články. V aplikaci je vidět jako
+       položka v seznamu <i>Oblasti</i>, například „Vybodování".</p>
+    <p><b>Článek</b> — jedno téma uvnitř oblasti, třeba „Co se stane při 12 bodech".</p>
+    <p><b>Blok</b> — dílek, ze kterých se článek skládá: odstavec, mezinadpis,
+       tabulka, upozornění. Pořadí měníte šipkami.</p>
+    <p><b>Popisek nad nadpisem</b> — pár slov, která se v článku ukážou nad
+       nadpisem vedle názvu oblasti. Nemusí se vyplňovat.</p>
+    <p><b>Úroveň přístupu</b> — zapnuto znamená, že článek uvidí jen člověk
+       s firemním kódem. Text se nikomu jinému ani neodešle.</p>`;
+  const kalk = `
+    <p><b>Sazba</b> — číslo nebo částka, která se mění se zákonem. Používají ji
+       výpočty i texty výsledků.</p>
+    <p><b>Klíč</b> — jméno sazby v <code>{složených závorkách}</code>. Když ho napíšete
+       do textu výsledku, dosadí se za něj hodnota. Proto stačí částku změnit
+       na jednom místě.</p>`;
+  const obsah = (karta === 'pruvodce' ? pruvodce : '') + (karta === 'kalk' ? kalk : spolecne);
+  return `<details class="cojeco"><summary>Co je co?</summary><div>${obsah}</div></details>`;
+}
+
 /* ---------- rozdělení textů do sekcí ---------- */
+/* Názvy sekcí říkají, co je v aplikaci vidět — ne jak je poskládaná uvnitř.
+   V uvozovkách je text, který Nela na obrazovce opravdu čte, takže sekci
+   pozná i bez náhledu. */
 const SKUPINY = [
-  ['prehled.body',      'Karta s bodovým stavem'],
+  ['prehled.body',      'Karta „Váš bodový stav"'],
   ['prehled.vyzva',     'Výzva při 8 a více bodech'],
-  ['prehled.notif',     'Karta notifikací'],
-  ['prehled.pdf',       'Rychlá akce — načtení bodů z PDF'],
-  ['prehled.vozidla',   'Rychlá akce — vozidla a STK'],
-  ['prehled.nehoda',    'Rychlá akce — nehoda'],
+  ['prehled.notif',     'Karta „Včasná výstraha před 12 body"'],
+  ['prehled.pdf',       'Řádek „Načíst body z PDF výpisu"'],
+  ['prehled.vozidla',   'Řádek „Vozidla a STK"'],
+  ['prehled.nehoda',    'Řádek „Stala se vám dopravní nehoda?"'],
+  ['pristup',           'Proužek se stavem přístupu'],
   ['pomoc.body',        'Obrazovka „Jak zjistit body"'],
-  ['pruvodce.pruh',     'Tmavý proužek s tématy'],
-  ['pruvodce.kalk',     'Karta kalkulačky'],
-  ['pruvodce.oblasti',  'Seznam oblastí'],
-  ['pruvodce.hledat',   'Hledání'],
-  ['zpravy.hero',       'Karta advokáta'],
-  ['zpravy.blog',       'Odkaz na blog'],
-  ['zpravy.oznameni',   'Oznámení'],
-  ['formular.ph',       'Formulář — nápovědy v polích'],
-  ['formular',          'Konzultační formulář'],
-  ['profil.ucet',       'Karta účtu'],
-  ['profil.plan',       'Předplatné v profilu'],
-  ['profil.plocha',     'Přidat na plochu'],
-  ['profil.tema',       'Vzhled'],
-  ['profil.upozorneni', 'Upozornění'],
-  ['profil.odkazy',     'Odkazy'],
-  ['profil.predplatne', 'Štítek předplatného'],
-  ['predplatne',        'Obrazovka Předplatné'],
-  ['nadpis',            'Názvy obrazovek'],
-  ['nav',               'Spodní lišta'],
-  ['clanek',            'Článek'],
+  ['nehoda',            'Obrazovka „Co dělat po nehodě"'],
+  ['pruvodce.pruh',     'Tmavý pruh „Právní témata podle oblastí"'],
+  ['pruvodce.kalk',     'Karta „Kalkulačka a asistent při kontrole"'],
+  ['pruvodce.oblasti',  'Nadpis „Oblasti"'],
+  ['pruvodce.hledat',   'Vyhledávací pole'],
+  ['zpravy.hero',       'Karta „Mgr. Horáček odpovídá do 2 hodin."'],
+  ['zpravy.blog',       'Řádek „Blog Práva řidiče"'],
+  ['zpravy.oznameni',   'Nadpis „Oznámení"'],
+  ['zpravy.auto',       'Upozornění, která aplikace pošle sama'],
+  ['formular.ph',       'Formulář — šedý text v prázdných políčkách'],
+  ['formular',          'Formulář „Napište nám"'],
+  ['profil.ucet',       'Karta „Účet"'],
+  ['profil.plan',       'Karta „Předplatné" v profilu'],
+  ['profil.plocha',     'Řádek „Přidat na plochu"'],
+  ['profil.tema',       'Volby vzhledu (Podle telefonu / Světlý / Tmavý)'],
+  ['profil.upozorneni', 'Řádek „Upozornění"'],
+  ['profil.odkazy',     'Nadpis „Odkazy"'],
+  ['profil.predplatne', 'Nadpis „Předplatné"'],
+  ['predplatne',        'Obrazovka „Předplatné"'],
+  ['odkaz',             'Adresy, kam odkazy vedou'],
+  ['kontakt',           'Telefonní číslo pro tlačítko Zavolat'],
   ['kalk',              'Kalkulačka — texty výsledků'],
-  ['sluzby',            'Karta Služby'],
-  ['pruvodce',          'Úvod karty Průvodce'],
+  ['nadpis',            'Názvy obrazovek v horní liště'],
+  ['nav',               'Spodní lišta (Přehled, Průvodce, …)'],
+  ['clanek',            'Článek — zámek a tlačítka dole'],
+  ['sluzby',            'Nadpis „S čím vám pomůžeme"'],
+  ['pruvodce',          'Úvod obrazovky Průvodce'],
   ['prehled',           'Karta Přehled'],
   ['profil',            'Karta Profil'],
-  ['zpravy',            'Karta Zprávy']
+  ['zpravy',            'Nadpis „Zprávy"']
 ];
 
 function skupinaKlice(klic){
@@ -985,6 +1235,9 @@ const TYPY_BLOKU = [
   ['rada',       'Rada',          'Tyrkysový tip nebo doporučení']
 ];
 const NAZEV_TYPU = t => (TYPY_BLOKU.find(x => x[0] === t) || [t, t])[1];
+/* Tyhle tři pokryjí většinu článků — ostatní se nabízejí až pod nimi,
+   ať nový článek nezačíná osmi rozhodnutími naráz. */
+const TYPY_CASTE = ['odstavec', 'mezinadpis', 'odkaz'];
 
 const PALETA = [
   ['bila',    'Bílá',        '#FFFFFF'],
@@ -1155,11 +1408,41 @@ function poleBloku(b){
   }
 }
 
+/* Prázdný článek nabídne hotovou kostru, ať Nela nemusí vymýšlet strukturu. */
+function kresliOsnovu(prazdny){
+  const el = $('bl-osnova'); if(!el) return;
+  el.innerHTML = prazdny ? `
+    <div class="osnova">
+      <b>Začněte rovnou osnovou</b>
+      <span>Předvyplní úvodní kartu, odstavec a mezinadpis — tak, jak vypadají články
+        v aplikaci. Texty pak jen přepíšete a co nepotřebujete, smažete.</span>
+      <div class="lista">
+        <button type="button" class="btn btn-hlavni" onclick="pouzijOsnovu()">Použít osnovu</button>
+        <button type="button" class="btn btn-vedl" onclick="$('bl-pridat').open = true">Začít prázdné</button>
+      </div>
+    </div>` : '';
+}
+
+function pouzijOsnovu(){
+  if(!vybrano || vybrano.typ !== 'clanek') return;
+  const c = clanky.find(x => x.id === vybrano.id);
+  const o = oblasti.find(x => x.id === (c ? c.oblast_id : null));
+  pridejBlok('hero');
+  const hero = blokyClanku(vybrano.id).slice(-1)[0];
+  if(hero){ hero.nadpis = c ? c.nadpis : ''; hero.text = c ? (c.perex || '') : '';
+            hero.odkaz_text = o ? o.nazev : ''; }
+  pridejBlok('odstavec');
+  pridejBlok('mezinadpis');
+  kresliBloky(); nahledClanku();
+  hlaska('Osnova připravená. Přepište texty a uložte.');
+}
+
 function kresliBloky(){
   const el = $('bl-seznam'); if(!el) return;
   const rada = vybrano && vybrano.typ === 'clanek' ? blokyClanku(vybrano.id) : [];
+  kresliOsnovu(!rada.length);
   el.innerHTML = rada.length ? rada.map((b, i) => `
-    <details class="bl-karta" ${b._otevreny ? 'open' : ''} ontoggle="oznacOtevreny('${b.id}', this.open)">
+    <details class="bl-karta" data-blok="${b.id}" ${b._otevreny ? 'open' : ''} ontoggle="oznacOtevreny('${b.id}', this.open)">
       <summary class="bl-hlava">
         <span class="bl-typ">${esc(NAZEV_TYPU(b.typ))}</span>
         <span class="bl-shrnuti" data-shrnuti="${b.id}">${esc(shrnutiBloku(b))}</span>
@@ -1180,7 +1463,7 @@ function kresliBloky(){
         </div>
       </div>
     </details>`).join('')
-    : '<div class="prazdno" style="padding:14px">Článek zatím nemá žádné bloky. Přidejte první níž.</div>';
+    : '';
 }
 
 function oznacOtevreny(id, otevreny){
@@ -1202,6 +1485,7 @@ function nahledClanku(){
     odkaz: hod('f-odkaz'),
     zamceno: false,
     bloky: blokyClanku(vybrano.id).map(b => ({
+      id: b.id,
       poradi: b.poradi, typ: b.typ, nadpis: b.nadpis, text: b.text,
       odkaz: b.odkaz, odkaz_text: b.odkaz_text, ikona: b.ikona,
       data: b.data, pozadi: b.pozadi, velikost: b.velikost
@@ -1267,7 +1551,7 @@ function prevedNaBloky(){
    KALKULAČKY
    Do administrace patří čísla a texty — tedy to, co se mění se zákonem.
    Rozhodovací stromy (která otázka vede kam) zůstávají v kódu: špatně
-   propojená větev by udělala slepou uličku a poradila řidiči špatně
+   propojená větev by udělala slepou uličku a poradila uživateli aplikace špatně
    v situaci, kde jde o trestní řízení.
    ============================================================ */
 let sazby = [], napoje = [];
@@ -1286,9 +1570,12 @@ async function nactiKalkulacky(){
 function kresliKalkulacky(){
   const sek = $('sek-kalk');
   if(!sazby.length && !napoje.length){
+    /* Texty výsledků se vykreslí i tak — můžou být v databázi bez sazeb. */
     sek.innerHTML = `<div class="panel"><h2>Kalkulačky</h2>
       <div class="prazdno">Sazby a nápoje zatím nejsou v databázi.<br>
-      Spusťte v Supabase soubor <b>kalkulacky.sql</b> a stránku načtěte znovu.</div></div>`;
+      Spusťte v Supabase soubor <b>kalkulacky.sql</b> a stránku načtěte znovu.</div></div>
+      <div id="texty-kalk"></div>`;
+    kresliTexty('kalk');
     return;
   }
 
@@ -1302,6 +1589,7 @@ function kresliKalkulacky(){
   sek.innerHTML = `
   <div class="panel">
     <h2>Sazby a hranice</h2>
+    ${cojeco('kalk')}
     <p class="napoveda" style="margin:-6px 0 14px">Tohle jsou čísla, která se mění se zákonem.
        Používají je výpočty i texty výsledků — v textu se zapisují jako
        <code>{klíč}</code> a dosadí se sem uvedená hodnota. Stačí je tedy změnit
@@ -1342,16 +1630,19 @@ function kresliKalkulacky(){
     </div>
   </div>
 
+  <div id="texty-kalk"></div>
+
   <div class="panel" style="margin-top:16px">
     <h2>Co se odsud nemění</h2>
     <p class="napoveda" style="margin:-6px 0 0">Postup otázek v průvodci — tedy která odpověď vede
        na kterou další otázku a na jaký výsledek. Je to v kódu záměrně: špatně propojená větev by
-       skončila naslepo a poradila by řidiči špatně v situaci, kde jde o trestní řízení, a nikdo by
+       skončila naslepo a poradila by uživateli aplikace špatně v situaci, kde jde o trestní řízení, a nikdo by
        si toho nemusel všimnout. Když bude potřeba postup změnit, napište Martinovi.
        <b>Texty výsledků</b> se mění na kartě Průvodce dole, v sekcích „Kalkulačka".</p>
   </div>`;
 
   kresliNapoje();
+  kresliTexty('kalk');
   hlidejFormular(sek);
 }
 
@@ -1507,6 +1798,150 @@ function importSazeb(vstup){
   cti.readAsArrayBuffer(soubor);
 }
 
+
+/* ---------- seznamy ----------
+   Recenze, kroky spolupráce, kontakty a postup po nehodě byly dřív natvrdo
+   v kódu. Mají stejný tvar — nadpis, text a nepovinný doplněk — proto stačí
+   jeden editor pro všechny. */
+let seznamy = [], seznamyZmenene = new Set(), seznamySmazane = [];
+
+const DRUHY_SEZNAMU = {
+  recenze: {karta:'sluzby',  nazev:'Recenze klientů',
+            popis:'Zobrazí se na obrazovce Recenze klientů, na kterou vede odkaz z Profilu.',
+            a:'Jméno', b:'Text recenze', c:'Čeho se případ týkal', obrazovka:'recenze'},
+  postup:  {karta:'sluzby',  nazev:'Jak to probíhá — kroky spolupráce',
+            popis:'Číslované kroky na obrazovce Jak to probíhá. Číslo se doplní podle pořadí.',
+            a:'Název kroku', b:'Popis kroku', c:null, obrazovka:'postup'},
+  tel:     {karta:'profil',  nazev:'Telefonní čísla',
+            popis:'Obrazovka Kontakt, sekce Telefony. Po klepnutí aplikace vytočí číslo.',
+            a:'Popis linky', b:'Číslo', c:null, obrazovka:'kontakt'},
+  mail:    {karta:'profil',  nazev:'E-mailové adresy',
+            popis:'Obrazovka Kontakt, sekce E-mail.',
+            a:'Popis adresy', b:'Adresa', c:null, obrazovka:'kontakt'},
+  pobocka: {karta:'profil',  nazev:'Pobočky',
+            popis:'Obrazovka Kontakt, sekce Pobočky.',
+            a:'Město', b:'Adresa', c:null, obrazovka:'kontakt'},
+  nehoda:  {karta:'prehled', nazev:'Co dělat po nehodě — kroky',
+            popis:'Číslované kroky na obrazovce Co dělat po nehodě.',
+            a:'Název kroku', b:'Popis kroku', c:null, obrazovka:'nehoda'}
+};
+
+async function nactiSeznamy(){
+  const { data, error } = await db.from('seznamy').select('*').order('poradi');
+  seznamy = error ? [] : data;
+  if(error) console.warn('Tabulka seznamů zatím neexistuje — spusťte seznamy.sql', error.message);
+}
+
+function polozkySeznamu(druh){
+  return seznamy.filter(s => s.druh === druh && !s._smazany)
+                .sort((a, b) => (a.poradi||0) - (b.poradi||0));
+}
+
+function sekceSeznamu(druh){
+  const d = DRUHY_SEZNAMU[druh];
+  return `<div class="panel" style="margin-top:16px">
+    <h2>${esc(d.nazev)}</h2>
+    <p class="napoveda" style="margin:-6px 0 14px">${esc(d.popis)}</p>
+    <div id="sez-${druh}"></div>
+    <div class="lista" style="margin-top:12px">
+      <button class="btn btn-hlavni" data-ulozit onclick="ulozSeznam('${druh}')">Uložit</button>
+      <button class="btn btn-vedl" onclick="pridejPolozku('${druh}')">+ Přidat</button>
+    </div>
+  </div>`;
+}
+
+function kresliSeznam(druh){
+  const el = $('sez-' + druh); if(!el) return;
+  const d = DRUHY_SEZNAMU[druh];
+  const p = polozkySeznamu(druh);
+  el.innerHTML = p.length ? p.map((s, i) => `
+    <div class="sez-radek">
+      <div class="sez-poradi">${i + 1}</div>
+      <div class="sez-pole">
+        <div class="radky2">
+          <div><label>${esc(d.a)}</label>
+            <input type="text" value="${esc(s.nadpis)}" oninput="zmenPolozku('${s.id}','nadpis',this.value)"></div>
+          <div><label>${esc(d.b)}</label>
+            <input type="text" value="${esc(s.text)}" oninput="zmenPolozku('${s.id}','text',this.value)"></div>
+        </div>
+        ${d.c ? `<div class="pole" style="margin:10px 0 0"><label>${esc(d.c)}</label>
+          <input type="text" value="${esc(s.doplnek||'')}" oninput="zmenPolozku('${s.id}','doplnek',this.value)"></div>` : ''}
+      </div>
+      <div class="poradi-sipky">
+        <button type="button" title="Nahoru" ${i === 0 ? 'disabled' : ''} onclick="posunPolozku('${s.id}',-1)">▲</button>
+        <button type="button" title="Dolů" ${i === p.length-1 ? 'disabled' : ''} onclick="posunPolozku('${s.id}',1)">▼</button>
+        <button type="button" title="Smazat" style="color:var(--err)" onclick="smazPolozku('${s.id}')">×</button>
+      </div>
+    </div>`).join('')
+    : '<div class="prazdno">Zatím tu nic není.</div>';
+}
+
+function zmenPolozku(id, pole, hodnota){
+  const s = seznamy.find(x => x.id === id); if(!s) return;
+  s[pole] = hodnota; seznamyZmenene.add(id);
+}
+
+function pridejPolozku(druh){
+  const p = polozkySeznamu(druh);
+  const id = 'novy-' + Math.random().toString(36).slice(2, 10);
+  seznamy.push({id, _novy: true, druh, poradi: (p.length ? p[p.length-1].poradi : 0) + 10,
+                nadpis: '', text: '', doplnek: ''});
+  seznamyZmenene.add(id);
+  kresliSeznam(druh);
+}
+
+function smazPolozku(id){
+  const s = seznamy.find(x => x.id === id); if(!s) return;
+  s._smazany = true;
+  if(!s._novy) seznamySmazane.push(id);
+  kresliSeznam(s.druh);
+}
+
+function posunPolozku(id, smer){
+  const s = seznamy.find(x => x.id === id); if(!s) return;
+  const p = polozkySeznamu(s.druh);
+  const i = p.findIndex(x => x.id === id), j = i + smer;
+  if(j < 0 || j >= p.length) return;
+  const a = p[i].poradi, b = p[j].poradi;
+  p[i].poradi = b; p[j].poradi = a;
+  if(a === b) p.forEach((x, k) => { x.poradi = (k+1) * 10; seznamyZmenene.add(x.id); });
+  seznamyZmenene.add(p[i].id); seznamyZmenene.add(p[j].id);
+  kresliSeznam(s.druh);
+}
+
+async function ulozSeznam(druh){
+  for(const id of seznamySmazane.slice()){
+    const s = seznamy.find(x => x.id === id);
+    if(s && s.druh !== druh) continue;
+    const { error } = await db.from('seznamy').delete().eq('id', id);
+    if(error){ hlaska('Smazání selhalo: ' + error.message, true); return; }
+    seznamySmazane = seznamySmazane.filter(x => x !== id);
+  }
+  let ulozeno = 0;
+  for(const s of seznamy.filter(x => x.druh === druh && !x._smazany && seznamyZmenene.has(x.id))){
+    const zaznam = {druh, poradi: s.poradi || 0, nadpis: s.nadpis || '',
+                    text: s.text || '', doplnek: s.doplnek || null};
+    if(s._novy){
+      const { data, error } = await db.from('seznamy').insert(zaznam).select().single();
+      if(error){ hlaska('Uložení selhalo: ' + error.message, true); return; }
+      s.id = data.id; s._novy = false;
+    } else {
+      const { error } = await db.from('seznamy').update(zaznam).eq('id', s.id);
+      if(error){ hlaska('Uložení selhalo: ' + error.message, true); return; }
+    }
+    seznamyZmenene.delete(s.id);
+    ulozeno++;
+  }
+  seznamy = seznamy.filter(x => !x._smazany);
+  kresliSeznam(druh);
+  hlaska(ulozeno ? ('Uloženo — ' + ulozeno + ' ' + mnozne(ulozeno,'položka','položky','položek') + '.') : 'Nic se nezměnilo.');
+}
+
+/* Které seznamy patří pod kterou kartu administrace. */
+function seznamyKarty(karta){
+  return Object.keys(DRUHY_SEZNAMU).filter(d => DRUHY_SEZNAMU[d].karta === karta);
+}
+
 /* ---------- texty karet ---------- */
 const NAZVY_KARET = {prehled:'Přehled', pruvodce:'Průvodce', sluzby:'Služby',
                     zpravy:'Zprávy', profil:'Profil', ostatni:'Společné'};
@@ -1533,11 +1968,12 @@ function kresliTexty(karta){
 
   sek.innerHTML = `<div class="panel">
     <h2>${NAZVY_KARET[karta]||karta} — texty v aplikaci</h2>
-    <p class="napoveda" style="margin:-6px 0 16px">Vpravo běží aplikace. Jakmile začnete psát,
+    <p class="napoveda" style="margin:-6px 0 12px">Vpravo běží aplikace. Jakmile začnete psát,
        změna je hned vidět — uložit ji ale musíte tlačítkem dole. Struktura obrazovky se nemění,
        upravuje se jen znění.</p>
+    ${cojeco(karta)}
     ${skupiny.map((s, i) => `
-      <details class="sekce" ${i === 0 ? 'open' : ''}>
+      <details class="sekce" data-skupina="${esc(s.nazev)}" ontoggle="sekceOtevrena(this)" ${i === 0 ? 'open' : ''}>
         <summary>${esc(s.nazev)}<span class="pocet">${s.polozky.length} ${mnozne(s.polozky.length,'pole','pole','polí')}</span></summary>
         <div class="sekce-telo">${s.polozky.map(poleTextu).join('')}</div>
       </details>`).join('')}
@@ -1547,6 +1983,11 @@ function kresliTexty(karta){
     </div>
     </div>
     ${karta === 'zpravy' ? '<div class="panel" style="margin-top:16px">' + sekceZprav() + '</div>' : ''}`;
+  const druhy = seznamyKarty(karta);
+  if(druhy.length){
+    sek.insertAdjacentHTML('beforeend', druhy.map(sekceSeznamu).join(''));
+    druhy.forEach(kresliSeznam);
+  }
   hlidejFormular(sek);
   nahledTexty();
 }
@@ -1803,6 +2244,58 @@ async function zmenStavPoptavky(id, stav){
   hlaska('Stav změněn na „'+STAVY_POPTAVKY[stav]+'".');
 }
 
+
+/* ---------- kdo kód uplatnil ----------
+   Data jsou v tabulce `uplatneni`, čte je jen administrátor. Načítají se
+   až na vyžádání — e-maily zaměstnanců nejsou nic, co má viset na obrazovce,
+   dokud je někdo nepotřebuje. */
+let uplatneni = {};   // kód -> seznam registrací
+
+async function nactiUplatneni(kod){
+  const { data, error } = await db.from('uplatneni')
+    .select('email, kdy').eq('kod', kod).order('kdy', {ascending: false});
+  if(error){ hlaska('Seznam se nepodařilo načíst: ' + error.message, true); return null; }
+  uplatneni[kod] = data || [];
+  return uplatneni[kod];
+}
+
+async function prepniRegistrovane(kod){
+  if(!uplatneni[kod] && !await nactiUplatneni(kod)) return;
+  const el = $('reg-' + kod); if(!el) return;
+  el.dataset.otevreno = el.dataset.otevreno ? '' : '1';
+  kresliRegistrovane(kod);
+}
+
+function kresliRegistrovane(kod){
+  const el = $('reg-' + kod); if(!el) return;
+  const sez = uplatneni[kod] || [];
+  if(!el.dataset.otevreno){ el.innerHTML = ''; return; }
+  el.innerHTML = sez.length ? `
+    <table class="tabulka" style="margin-top:10px">
+      <tr><th>E-mail</th><th class="nowrap">Registrace</th></tr>
+      ${sez.map(u => `<tr><td>${esc(u.email || '—')}</td>
+        <td class="nowrap">${u.kdy ? new Date(u.kdy).toLocaleDateString('cs-CZ') : ''}</td></tr>`).join('')}
+    </table>
+    <p class="napoveda">Jsou to osobní údaje zaměstnanců klienta. Nakládejte s nimi podle zásad zpracování.</p>`
+    : '<p class="napoveda" style="margin-top:10px">Kód zatím nikdo neuplatnil.</p>';
+}
+
+async function exportRegistrovanych(kod, nazev){
+  if(!uplatneni[kod] && !await nactiUplatneni(kod)) return;
+  const sez = uplatneni[kod] || [];
+  if(!sez.length){ hlaska('Kód zatím nikdo neuplatnil, není co stáhnout.'); return; }
+  /* Středník a BOM kvůli Excelu v češtině — jinak rozhodí diakritiku i sloupce. */
+  const radky = [['E-mail', 'Registrace', 'Kód', 'Klient']]
+    .concat(sez.map(u => [u.email || '', u.kdy ? new Date(u.kdy).toLocaleString('cs-CZ') : '', kod, nazev]));
+  const csv = '﻿' + radky.map(r => r.map(x => '"' + String(x).replace(/"/g, '""') + '"').join(';')).join('\r\n');
+  const odkaz = document.createElement('a');
+  odkaz.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'}));
+  odkaz.download = 'registrovani-' + kod.toLowerCase() + '.csv';
+  odkaz.click();
+  URL.revokeObjectURL(odkaz.href);
+  hlaska('Staženo — ' + sez.length + ' ' + mnozne(sez.length,'registrace','registrace','registrací') + '.');
+}
+
 function nahledKlienta(k){
   const pouzito = k.pouzito || 0, limit = k.zamestnancu || 0;
   const procenta = limit ? Math.min(100, Math.round(pouzito/limit*100)) : 0;
@@ -1827,6 +2320,11 @@ function nahledKlienta(k){
         <div class="vyuziti-pruh"><i style="width:${procenta}%;background:${vycerpano?'var(--err)':'var(--teal-800)'}"></i></div>
         <span>${pouzito} z ${limit} ${vycerpano?'· vyčerpáno':'· zbývá '+(k.zbyva ?? (limit-pouzito))}</span>
       </div>
+      ${k.kod ? `<div class="lista" style="margin-top:10px">
+        <button class="blok-akce" onclick="prepniRegistrovane('${esc(k.kod)}')">Kdo kód uplatnil</button>
+        <button class="blok-akce" onclick="exportRegistrovanych('${esc(k.kod)}','${esc(k.nazev)}')">Stáhnout do CSV</button>
+      </div>
+      <div id="reg-${esc(k.kod)}"></div>` : ''}
     </div>`;
 }
 
