@@ -909,7 +909,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 80</div>
+        <div class="ver">Verze 2.5 · build 81</div>
       </div>
     </div>
 
@@ -3303,7 +3303,9 @@ async function nactiObsah(){
       dotaz('v_bloky?select=*&order=poradi').catch(()=>[]),
       dotaz('sazby?select=klic,hodnota').catch(()=>[]),
       dotaz('napoje?select=nazev,objem_ml,procenta&order=poradi').catch(()=>[]),
-      dotaz('seznamy?select=druh,poradi,nadpis,text,doplnek&order=poradi').catch(()=>[])
+      /* id se načítá kvůli náhledu v administraci: podle něj se pozná,
+         na kterou položku se kliklo a který řádek se má otevřít. */
+      dotaz('seznamy?select=id,druh,poradi,nadpis,text,doplnek&order=poradi').catch(()=>[])
     ]);
     if(Array.isArray(seznamy) && seznamy.length){
       SEZNAMY = {};
@@ -3470,7 +3472,15 @@ if(NAHLED){
                popis:'Náraz zezadu na semaforu, druhý řidič uznal zavinění.'}]
   };
   let nahledPrazdno = false;   // přepíná se z administrace u textů pro prázdný stav
-  let nahledKrok = 0;          // který krok úvodních obrazovek se ukazuje
+  /* Ukázka konkrétního kroku úvodu. E-mail se doplní, ať poslední krok
+     nevypadá rozbitě — v náhledu se nikam neposílá. */
+  const uvodKrok = krok => {
+    const el = document.getElementById('onboard'); if(!el) return;
+    el.style.display = '';
+    ob.step = krok;
+    if(!ob.email) ob.email = 'jmeno@firma.cz';
+    renderOb();
+  };
   getVehicles = () => nahledPrazdno ? [] : UKAZKA.vozidla;
   getPokuty   = () => nahledPrazdno ? [] : UKAZKA.pokuty;
   getNehody   = () => nahledPrazdno ? [] : UKAZKA.nehody;
@@ -3497,9 +3507,8 @@ if(NAHLED){
       }
       if(typeof z.pristup === 'boolean'){ pristupZeServeru = z.pristup; renderStavPristupu(); renderPlan(); renderServices(); }
       if(z.tema){ nastavTema(z.tema); }
-      if(typeof z.krok === 'number') nahledKrok = z.krok;
       /* Odchod z úvodních obrazovek je zase schová. */
-      if(z.obrazovka && z.obrazovka !== 'onboard'){
+      if(z.obrazovka && !/^uvod/.test(z.obrazovka)){
         const el = document.getElementById('onboard'); if(el) el.style.display = 'none';
       }
       if(z.obrazovka){
@@ -3511,10 +3520,13 @@ if(NAHLED){
           recenze: openRecenze, oblasti: openOblasti,
           /* Spodní lišta není obrazovka — ukáže se na Přehledu. */
           nav: () => tab('prehled'),
-          /* Úvodní obrazovky: v náhledu se dají prohlédnout krok po kroku.
-             Který krok, řekne administrace zprávou {krok}. */
-          onboard: () => { const el = document.getElementById('onboard');
-            if(el){ el.style.display = ''; ob.step = nahledKrok; renderOb(); } },
+          /* Úvodní obrazovky: každý krok je v administraci samostatná
+             obrazovka, ať se v nich dá listovat stejně jako ve zbytku aplikace. */
+          uvod:         () => uvodKrok(0),
+          'uvod-body':  () => uvodKrok(1),
+          'uvod-stav':  () => uvodKrok(2),
+          'uvod-reg':   () => uvodKrok(3),
+          'uvod-cekani':() => uvodKrok(4),
           /* Článek a detail služby: ukáže se první, který je po ruce —
              jde o společné texty (zámek, tlačítka), ne o konkrétní obsah. */
           topic: () => {

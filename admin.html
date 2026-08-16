@@ -311,6 +311,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
     <button onclick="odhlas()">Odhlásit</button>
   </header>
   <div class="tabs">
+    <button id="t-uvod"     onclick="prepni('uvod')">Úvod</button>
     <button id="t-prehled"  onclick="prepni('prehled')">Přehled</button>
     <button id="t-pruvodce" class="on" onclick="prepni('pruvodce')">Průvodce</button>
     <button id="t-sluzby"   onclick="prepni('sluzby')">Služby</button>
@@ -339,6 +340,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
     </div>
 
     <!-- ===== TEXTY KARET (Přehled / Zprávy / Profil) ===== -->
+    <div id="sek-uvod"    class="panel" style="display:none"></div>
     <div id="sek-prehled" class="panel" style="display:none"></div>
     <div id="sek-zpravy"  class="panel" style="display:none"></div>
     <div id="sek-profil"  class="panel" style="display:none"></div>
@@ -468,7 +470,7 @@ async function nactiVse(){
   kresliStrom(); kresliSluzby();
 }
 
-const KARTY = ['prehled','pruvodce','sluzby','zpravy','profil','sprava'];
+const KARTY = ['uvod','prehled','pruvodce','sluzby','zpravy','profil','sprava'];
 function prepni(co){
   KARTY.forEach(k=>{
     const t=$('t-'+k); if(t) t.classList.toggle('on', k===co);
@@ -476,7 +478,7 @@ function prepni(co){
     const jeMrizka = (k==='pruvodce' || k==='sluzby');
     sek.style.display = (k===co) ? (jeMrizka ? 'grid' : 'block') : 'none';
   });
-  if(['prehled','pruvodce','sluzby','zpravy','profil'].includes(co)) kresliTexty(co);
+  if(['uvod','prehled','pruvodce','sluzby','zpravy','profil'].includes(co)) kresliTexty(co);
   if(co==='pruvodce') kresliKalkulacky();   // ta si své texty vykreslí sama
   if(co==='sprava') kresliSpravu();
   nahledKartaNastav(co);
@@ -913,38 +915,38 @@ const BEZ_NAHLEDU = ['sprava'];
    drží pořadí ze sloupce poradi. Kdyby se v aplikaci něco přesunulo, stačí
    nástroj pustit znovu — ručně se tu nic nepřepisuje. */
 const POLE_OBRAZOVKA = {
-  'onboard.uvod.stitek':'onboard',
-  'onboard.uvod.nadpis':'onboard',
-  'onboard.uvod.popis':'onboard',
-  'onboard.uvod.btn':'onboard',
-  'onboard.uvod.plocha':'onboard',
-  'onboard.body.stitek':'onboard',
-  'onboard.body.nadpis':'onboard',
-  'onboard.body.text1':'onboard',
-  'onboard.body.text2':'onboard',
-  'onboard.body.btn':'onboard',
-  'onboard.stav.stitek':'onboard',
-  'onboard.stav.nadpis':'onboard',
-  'onboard.stav.popis':'onboard',
-  'onboard.stav.jednotka':'onboard',
-  'onboard.stav.notif':'onboard',
-  'onboard.stav.btn':'onboard',
-  'onboard.stav.pozdeji':'onboard',
-  'onboard.reg.stitek':'onboard',
-  'onboard.reg.nadpis':'onboard',
-  'onboard.reg.popis':'onboard',
-  'onboard.reg.email.label':'onboard',
-  'onboard.reg.email.ph':'onboard',
-  'onboard.reg.kod.label':'onboard',
-  'onboard.reg.kod.pozn':'onboard',
-  'onboard.reg.kod.ph':'onboard',
-  'onboard.reg.btn':'onboard',
-  'onboard.reg.souhlas':'onboard',
-  'onboard.cekani.nadpis':'onboard',
-  'onboard.cekani.popis':'onboard',
-  'onboard.cekani.spam':'onboard',
-  'onboard.cekani.znovu':'onboard',
-  'onboard.cekani.jiny':'onboard',
+  'onboard.uvod.stitek':'uvod',
+  'onboard.uvod.nadpis':'uvod',
+  'onboard.uvod.popis':'uvod',
+  'onboard.uvod.btn':'uvod',
+  'onboard.uvod.plocha':'uvod',
+  'onboard.body.stitek':'uvod-body',
+  'onboard.body.nadpis':'uvod-body',
+  'onboard.body.text1':'uvod-body',
+  'onboard.body.text2':'uvod-body',
+  'onboard.body.btn':'uvod-body',
+  'onboard.stav.stitek':'uvod-stav',
+  'onboard.stav.nadpis':'uvod-stav',
+  'onboard.stav.popis':'uvod-stav',
+  'onboard.stav.jednotka':'uvod-stav',
+  'onboard.stav.notif':'uvod-stav',
+  'onboard.stav.btn':'uvod-stav',
+  'onboard.stav.pozdeji':'uvod-stav',
+  'onboard.reg.stitek':'uvod-reg',
+  'onboard.reg.nadpis':'uvod-reg',
+  'onboard.reg.popis':'uvod-reg',
+  'onboard.reg.email.label':'uvod-reg',
+  'onboard.reg.email.ph':'uvod-reg',
+  'onboard.reg.kod.label':'uvod-reg',
+  'onboard.reg.kod.pozn':'uvod-reg',
+  'onboard.reg.kod.ph':'uvod-reg',
+  'onboard.reg.btn':'uvod-reg',
+  'onboard.reg.souhlas':'uvod-reg',
+  'onboard.cekani.nadpis':'uvod-cekani',
+  'onboard.cekani.popis':'uvod-cekani',
+  'onboard.cekani.spam':'uvod-cekani',
+  'onboard.cekani.znovu':'uvod-cekani',
+  'onboard.cekani.jiny':'uvod-cekani',
   'prehled.body.nadpis':'prehled',
   'prehled.body.jednotka':'prehled',
   'prehled.body.btn1':'prehled',
@@ -1166,10 +1168,24 @@ const POLE_OBRAZOVKA = {
   'kontakt.ico':'kontakt'
 };
 
+/* Kde v pořadí obrazovky sedí který seznam. Číslo je ze stejné řady jako
+   poradi u polí, takže se texty a seznamy dají seřadit dohromady — telefony
+   se ukážou hned pod štítkem Telefony, ne až pod všemi texty. */
+const SEZNAM_MISTO = {
+  urady:    {obrazovka:'vozidla', poradi:660},
+  nehoda:   {obrazovka:'nehoda', poradi:790},
+  recenze:  {obrazovka:'recenze', poradi:670},
+  postup:   {obrazovka:'postup', poradi:690},
+  tel:      {obrazovka:'kontakt', poradi:720},
+  mail:     {obrazovka:'kontakt', poradi:740},
+  pobocka:  {obrazovka:'kontakt', poradi:760}
+};
+
 /* Obrazovky každé karty: nejdřív samotná karta, pak podobrazovky v pořadí
    odkazů, které na ně vedou. */
 const OBRAZOVKY_KARTY = {
-  prehled:  ['onboard', 'prehled', 'nav', 'points-help', 'vozidla', 'nehoda'],
+  uvod:     ['uvod', 'uvod-body', 'uvod-stav', 'uvod-reg', 'uvod-cekani'],
+  prehled:  ['prehled', 'nav', 'points-help', 'vozidla', 'nehoda'],
   pruvodce: ['pruvodce', 'oblasti', 'topic', 'calc'],
   sluzby:   ['sluzby', 'service-detail'],
   zpravy:   ['zpravy', 'konzultace'],
@@ -1177,7 +1193,11 @@ const OBRAZOVKY_KARTY = {
 };
 
 const NAZEV_OBRAZOVKY = {
-  'onboard': ['Úvodní obrazovky', 'Pět kroků, které uvidí nový uživatel hned po instalaci — než se dostane do aplikace.'],
+  'uvod': ['1. Uvítání', 'První obrazovka po instalaci — než se uživatel dostane do aplikace.'],
+  'uvod-body': ['2. Proč sledovat body', 'Druhý krok úvodu.'],
+  'uvod-stav': ['3. Kolik máte bodů', 'Třetí krok — uživatel si nastaví bodový stav.'],
+  'uvod-reg': ['4. Registrace e-mailem', 'Čtvrtý krok — e-mail a nepovinný firemní kód.'],
+  'uvod-cekani': ['5. Čekání na potvrzení', 'Poslední krok — než uživatel klepne na odkaz v e-mailu.'],
   'prehled': ['Přehled', ''],
   'nav': ['Spodní lišta', 'Názvy pěti tlačítek dole v aplikaci.'],
   'points-help': ['Jak zjistit body', 'Otevře se z Přehledu tlačítkem „Jak zjistit body".'],
@@ -1460,6 +1480,8 @@ function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ?
 
 
 
+
+
 function nazevObrazovky(o){ return (NAZEV_OBRAZOVKY[o] || [o, ''])[0]; }
 function popisObrazovky(o){ return (NAZEV_OBRAZOVKY[o] || [o, ''])[1]; }
 
@@ -1471,7 +1493,7 @@ const NAHLED_PODOBRAZOVKY = (() => {
   m.sprava = [['prehled', 'Přehled']];
   return m;
 })();
-const NAZEV_KARTY = {prehled:'Přehled', pruvodce:'Průvodce', sluzby:'Služby',
+const NAZEV_KARTY = {uvod:'Úvod', prehled:'Přehled', pruvodce:'Průvodce', sluzby:'Služby',
                      zpravy:'Zprávy', profil:'Profil', sprava:'Administrace'};
 
 /* Z čí perspektivy se náhled kreslí. Bez tohohle je snadné zapomenout,
@@ -2482,8 +2504,8 @@ function seznamyObrazovky(obrazovka){
 }
 
 /* ---------- texty karet ---------- */
-const NAZVY_KARET = {prehled:'Přehled', pruvodce:'Průvodce', sluzby:'Služby',
-                    zpravy:'Zprávy', profil:'Profil', kalk:'Kalkulačka'};
+const NAZVY_KARET = {uvod:'Úvodní obrazovky', prehled:'Přehled', pruvodce:'Průvodce',
+                    sluzby:'Služby', zpravy:'Zprávy', profil:'Profil', kalk:'Kalkulačka'};
 
 function kresliTexty(karta){
   const sek = $('texty-'+karta) || $('sek-'+karta);
@@ -2504,13 +2526,25 @@ function kresliTexty(karta){
     if(!obrazovky.includes(o)) obrazovky.push(o);
   });
 
-  const skupiny = obrazovky.map(o => ({
-    obrazovka: o,
-    nazev: nazevObrazovky(o),
-    popis: popisObrazovky(o),
-    polozky: polozky.filter(t => obrazovkaKlice(t.klic) === o),
-    seznamy: seznamyObrazovky(o)
-  })).filter(s => s.polozky.length || s.seznamy.length);
+  /* Uvnitř sekce jdou texty a seznamy promíchané tak, jak jdou v aplikaci:
+     štítek Telefony, telefony, štítek E-mail, e-maily… Řadí se podle jednoho
+     čísla — pole podle sloupce poradi, seznam podle SEZNAM_MISTO. */
+  const skupiny = obrazovky.map(o => {
+    const radky = polozky.filter(t => obrazovkaKlice(t.klic) === o)
+      .map(t => ({ typ: 'pole', t, poradi: t.poradi || 0 }));
+    seznamyObrazovky(o).forEach(druh => radky.push({
+      typ: 'seznam', druh, poradi: (SEZNAM_MISTO[druh] || {}).poradi || 1e9
+    }));
+    radky.sort((a, b) => a.poradi - b.poradi);
+    return {
+      obrazovka: o,
+      nazev: nazevObrazovky(o),
+      popis: popisObrazovky(o),
+      radky,
+      polozky: radky.filter(r => r.typ === 'pole'),
+      seznamy: radky.filter(r => r.typ === 'seznam').map(r => r.druh)
+    };
+  }).filter(s => s.radky.length);
 
   sek.innerHTML = `<div class="panel">
     <h2>${NAZVY_KARET[karta]||karta} — texty v aplikaci</h2>
@@ -2522,13 +2556,13 @@ function kresliTexty(karta){
         <summary>${esc(s.nazev)}<span class="pocet">${s.polozky.length} ${mnozne(s.polozky.length,'pole','pole','polí')}</span></summary>
         <div class="sekce-telo">
           ${s.popis ? `<p class="napoveda" style="margin:-2px 0 12px">${esc(s.popis)}</p>` : ''}
-          ${s.polozky.map(poleTextu).join('')}
-          ${s.seznamy.map(sekceSeznamu).join('')}
+          ${s.radky.map(r => r.typ === 'pole' ? poleTextu(r.t) : sekceSeznamu(r.druh)).join('')}
         </div>
       </details>`).join('')}
     <div class="lista" style="margin-top:14px">
       <button class="btn btn-hlavni" data-ulozit onclick="ulozTexty('${karta}')">Uložit</button>
-      <button class="btn btn-vedl" onclick="novyBlok('${karta}')">+ Přidat vlastní blok</button>
+      ${karta === 'uvod' ? '' :
+        `<button class="btn btn-vedl" onclick="novyBlok('${karta}')">+ Přidat vlastní blok</button>`}
     </div>
     </div>
     ${karta === 'zpravy' ? '<div class="panel" style="margin-top:16px">' + sekceZprav() + '</div>' : ''}`;
@@ -2638,12 +2672,8 @@ function naNahled(klic){
     posliNahled({ garaz: g ? g[1] : (klic === 'garaz.zrusit' ? 'vozidlo' : '') });
   }
   if(/^kalk\.btn\./.test(klic)) posliNahled({ kalk: klic.endsWith('sodhadem') ? 'sodhadem' : 'bezodhadu' });
-  /* Úvodní obrazovky mají pět kroků — náhled ukáže ten, ke kterému pole patří. */
-  if(/^onboard\./.test(klic)){
-    const KROKY = {uvod:0, body:1, stav:2, reg:3, cekani:4};
-    posliNahled({ krok: KROKY[klic.split('.')[1]] || 0 });
-    posliNahled({ obrazovka: 'onboard' });
-  }
+  /* Úvodní obrazovky jsou pět samostatných obrazovek — náhled ukáže tu,
+     ke které pole patří. O krok se postará aplikace podle jejího názvu. */
   posliNahled({ zvyrazni: klic });
 }
 
