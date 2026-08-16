@@ -909,7 +909,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 78</div>
+        <div class="ver">Verze 2.5 · build 79</div>
       </div>
     </div>
 
@@ -2492,14 +2492,17 @@ function obCekani(){
   B.innerHTML = '<div class="ob-step"><div class="ob-fill"></div>'+
     '<div style="text-align:center;">'+
     '<svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#F4B59D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:14px;"><rect x="2.6" y="4.8" width="18.8" height="14.4" rx="2.4"/><path d="M3.4 6.6l8.6 6 8.6-6"/></svg>'+
-    '<h1 class="title-lg" style="font-size:24px;">Otevřete si e-mail</h1>'+
-    '<p style="font-size:14px;margin-top:10px;">Poslali jsme odkaz na <b>'+(ob.email||'')+'</b>. '+
-      'Klepnutím na něj potvrdíte adresu a aplikace se otevře.</p>'+
-    '<p style="font-size:12.5px;opacity:.72;margin-top:14px;">Nepřišel? Podívejte se do spamu — '+
-      'první zpráva tam občas spadne.</p></div>'+
+    '<h1 class="title-lg" data-text="onboard.cekani.nadpis" style="font-size:24px;">'+txt('onboard.cekani.nadpis','Otevřete si e-mail')+'</h1>'+
+    /* Text obsahuje tučnou adresu, takže se nedá jen dosadit jako holý text —
+       značka je proto data-zdroj, podle které ho náhled pozná taky. */
+    '<p data-zdroj="text:onboard.cekani.popis" style="font-size:14px;margin-top:10px;">'+
+      txt('onboard.cekani.popis','Poslali jsme odkaz na {email}. Klepnutím na něj potvrdíte adresu a aplikace se otevře.',
+          {email: '<b>'+(ob.email||'')+'</b>'})+'</p>'+
+    '<p data-text="onboard.cekani.spam" style="font-size:12.5px;opacity:.72;margin-top:14px;">'+
+      txt('onboard.cekani.spam','Nepřišel? Podívejte se do spamu — první zpráva tam občas spadne.')+'</p></div>'+
     '<div class="ob-fill"></div>'+
-    '<button class="btn btn-outline" onclick="obZnovu()">Poslat znovu</button>'+
-    '<button class="ob-free" style="margin-top:4px;" onclick="obZpetNaEmail()">Zadat jiný e-mail</button></div>';
+    '<button class="btn btn-outline" data-text="onboard.cekani.znovu" onclick="obZnovu()">'+txt('onboard.cekani.znovu','Poslat znovu')+'</button>'+
+    '<button class="ob-free" data-text="onboard.cekani.jiny" style="margin-top:4px;" onclick="obZpetNaEmail()">'+txt('onboard.cekani.jiny','Zadat jiný e-mail')+'</button></div>';
   document.getElementById('obDots').style.visibility = 'hidden';
 }
 function obZpetNaEmail(){ document.getElementById('obDots').style.visibility='visible'; ob.step=3; renderOb(); }
@@ -2544,54 +2547,53 @@ function renderOb(){
     B.innerHTML='<div class="ob-step"><div class="ob-fill"></div>'+
       '<img src="logo-full-dark.png" alt="Práva řidiče" style="width:100%;max-width:280px;align-self:center;margin:0 0 6px;" />'+
       '<div class="ob-fill"></div>'+
-      '<div class="ob-eyebrow">Právní ochrana řidiče</div>'+
-      '<h1 class="title-xl">Zachráníme<br/>vám řidičák.</h1>'+
-      '<p>Sledujte si bodový stav, dostávejte upozornění a mějte právníka po ruce. Pevná cena, obhajoba po celé ČR.</p>'+
-      '<div class="ob-actions"><button class="btn btn-peach" onclick="obGo(1)">Začít</button>'+
-      '<button class="btn btn-install" id="obInstallBtn" onclick="openInstallSheet()"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>Přidat aplikaci na plochu</button></div></div>';
+      '<div class="ob-eyebrow" data-text="onboard.uvod.stitek">'+txt('onboard.uvod.stitek','Právní ochrana řidiče')+'</div>'+
+      '<h1 class="title-xl" data-text="onboard.uvod.nadpis">'+txt('onboard.uvod.nadpis','Zachráníme vám řidičák.')+'</h1>'+
+      '<p data-text="onboard.uvod.popis">'+txt('onboard.uvod.popis','Sledujte si bodový stav, dostávejte upozornění a mějte právníka po ruce. Pevná cena, obhajoba po celé ČR.')+'</p>'+
+      '<div class="ob-actions"><button class="btn btn-peach" data-text="onboard.uvod.btn" onclick="obGo(1)">'+txt('onboard.uvod.btn','Začít')+'</button>'+
+      '<button class="btn btn-install" id="obInstallBtn" onclick="openInstallSheet()"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg><span data-text="onboard.uvod.plocha">'+txt('onboard.uvod.plocha','Přidat aplikaci na plochu')+'</span></button></div></div>';
     if(isStandalone()) hideInstallUI();
     return;
   }
   if(ob.step===1){
     B.innerHTML='<div class="ob-step"><div style="height:26px;"></div>'+
-      '<div class="ob-eyebrow">Proč sledovat body</div>'+
-      '<h1 class="title-lg" style="font-size:30px;">Vybodování se dá předejít.</h1>'+
-      '<p style="font-size:15.5px;">Po nasbírání 12 bodů přijdete o řidičský průkaz na 12 měsíců. Bodový stav lze ověřit jen u úřadu, takže mnoho řidičů ho zná až ve chvíli, kdy je pozdě.</p>'+
-      '<p style="font-size:15.5px;margin-top:12px;">Aplikace vám pomůže držet přehled. Když si zaznamenáte aktuální stav, uvidíte varování na kartě Zprávy — typicky už při 9 bodech — abyste měli čas reagovat.</p>'+
+      '<div class="ob-eyebrow" data-text="onboard.body.stitek">'+txt('onboard.body.stitek','Proč sledovat body')+'</div>'+
+      '<h1 class="title-lg" data-text="onboard.body.nadpis" style="font-size:30px;">'+txt('onboard.body.nadpis','Vybodování se dá předejít.')+'</h1>'+
+      '<p data-text="onboard.body.text1" style="font-size:15.5px;">'+txt('onboard.body.text1','Po nasbírání 12 bodů přijdete o řidičský průkaz na 12 měsíců. Bodový stav lze ověřit jen u úřadu, takže mnoho řidičů ho zná až ve chvíli, kdy je pozdě.')+'</p>'+
+      '<p data-text="onboard.body.text2" style="font-size:15.5px;margin-top:12px;">'+txt('onboard.body.text2','Aplikace vám pomůže držet přehled. Když si zaznamenáte aktuální stav, uvidíte varování na kartě Zprávy — typicky už při 9 bodech — abyste měli čas reagovat.')+'</p>'+
       '<div class="ob-fill"></div>'+
-      '<div class="ob-actions"><button class="btn btn-peach" onclick="obGo(1)">Pokračovat</button></div></div>';
+      '<div class="ob-actions"><button class="btn btn-peach" data-text="onboard.body.btn" onclick="obGo(1)">'+txt('onboard.body.btn','Pokračovat')+'</button></div></div>';
     return;
   }
   if(ob.step===2){
     B.innerHTML='<div class="ob-step"><div style="height:26px;"></div>'+
-      '<div class="ob-eyebrow">Aktuální stav</div>'+
-      '<h1 class="title-lg" style="font-size:30px;">Kolik máte aktuálně bodů?</h1>'+
-      '<p style="font-size:15px;">Nastavte stav z karty řidiče. Můžete vyplnit i později v profilu.</p>'+
+      '<div class="ob-eyebrow" data-text="onboard.stav.stitek">'+txt('onboard.stav.stitek','Aktuální stav')+'</div>'+
+      '<h1 class="title-lg" data-text="onboard.stav.nadpis" style="font-size:30px;">'+txt('onboard.stav.nadpis','Kolik máte aktuálně bodů?')+'</h1>'+
+      '<p data-text="onboard.stav.popis" style="font-size:15px;">'+txt('onboard.stav.popis','Nastavte stav z karty řidiče. Můžete vyplnit i později v profilu.')+'</p>'+
       '<div class="ob-fill"></div>'+
       '<div class="ob-count"><button class="round-btn" onclick="obPoints(-1)">−</button><div class="num">'+ob.points+'</div><button class="round-btn" onclick="obPoints(1)">+</button></div>'+
-      '<div style="text-align:center;font-size:13px;color:rgba(255,255,255,.7);margin-bottom:14px;">z 12 bodů</div>'+
-      '<div class="ob-note" onclick="ob.notif=!ob.notif;renderOb()"><div class="toggle '+(ob.notif?'on':'')+'" style="pointer-events:none;"></div><div class="tx">Chci dostávat upozornění, když se přiblížím k 12 bodům.</div></div>'+
+      '<div data-text="onboard.stav.jednotka" style="text-align:center;font-size:13px;color:rgba(255,255,255,.7);margin-bottom:14px;">'+txt('onboard.stav.jednotka','z 12 bodů')+'</div>'+
+      '<div class="ob-note" onclick="ob.notif=!ob.notif;renderOb()"><div class="toggle '+(ob.notif?'on':'')+'" style="pointer-events:none;"></div><div class="tx" data-text="onboard.stav.notif">'+txt('onboard.stav.notif','Chci dostávat upozornění, když se přiblížím k 12 bodům.')+'</div></div>'+
       '<div class="ob-fill"></div>'+
-      '<div class="ob-actions"><button class="btn btn-peach" onclick="obFinish(true)">Dokončit</button>'+
-      '<button class="btn btn-outline" onclick="obFinish(false)">Vyplním později</button></div></div>';
+      '<div class="ob-actions"><button class="btn btn-peach" data-text="onboard.stav.btn" onclick="obFinish(true)">'+txt('onboard.stav.btn','Dokončit')+'</button>'+
+      '<button class="btn btn-outline" data-text="onboard.stav.pozdeji" onclick="obFinish(false)">'+txt('onboard.stav.pozdeji','Vyplním později')+'</button></div></div>';
     return;
   }
   B.innerHTML='<div class="ob-step"><div style="height:18px;"></div>'+
-    '<div class="ob-eyebrow">Registrace</div>'+
-    '<h1 class="title-lg" style="font-size:25px;">Ještě váš e-mail a jsme hotovi.</h1>'+
-    '<p style="font-size:13.5px;margin-top:9px;">Pošleme na něj potvrzovací odkaz. Slouží k zálohování bodů, '+
-      'zprávám od advokáta a k aktivaci plného přístupu.</p>'+
+    '<div class="ob-eyebrow" data-text="onboard.reg.stitek">'+txt('onboard.reg.stitek','Registrace')+'</div>'+
+    '<h1 class="title-lg" data-text="onboard.reg.nadpis" style="font-size:25px;">'+txt('onboard.reg.nadpis','Ještě váš e-mail a jsme hotovi.')+'</h1>'+
+    '<p data-text="onboard.reg.popis" style="font-size:13.5px;margin-top:9px;">'+txt('onboard.reg.popis','Pošleme na něj potvrzovací odkaz. Slouží k zálohování bodů, zprávám od advokáta a k aktivaci plného přístupu.')+'</p>'+
     '<div class="ob-fill"></div>'+
-    '<div class="ob-eyebrow" style="margin-bottom:7px;">Váš e-mail</div>'+
-    '<input class="ob-code" id="obEmail" type="email" inputmode="email" autocomplete="email" '+
-      'autocapitalize="off" spellcheck="false" placeholder="jmeno@firma.cz" style="text-align:left;letter-spacing:0;" '+
+    '<div class="ob-eyebrow" data-text="onboard.reg.email.label" style="margin-bottom:7px;">'+txt('onboard.reg.email.label','Váš e-mail')+'</div>'+
+    '<input class="ob-code" id="obEmail" type="email" inputmode="email" autocomplete="email" data-ph="onboard.reg.email.ph" '+
+      'autocapitalize="off" spellcheck="false" placeholder="'+txt('onboard.reg.email.ph','jmeno@firma.cz')+'" style="text-align:left;letter-spacing:0;" '+
       'value="'+(ob.email||'')+'" />'+
-    '<div class="ob-eyebrow" style="margin:14px 0 7px;">Firemní kód <span style="opacity:.6;font-weight:400;">— nepovinné</span></div>'+
-    '<input class="ob-code" id="obCodeInput" autocapitalize="characters" placeholder="např. FIRMA-4K2A" value="'+(ob.kod||'')+'" />'+
+    '<div class="ob-eyebrow" style="margin:14px 0 7px;"><span data-text="onboard.reg.kod.label">'+txt('onboard.reg.kod.label','Firemní kód')+'</span> <span data-text="onboard.reg.kod.pozn" style="opacity:.6;font-weight:400;">'+txt('onboard.reg.kod.pozn','— nepovinné')+'</span></div>'+
+    '<input class="ob-code" id="obCodeInput" autocapitalize="characters" data-ph="onboard.reg.kod.ph" placeholder="'+txt('onboard.reg.kod.ph','např. FIRMA-4K2A')+'" value="'+(ob.kod||'')+'" />'+
     '<div id="obChyba" class="ob-chyba"></div>'+
-    '<button class="btn btn-peach" style="margin-top:14px;" id="obOdeslat" onclick="obRegistrace()">Pokračovat</button>'+
-    '<p style="font-size:11.5px;opacity:.72;margin-top:9px;text-align:center;">'+
-      'Odesláním souhlasíte se zpracováním osobních údajů.</p></div>';
+    '<button class="btn btn-peach" data-text="onboard.reg.btn" style="margin-top:14px;" id="obOdeslat" onclick="obRegistrace()">'+txt('onboard.reg.btn','Pokračovat')+'</button>'+
+    '<p data-text="onboard.reg.souhlas" style="font-size:11.5px;opacity:.72;margin-top:9px;text-align:center;">'+
+      txt('onboard.reg.souhlas','Odesláním souhlasíte se zpracováním osobních údajů.')+'</p></div>';
 
 }
 
@@ -3338,6 +3340,10 @@ async function nactiObsah(){
     if(texty && texty.length){
       TXT={}; texty.forEach(t=>{ TXT[t.klic]=t.hodnota; });
       pouzijTexty();
+      /* Úvodní obrazovky se kreslí dřív, než dorazí texty z databáze —
+         po jejich načtení se překreslí, jinak by na nich zůstalo vestavěné znění. */
+      try { const ob0 = document.getElementById('onboard');
+            if(ob0 && ob0.style.display !== 'none') renderOb(); } catch(e) {}
       /* vlastní bloky přidané v administraci: klíč začíná 'blok.<karta>.' */
       ['prehled','pruvodce','sluzby','zpravy','profil'].forEach(karta=>{
         const cil=document.getElementById('bloky-'+karta); if(!cil) return;
@@ -3464,13 +3470,14 @@ if(NAHLED){
                popis:'Náraz zezadu na semaforu, druhý řidič uznal zavinění.'}]
   };
   let nahledPrazdno = false;   // přepíná se z administrace u textů pro prázdný stav
+  let nahledKrok = 0;          // který krok úvodních obrazovek se ukazuje
   getVehicles = () => nahledPrazdno ? [] : UKAZKA.vozidla;
   getPokuty   = () => nahledPrazdno ? [] : UKAZKA.pokuty;
   getNehody   = () => nahledPrazdno ? [] : UKAZKA.nehody;
   setVehicles = () => {}; setPokuty = () => {}; setNehody = () => {};
   state.points = 9;
   try { localStorage.setItem('pr-onboarded', '1'); } catch(e) {}
-  const ob = document.getElementById('onboard'); if(ob) ob.style.display = 'none';
+  const uvodEl = document.getElementById('onboard'); if(uvodEl) uvodEl.style.display = 'none';
   try { enterApp(); } catch(e) {}
   /* v náhledu nemá co vyskakovat — ani nabídka instalace, ani hlášky */
   const schovej = () => { try { if(window.closeInstallSheet) closeInstallSheet(); } catch(e) {}
@@ -3490,6 +3497,11 @@ if(NAHLED){
       }
       if(typeof z.pristup === 'boolean'){ pristupZeServeru = z.pristup; renderStavPristupu(); renderPlan(); renderServices(); }
       if(z.tema){ nastavTema(z.tema); }
+      if(typeof z.krok === 'number') nahledKrok = z.krok;
+      /* Odchod z úvodních obrazovek je zase schová. */
+      if(z.obrazovka && z.obrazovka !== 'onboard'){
+        const el = document.getElementById('onboard'); if(el) el.style.display = 'none';
+      }
       if(z.obrazovka){
         /* Některé obrazovky se před zobrazením musí sestavit — bez toho by
            v náhledu zůstaly prázdné. */
@@ -3499,6 +3511,10 @@ if(NAHLED){
           recenze: openRecenze, oblasti: openOblasti,
           /* Spodní lišta není obrazovka — ukáže se na Přehledu. */
           nav: () => tab('prehled'),
+          /* Úvodní obrazovky: v náhledu se dají prohlédnout krok po kroku.
+             Který krok, řekne administrace zprávou {krok}. */
+          onboard: () => { const el = document.getElementById('onboard');
+            if(el){ el.style.display = ''; ob.step = nahledKrok; renderOb(); } },
           /* Článek a detail služby: ukáže se první, který je po ruce —
              jde o společné texty (zámek, tlačítka), ne o konkrétní obsah. */
           topic: () => {
@@ -3506,7 +3522,7 @@ if(NAHLED){
                článek — jinak by nebyl vidět text zámku, který se právě upravuje. */
             /* Zamčení se v náhledu jen předstírá. Původní stav se vrací,
                jinak by článek zůstal zamčený i po přepnutí na plný přístup. */
-            GUIDE.forEach(ob => (ob.topics||[]).forEach(x => {
+            GUIDE.forEach(oblast => (oblast.topics||[]).forEach(x => {
               if(x._zamcenoPuv === undefined) x._zamcenoPuv = !!x.zamceno;
               x.zamceno = x._zamcenoPuv;
             }));

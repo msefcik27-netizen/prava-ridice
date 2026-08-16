@@ -909,6 +909,38 @@ const BEZ_NAHLEDU = ['sprava'];
    drží pořadí ze sloupce poradi. Kdyby se v aplikaci něco přesunulo, stačí
    nástroj pustit znovu — ručně se tu nic nepřepisuje. */
 const POLE_OBRAZOVKA = {
+  'onboard.uvod.stitek':'onboard',
+  'onboard.uvod.nadpis':'onboard',
+  'onboard.uvod.popis':'onboard',
+  'onboard.uvod.btn':'onboard',
+  'onboard.uvod.plocha':'onboard',
+  'onboard.body.stitek':'onboard',
+  'onboard.body.nadpis':'onboard',
+  'onboard.body.text1':'onboard',
+  'onboard.body.text2':'onboard',
+  'onboard.body.btn':'onboard',
+  'onboard.stav.stitek':'onboard',
+  'onboard.stav.nadpis':'onboard',
+  'onboard.stav.popis':'onboard',
+  'onboard.stav.jednotka':'onboard',
+  'onboard.stav.notif':'onboard',
+  'onboard.stav.btn':'onboard',
+  'onboard.stav.pozdeji':'onboard',
+  'onboard.reg.stitek':'onboard',
+  'onboard.reg.nadpis':'onboard',
+  'onboard.reg.popis':'onboard',
+  'onboard.reg.email.label':'onboard',
+  'onboard.reg.email.ph':'onboard',
+  'onboard.reg.kod.label':'onboard',
+  'onboard.reg.kod.pozn':'onboard',
+  'onboard.reg.kod.ph':'onboard',
+  'onboard.reg.btn':'onboard',
+  'onboard.reg.souhlas':'onboard',
+  'onboard.cekani.nadpis':'onboard',
+  'onboard.cekani.popis':'onboard',
+  'onboard.cekani.spam':'onboard',
+  'onboard.cekani.znovu':'onboard',
+  'onboard.cekani.jiny':'onboard',
   'prehled.body.nadpis':'prehled',
   'prehled.body.jednotka':'prehled',
   'prehled.body.btn1':'prehled',
@@ -1133,7 +1165,7 @@ const POLE_OBRAZOVKA = {
 /* Obrazovky každé karty: nejdřív samotná karta, pak podobrazovky v pořadí
    odkazů, které na ně vedou. */
 const OBRAZOVKY_KARTY = {
-  prehled:  ['prehled', 'nav', 'points-help', 'vozidla', 'nehoda'],
+  prehled:  ['onboard', 'prehled', 'nav', 'points-help', 'vozidla', 'nehoda'],
   pruvodce: ['pruvodce', 'oblasti', 'topic', 'calc'],
   sluzby:   ['sluzby', 'service-detail'],
   zpravy:   ['zpravy', 'konzultace'],
@@ -1141,6 +1173,7 @@ const OBRAZOVKY_KARTY = {
 };
 
 const NAZEV_OBRAZOVKY = {
+  'onboard': ['Úvodní obrazovky', 'Pět kroků, které uvidí nový uživatel hned po instalaci — než se dostane do aplikace.'],
   'prehled': ['Přehled', ''],
   'nav': ['Spodní lišta', 'Názvy pěti tlačítek dole v aplikaci.'],
   'points-help': ['Jak zjistit body', 'Otevře se z Přehledu tlačítkem „Jak zjistit body".'],
@@ -1165,6 +1198,38 @@ const NAZEV_OBRAZOVKY = {
 /* Kolik znaků se do pole vejde. Delší text administrace nepustí — v aplikaci
    by přetekl z karty nebo rozhodil řádek. Vygenerováno (nastroje/admin-limity.py). */
 const LIMIT_POLE = {
+  'onboard.uvod.stitek':40,
+  'onboard.uvod.nadpis':60,
+  'onboard.uvod.popis':400,
+  'onboard.uvod.btn':30,
+  'onboard.uvod.plocha':120,
+  'onboard.body.stitek':30,
+  'onboard.body.nadpis':60,
+  'onboard.body.text1':400,
+  'onboard.body.text2':400,
+  'onboard.body.btn':30,
+  'onboard.stav.stitek':30,
+  'onboard.stav.nadpis':60,
+  'onboard.stav.popis':400,
+  'onboard.stav.jednotka':30,
+  'onboard.stav.notif':400,
+  'onboard.stav.btn':30,
+  'onboard.stav.pozdeji':120,
+  'onboard.reg.stitek':30,
+  'onboard.reg.nadpis':60,
+  'onboard.reg.popis':400,
+  'onboard.reg.email.label':120,
+  'onboard.reg.email.ph':60,
+  'onboard.reg.kod.label':120,
+  'onboard.reg.kod.pozn':160,
+  'onboard.reg.kod.ph':60,
+  'onboard.reg.btn':30,
+  'onboard.reg.souhlas':400,
+  'onboard.cekani.nadpis':60,
+  'onboard.cekani.popis':400,
+  'onboard.cekani.spam':400,
+  'onboard.cekani.znovu':120,
+  'onboard.cekani.jiny':120,
   'prehled.body.nadpis':60,
   'prehled.body.jednotka':30,
   'prehled.body.btn1':30,
@@ -1388,6 +1453,7 @@ const LIMIT_POLE = {
 /* Vlastní bloky a co v tabulce přibylo později: rozumný strop, ať to nikdy
    nespadne na „bez omezení". */
 function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ? 400 : 200); }
+
 
 
 function nazevObrazovky(o){ return (NAZEV_OBRAZOVKY[o] || [o, ''])[0]; }
@@ -2548,6 +2614,12 @@ function naNahled(klic){
     posliNahled({ garaz: g ? g[1] : (klic === 'garaz.zrusit' ? 'vozidlo' : '') });
   }
   if(/^kalk\.btn\./.test(klic)) posliNahled({ kalk: klic.endsWith('sodhadem') ? 'sodhadem' : 'bezodhadu' });
+  /* Úvodní obrazovky mají pět kroků — náhled ukáže ten, ke kterému pole patří. */
+  if(/^onboard\./.test(klic)){
+    const KROKY = {uvod:0, body:1, stav:2, reg:3, cekani:4};
+    posliNahled({ krok: KROKY[klic.split('.')[1]] || 0 });
+    posliNahled({ obrazovka: 'onboard' });
+  }
   posliNahled({ zvyrazni: klic });
 }
 
