@@ -310,7 +310,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 90</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 91</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -518,7 +518,10 @@ function vykresliOblast(o){
   const deti = otevreno ? `<ul class="deti">
       ${podoblasti.map(vykresliOblast).join('')}
       ${cl.map(vykresliClanek).join('')}
-      ${(!podoblasti.length && !cl.length) ? '<li class="prazdno" style="padding:8px;font-size:12.5px">prázdné</li>' : ''}
+      ${(!podoblasti.length && !cl.length) ? `<li class="prazdno" style="padding:8px;font-size:12.5px">
+          zatím žádný článek —
+          <b style="color:var(--teal-800);cursor:pointer" onclick="event.stopPropagation();
+             vyberOblast('${o.id}'); novyClanek();">přidat článek</b></li>` : ''}
     </ul>` : '';
   return `<li class="uzel">
     <div class="radek ${vyb?'on':''}" onclick="vyberOblast('${o.id}')">
@@ -602,6 +605,9 @@ function editorOblasti(){
     .map(x => `<option value="${x.id}" ${o.rodic_id===x.id?'selected':''}>${esc(x.nazev)}</option>`).join('');
   $('editor').innerHTML = `
     <h2>Oblast</h2>
+    <p class="napoveda" style="margin:-6px 0 14px">Oblast je jen složka — sama žádný text nemá.
+       Obsah se píše do článků uvnitř ní: tlačítkem <b>+ Článek do této oblasti</b> dole
+       a pak v editoru článku (perex a stavebnice odstavců, mezinadpisů, upozornění…).</p>
     <div class="pole"><label>Název</label><input type="text" id="f-nazev" value="${esc(o.nazev)}"></div>
     <div class="radky2">
       <div class="pole"><label>Nadřazená oblast</label>
@@ -620,6 +626,7 @@ function editorOblasti(){
       <div class="knof"></div></div>
     <div class="lista">
       <button class="btn btn-hlavni" data-ulozit onclick="ulozOblast()">Uložit</button>
+      <button class="btn btn-vedl" onclick="vyberOblast('${o.id}'); novyClanek()">+ Článek do této oblasti</button>
       <button class="btn btn-vedl" onclick="novaOblast('${o.id}')">+ Podoblast</button>
       <button class="btn btn-smaz vpravo" onclick="smazOblast('${o.id}')">Smazat oblast</button>
     </div>`;
