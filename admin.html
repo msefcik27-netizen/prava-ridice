@@ -310,7 +310,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 84</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 85</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -2565,7 +2565,7 @@ function kresliTexty(karta){
         </div>
       </details>`).join('')}
     <div class="lista" style="margin-top:14px">
-      <button class="btn btn-hlavni" data-ulozit onclick="ulozTexty('${karta}')">Uložit</button>
+      <button class="btn btn-hlavni" data-ulozit="hlavni" onclick="ulozTexty('${karta}', false, this)">Uložit</button>
       ${karta === 'uvod' ? '' :
         `<button class="btn btn-vedl" onclick="novyBlok('${karta}')">+ Přidat vlastní blok</button>`}
     </div>
@@ -2709,7 +2709,9 @@ function naNahled(klic){
   posliNahled({ zvyrazni: klic });
 }
 
-async function ulozTexty(karta, potichu){
+async function ulozTexty(karta, potichu, btn){
+  /* Když se nic nezměnilo, tlačítko se jmenuje Zavřít — tak ať zavře. */
+  if(btn && !btn.dataset.zmeneno){ zavriSekce(btn); return; }
   const polozky = texty.filter(t => t.karta === karta);
   const zmenene = [];
   polozky.forEach(t => {
@@ -2803,20 +2805,34 @@ async function smazBlok(klic){
    Dokud se nic nezmění, hlavní tlačítko říká „Zavřít" a jen zavře.
    Jakmile se něco změní, přepne se na „Uložit" a zvýrazní se.
    Odpadá tím rozhodování, jestli je potřeba ukládat, i zbytečné zápisy. */
-function stavFormulare(el){
+/* Stav formuláře pro porovnání „změnilo se něco?". Seznamy a rozepsané bloky
+   mají vlastní tlačítko Uložit, proto se do stavu hlavního tlačítka nepočítají —
+   jinak by hlásilo změnu u něčeho, co samo neuloží. */
+function stavFormulare(el, jenSve){
   const casti = [];
-  el.querySelectorAll('input,textarea,select').forEach(x => casti.push(x.value));
-  el.querySelectorAll('.prepinac').forEach(x => casti.push(x.classList.contains('zap') ? '1' : '0'));
+  const vlastni = x => !jenSve || !x.closest('.podsekce, .blok-edit');
+  el.querySelectorAll('input,textarea,select').forEach(x => { if(vlastni(x)) casti.push(x.value); });
+  el.querySelectorAll('.prepinac').forEach(x => {
+    if(vlastni(x)) casti.push(x.classList.contains('zap') ? '1' : '0');
+  });
   return casti.join('\u0001');
+}
+
+/* „Zavřít" musí opravdu zavřít — sbalí otevřené sekce a odscrolluje nahoru. */
+function zavriSekce(btn){
+  const koren = btn.closest('.panel') || document;
+  koren.querySelectorAll('details.sekce[open]').forEach(d => { d.open = false; });
+  koren.scrollIntoView({ block: 'start', behavior: 'smooth' });
 }
 
 function hlidejFormular(el){
   if(!el) return;
-  const btn = el.querySelector('[data-ulozit]');
+  const btn = el.querySelector('[data-ulozit="hlavni"]') || el.querySelector('[data-ulozit]');
   if(!btn) return;
-  const puvodni = stavFormulare(el);
+  const jenSve = btn.dataset.ulozit === 'hlavni';
+  const puvodni = stavFormulare(el, jenSve);
   const prekresli = () => {
-    const zmeneno = stavFormulare(el) !== puvodni;
+    const zmeneno = stavFormulare(el, jenSve) !== puvodni;
     btn.dataset.zmeneno = zmeneno ? '1' : '';
     btn.textContent = zmeneno ? 'Uložit' : 'Zavřít';
     btn.classList.toggle('btn-hlavni', zmeneno);
@@ -2825,6 +2841,14 @@ function hlidejFormular(el){
   el.addEventListener('input', prekresli);
   el.addEventListener('change', prekresli);
   el.addEventListener('click', () => setTimeout(prekresli, 0));
+  /* Dokud se nic nezměnilo, tlačítko se jmenuje Zavřít a taky zavírá —
+     ukládací funkce se vůbec nespustí. */
+  btn.addEventListener('click', ev => {
+    if(btn.dataset.zmeneno) return;
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+    zavriSekce(btn);
+  }, true);
   prekresli();
 }
 
