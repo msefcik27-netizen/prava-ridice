@@ -287,6 +287,10 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 .podsekce .lista{margin-top:12px}
 .pocitadlo{font-size:11.5px;color:var(--muted);text-align:right;margin-top:4px}
 .pocitadlo.u-konce{color:var(--err);font-weight:700}
+.pridat{font-size:11.5px;font-weight:700;color:var(--teal-800);background:var(--cream);
+  border:1px solid var(--cream-line, #F0E2D8);border-radius:999px;padding:3px 9px;cursor:pointer;
+  white-space:nowrap;opacity:.55;transition:opacity .15s}
+.uzel .radek:hover .pridat, .uzel .radek.on .pridat{opacity:1}
 </style>
 </head>
 <body>
@@ -310,7 +314,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 92</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 93</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -336,7 +340,8 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
         <ul class="strom" id="strom"></ul>
         <div class="lista" style="margin-top:14px">
           <button class="btn btn-vedl" onclick="novaOblast(null)">+ Oblast</button>
-          <button class="btn btn-vedl" onclick="novyClanek()">+ Článek</button>
+          <button class="btn btn-vedl" onclick="novyClanek()"
+            title="Vytvoří článek ve vybrané oblasti. U konkrétní oblasti je rychlejší tlačítko + článek přímo u ní.">+ Článek</button>
         </div>
       </div>
       <div class="panel" id="editor">
@@ -519,9 +524,7 @@ function vykresliOblast(o){
       ${podoblasti.map(vykresliOblast).join('')}
       ${cl.map(vykresliClanek).join('')}
       ${(!podoblasti.length && !cl.length) ? `<li class="prazdno" style="padding:8px;font-size:12.5px">
-          zatím žádný článek —
-          <b style="color:var(--teal-800);cursor:pointer" onclick="event.stopPropagation();
-             vyberOblast('${o.id}'); novyClanek();">přidat článek</b></li>` : ''}
+          zatím žádný článek — přidejte ho tlačítkem <b>+ článek</b> vpravo u názvu oblasti.</li>` : ''}
     </ul>` : '';
   return `<li class="uzel">
     <div class="radek ${vyb?'on':''}" onclick="vyberOblast('${o.id}')">
@@ -536,6 +539,8 @@ function vykresliOblast(o){
                         : '<span class="odznak o-omezeny" title="Obsah je dostupný i s omezeným přístupem">omezený</span>'; })()}
       ${o.publikovano ? '' : '<span class="odznak o-koncept">skryto</span>'}
       ${sipky('oblast', o.id)}
+      <span class="pridat" title="Přidat článek do této oblasti"
+        onclick="event.stopPropagation(); vyberOblast('${o.id}'); novyClanek();">+ článek</span>
       <span class="znak">${podoblasti.length + cl.length}</span>
     </div>${deti}</li>`;
 }
