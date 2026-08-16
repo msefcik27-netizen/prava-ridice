@@ -279,8 +279,10 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
   font-size:12.5px;font-weight:800;margin-top:20px}
 .sez-pole{flex:1 1 0;min-width:0}
 .sez-radek .poradi-sipky{margin-top:20px}
-.podsekce{border-top:1px solid var(--line);margin-top:18px;padding-top:14px}
+.podsekce{border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  margin:18px 0;padding:14px 0 16px}
 .podsekce h3{font-size:14px;font-weight:800;margin:0 0 6px}
+.podsekce .lista{margin-top:12px}
 .pocitadlo{font-size:11.5px;color:var(--muted);text-align:right;margin-top:4px}
 .pocitadlo.u-konce{color:var(--err);font-weight:700}
 </style>
@@ -2311,25 +2313,25 @@ let seznamy = [], seznamyZmenene = new Set(), seznamySmazane = [];
 const DRUHY_SEZNAMU = {
   recenze: {karta:'profil',  nazev:'Recenze klientů',
             popis:'Zobrazí se na obrazovce Recenze klientů, na kterou vede odkaz z Profilu.',
-            a:'Jméno', b:'Text recenze', c:'Čeho se případ týkal', obrazovka:'recenze'},
+            a:'Jméno', b:'Text recenze', c:'Čeho se případ týkal', obrazovka:'recenze', jednotky:['recenze','recenze','recenzí']},
   postup:  {karta:'profil',  nazev:'Jak to probíhá — kroky spolupráce',
             popis:'Číslované kroky na obrazovce Jak to probíhá. Číslo se doplní podle pořadí.',
-            a:'Název kroku', b:'Popis kroku', c:null, obrazovka:'postup'},
+            a:'Název kroku', b:'Popis kroku', c:null, obrazovka:'postup', jednotky:['krok','kroky','kroků']},
   tel:     {karta:'profil',  nazev:'Telefonní čísla',
             popis:'Obrazovka Kontakt, sekce Telefony. Po klepnutí aplikace vytočí číslo.',
-            a:'Popis linky', b:'Číslo', c:null, obrazovka:'kontakt'},
+            a:'Popis linky', b:'Číslo', c:null, obrazovka:'kontakt', jednotky:['číslo','čísla','čísel']},
   mail:    {karta:'profil',  nazev:'E-mailové adresy',
             popis:'Obrazovka Kontakt, sekce E-mail.',
-            a:'Popis adresy', b:'Adresa', c:null, obrazovka:'kontakt'},
+            a:'Popis adresy', b:'Adresa', c:null, obrazovka:'kontakt', jednotky:['adresa','adresy','adres']},
   pobocka: {karta:'profil',  nazev:'Pobočky',
             popis:'Obrazovka Kontakt, sekce Pobočky.',
-            a:'Město', b:'Adresa', c:null, obrazovka:'kontakt'},
+            a:'Město', b:'Adresa', c:null, obrazovka:'kontakt', jednotky:['pobočka','pobočky','poboček']},
   urady:   {karta:'prehled', nazev:'Doklady a úřady — odkazy',
             popis:'Rozcestník v Garáži. Doklady se do aplikace nenahrávají, vedou odsud jen odkazy na stránky státu.',
-            a:'Název', b:'Popisek pod názvem', c:'Adresa', obrazovka:'vozidla'},
+            a:'Název', b:'Popisek pod názvem', c:'Adresa', obrazovka:'vozidla', jednotky:['odkaz','odkazy','odkazů']},
   nehoda:  {karta:'prehled', nazev:'Co dělat po nehodě — kroky',
             popis:'Číslované kroky na obrazovce Co dělat po nehodě.',
-            a:'Název kroku', b:'Popis kroku', c:null, obrazovka:'nehoda'}
+            a:'Název kroku', b:'Popis kroku', c:null, obrazovka:'nehoda', jednotky:['krok','kroky','kroků']}
 };
 
 async function nactiSeznamy(){
@@ -2393,6 +2395,7 @@ function kresliSeznam(druh){
     </div>`).join('')
     : '<div class="prazdno">Zatím tu nic není.</div>';
   rostouVse(el);
+  prepocitejStitek(druh);
 }
 
 function zmenPolozku(id, pole, hodnota){
@@ -2553,7 +2556,7 @@ function kresliTexty(karta){
        vidět — uložit ji ale musíte tlačítkem dole.</p>
     ${skupiny.map((s, i) => `
       <details class="sekce" data-skupina="${esc(s.nazev)}" ontoggle="sekceOtevrena(this)" ${i === 0 ? 'open' : ''}>
-        <summary>${esc(s.nazev)}<span class="pocet">${s.polozky.length} ${mnozne(s.polozky.length,'pole','pole','polí')}</span></summary>
+        <summary>${esc(s.nazev)}<span class="pocet" id="pocet-${esc(s.obrazovka)}">${popisObsahu(s)}</span></summary>
         <div class="sekce-telo">
           ${s.popis ? `<p class="napoveda" style="margin:-2px 0 12px">${esc(s.popis)}</p>` : ''}
           ${s.radky.map(r => r.typ === 'pole' ? poleTextu(r.t) : sekceSeznamu(r.druh)).join('')}
@@ -2572,6 +2575,33 @@ function kresliTexty(karta){
   nahledTexty();
 }
 function mnozne(n, jeden, few, mnoho){ return n === 1 ? jeden : (n >= 2 && n <= 4 ? few : mnoho); }
+
+/* Co všechno v sekci je — slovy, ne „6 polí". Krátký text mění i seznamy,
+   takže se počítají zvlášť a svým jménem: „6 textů · 7 recenzí". */
+function popisObsahu(s){
+  const casti = [];
+  if(s.polozky.length)
+    casti.push(s.polozky.length + ' ' + mnozne(s.polozky.length, 'text', 'texty', 'textů'));
+  s.seznamy.forEach(druh => {
+    const d = DRUHY_SEZNAMU[druh]; if(!d) return;
+    const n = polozkySeznamu(druh).length;
+    const j = d.jednotky || ['položka','položky','položek'];
+    casti.push(n + ' ' + mnozne(n, j[0], j[1], j[2]));
+  });
+  return casti.join(' · ') || 'zatím prázdné';
+}
+
+/* Po přidání nebo smazání položky se štítek sekce přepočítá. */
+function prepocitejStitek(druh){
+  const d = DRUHY_SEZNAMU[druh]; if(!d) return;
+  const el = $('pocet-' + d.obrazovka); if(!el) return;
+  const sek = $('sek-' + kartaObrazovky(d.obrazovka)) || document;
+  const pole = [...sek.querySelectorAll('.sekce[data-skupina]')]
+    .find(x => x.dataset.skupina === nazevObrazovky(d.obrazovka));
+  const kolik = pole ? pole.querySelectorAll('.sekce-telo > .pole').length : 0;
+  el.textContent = popisObsahu({ polozky: {length: kolik},
+                                 seznamy: seznamyObrazovky(d.obrazovka) });
+}
 
 /* Jedno pole. onfocus přepne náhled na správnou obrazovku a text v něm zvýrazní,
    oninput pošle rozepsanou hodnotu — proto je náhled živý ještě před uložením. */
