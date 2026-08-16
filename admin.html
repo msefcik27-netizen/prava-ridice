@@ -9,16 +9,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --teal-900:#0A4250; --teal-800:#0C4956; --peach:#F0C2AF; --cream:#F8EBE2;
-  --ink:#0E3540; --muted:#6B7B7F; --line:#E2E8E9; --bg:#F3F5F5;
-  --ok:#1F7A5A; --warn:#B26A00; --err:#B4322C;
+  /* Stejné barvy, jaké má aplikace — administrace vypadá jako to, co spravuje. */
+  --navy:#0D1424; --petrol:#0E4A53; --turq:#00D4D4; --turq-deep:#0A8F97;
+  --apricot:#F4B59D; --grad:linear-gradient(135deg,#0E4A53 0%,#00D4D4 100%);
+  --teal-900:#0E4A53; --teal-800:#0A8F97; --peach:#F4B59D; --cream:#FDF2EC;
+  --ink:#101820; --ink-soft:#33434B; --muted:#5C6C75; --line:#E3E7EA; --bg:#F6F7F8;
+  --ok:#0A8F97; --warn:#B06A34; --err:#E5484D;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
 button,input,select,textarea{font-family:inherit;font-size:inherit}
 
 /* ---------- hlavička ---------- */
-header{background:var(--teal-900);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:14px;
+header{background:var(--grad);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:14px;
        position:sticky;top:0;z-index:20;flex-wrap:wrap}
 header h1{font-size:16px;font-weight:700;margin:0;letter-spacing:.01em}
 header .kdo{margin-left:auto;font-size:13px;color:rgba(255,255,255,.75)}
@@ -28,7 +31,7 @@ header button:hover{background:rgba(255,255,255,.24)}
 .tabs{display:flex;gap:6px;background:#fff;border-bottom:1px solid var(--line);padding:0 20px;position:sticky;top:53px;z-index:19}
 .tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:12px 14px;cursor:pointer;
        font-weight:600;color:var(--muted);font-size:14px}
-.tabs button.on{color:var(--teal-900);border-bottom-color:var(--peach)}
+.tabs button.on{color:var(--petrol);border-bottom-color:var(--turq)}
 
 main{max-width:1180px;margin:0 auto;padding:22px 20px 80px}
 .wrap{display:grid;grid-template-columns:330px 1fr;gap:20px;align-items:start}
@@ -105,13 +108,14 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 .prepinac.pristup.zap .knof{background:var(--warn)}
 
 .btn{border:0;border-radius:10px;padding:11px 17px;font-weight:700;cursor:pointer;font-size:14px}
-.btn-hlavni{background:var(--teal-900);color:#fff}
+.btn-hlavni{background:var(--grad);color:#fff}
 .btn-hlavni:hover{background:var(--teal-800)}
 .btn-vedl{background:#fff;color:var(--ink);border:1px solid var(--line)}
 .btn-vedl:hover{background:var(--cream)}
 .btn-smaz{background:#fff;color:var(--err);border:1px solid #F0D2D0}
 .btn-smaz:hover{background:#FDF3F2}
 .btn:disabled{opacity:.45;cursor:not-allowed}
+label.btn{text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink);margin:0}
 .lista{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:6px}
 .lista .vpravo{margin-left:auto}
 
@@ -183,6 +187,63 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 #login p{color:var(--muted);font-size:14px;margin:0 0 20px}
 #nastaveni{background:#FFF6E5;border:1px solid #F0DCB0;border-radius:12px;padding:16px;margin-bottom:20px;font-size:13.5px}
 #nastaveni code{background:#fff;padding:2px 6px;border-radius:5px;font-size:12.5px}
+
+/* ---------- živý náhled telefonu ---------- */
+main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1580px;align-items:start}
+@media(max-width:1260px){main{grid-template-columns:1fr}}
+.telefon{position:sticky;top:104px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}
+.telefon > h2{font-size:12px;margin:0 0 10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.tel-ovladace{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:11px}
+.tel-ovladace button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;
+  font-size:12.5px;font-weight:600;color:var(--ink);cursor:pointer;font-family:inherit}
+.tel-ovladace button:hover{background:var(--cream)}
+.tel-ovladace button.on{background:var(--petrol);border-color:var(--petrol);color:#fff}
+.tel-ramecek{width:100%;max-width:352px;margin:0 auto;border:9px solid var(--navy);border-radius:30px;
+  overflow:hidden;background:var(--navy);box-shadow:0 14px 34px rgba(13,20,36,.20)}
+.tel-ramecek iframe{display:block;width:100%;height:660px;border:0;background:#fff}
+.tel-pozn{font-size:12px;color:var(--muted);margin:11px 2px 0;line-height:1.45}
+
+/* ---------- editor po sekcích ---------- */
+.sekce{border:1px solid var(--line);border-radius:14px;margin-bottom:12px;background:#fff;overflow:hidden}
+.sekce > summary{list-style:none;cursor:pointer;padding:12px 15px;display:flex;align-items:center;gap:10px;
+  background:var(--bg);font-weight:700;font-size:14px;color:var(--ink)}
+.sekce > summary::-webkit-details-marker{display:none}
+.sekce > summary::before{content:'▸';color:var(--turq-deep);font-size:12px;transition:transform .15s}
+.sekce[open] > summary::before{transform:rotate(90deg)}
+.sekce > summary .pocet{margin-left:auto;font-size:12px;font-weight:600;color:var(--muted)}
+.sekce-telo{padding:15px 15px 3px}
+.sekce-popis{font-size:12.5px;color:var(--muted);margin:-4px 0 14px;line-height:1.45}
+.pole.zamereno > input,.pole.zamereno > textarea{border-color:var(--turq-deep);box-shadow:0 0 0 3px rgba(0,212,212,.16)}
+
+/* ---------- stavebnice článku ---------- */
+.bl-karta{border:1px solid var(--line);border-radius:12px;margin-bottom:9px;background:#fff}
+.bl-hlava{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer}
+.bl-karta[open] .bl-hlava{border-bottom:1px solid var(--line)}
+.bl-hlava::-webkit-details-marker{display:none}
+.bl-hlava{list-style:none}
+.bl-typ{flex:0 0 auto;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--turq-deep);background:rgba(0,212,212,.13);border-radius:6px;padding:3px 7px}
+.bl-shrnuti{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:13px;color:var(--muted)}
+.bl-telo{padding:14px 13px 4px}
+.bl-prazdne{color:var(--muted);font-style:italic}
+.paleta{display:flex;gap:7px;flex-wrap:wrap}
+.paleta button{width:32px;height:32px;border-radius:9px;border:2px solid transparent;cursor:pointer;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.paleta button.on{border-color:var(--turq-deep)}
+.chipy{display:flex;gap:7px;flex-wrap:wrap}
+.chipy button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 13px;
+  font-size:13px;font-weight:600;cursor:pointer;color:var(--ink);font-family:inherit}
+.chipy button.on{background:var(--petrol);color:#fff;border-color:var(--petrol)}
+.typy{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:4px}
+.typy button{border:1px solid var(--line);background:#fff;border-radius:11px;padding:11px 12px;
+  cursor:pointer;text-align:left;font-family:inherit}
+.typy button b{display:block;font-size:13px;color:var(--ink)}
+.typy button span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+.typy button:hover{border-color:var(--turq-deep);background:var(--cream)}
+.radky-tab{display:grid;grid-template-columns:1fr 1fr 34px;gap:8px;margin-bottom:8px;align-items:start}
+.radky-tab .smaz{border:1px solid var(--line);background:#fff;border-radius:8px;color:var(--err);
+  cursor:pointer;height:38px;font-size:16px;line-height:1}
 </style>
 </head>
 <body>
@@ -216,10 +277,12 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
     <button id="t-sluzby"   onclick="prepni('sluzby')">Služby</button>
     <button id="t-zpravy"   onclick="prepni('zpravy')">Zprávy</button>
     <button id="t-profil"   onclick="prepni('profil')">Profil</button>
+    <button id="t-kalk"     onclick="prepni('kalk')">Kalkulačky</button>
     <button id="t-sprava"   onclick="prepni('sprava')">Administrace</button>
   </div>
 
   <main>
+   <div class="obsah">
     <!-- ===== ČLÁNKY ===== -->
     <div id="sek-pruvodce" class="wrap">
       <div class="panel">
@@ -233,12 +296,14 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
       <div class="panel" id="editor">
         <div class="prazdno">Vyberte vlevo článek nebo oblast, nebo přidejte nový.</div>
       </div>
+      <div id="texty-pruvodce" style="grid-column:1/-1"></div>
     </div>
 
     <!-- ===== TEXTY KARET (Přehled / Zprávy / Profil) ===== -->
     <div id="sek-prehled" class="panel" style="display:none"></div>
     <div id="sek-zpravy"  class="panel" style="display:none"></div>
     <div id="sek-profil"  class="panel" style="display:none"></div>
+    <div id="sek-kalk"    style="display:none"></div>
     <div id="sek-sprava"  class="panel" style="display:none"></div>
 
     <!-- ===== SLUŽBY ===== -->
@@ -253,13 +318,25 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
       <div class="panel" id="editorSluzby">
         <div class="prazdno">Vyberte vlevo službu.</div>
       </div>
+      <div id="texty-sluzby" style="grid-column:1/-1"></div>
     </div>
+   </div>
+
+    <!-- ===== ŽIVÝ NÁHLED ===== -->
+    <aside class="telefon" id="telefon">
+      <h2>Náhled aplikace</h2>
+      <div class="tel-ovladace" id="telOvladace"></div>
+      <div class="tel-ramecek"><iframe id="telRam" src="index.html?nahled=1" title="Náhled aplikace"></iframe></div>
+      <p class="tel-pozn">Není to obrázek — běží tu skutečná aplikace. Co vidíte tady,
+         uvidí i řidič. Klepnutím do náhledu se otevře pole, které daný text mění.</p>
+    </aside>
   </main>
 </div>
 
 <div class="hlaska" id="hlaska"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script>
 /* ============================================================
    NASTAVENÍ — doplň po založení Supabase projektu
@@ -330,12 +407,13 @@ async function odhlas(){ await db.auth.signOut(); location.reload(); }
 
 /* ---------- načtení dat ---------- */
 async function nactiVse(){
-  const [o, c, s, t, z] = await Promise.all([
+  const [o, c, s, t, z, bl] = await Promise.all([
     db.from('oblasti').select('*').order('poradi'),
     db.from('clanky').select('*').order('poradi'),
     db.from('sluzby').select('*').order('poradi'),
     db.from('texty').select('*').order('poradi'),
-    db.from('zpravy').select('*').order('datum', {ascending:false})
+    db.from('zpravy').select('*').order('datum', {ascending:false}),
+    db.from('bloky').select('*').order('poradi')
   ]);
   if(o.error||c.error||s.error){ hlaska('Chyba načtení: '+((o.error||c.error||s.error).message), true); return; }
   oblasti = o.data; clanky = c.data; sluzby = s.data;
@@ -343,10 +421,13 @@ async function nactiVse(){
   if(t.error) console.warn('Tabulka textů zatím neexistuje — spusť texty.sql', t.error.message);
   zpravy = z.error ? [] : z.data;
   if(z.error) console.warn('Tabulka zpráv zatím neexistuje — spusť zpravy.sql', z.error.message);
+  bloky = bl.error ? [] : bl.data.map(b => ({...b, data: b.data || {}}));
+  if(bl.error) console.warn('Tabulka bloků zatím neexistuje — spusť bloky.sql', bl.error.message);
+  await nactiKalkulacky();
   kresliStrom(); kresliSluzby();
 }
 
-const KARTY = ['prehled','pruvodce','sluzby','zpravy','profil','sprava'];
+const KARTY = ['prehled','pruvodce','sluzby','zpravy','profil','kalk','sprava'];
 function prepni(co){
   KARTY.forEach(k=>{
     const t=$('t-'+k); if(t) t.classList.toggle('on', k===co);
@@ -354,7 +435,11 @@ function prepni(co){
     const jeMrizka = (k==='pruvodce' || k==='sluzby');
     sek.style.display = (k===co) ? (jeMrizka ? 'grid' : 'block') : 'none';
   });
-  if(['prehled','zpravy','profil'].includes(co)) kresliTexty(co);
+  if(['prehled','pruvodce','sluzby','zpravy','profil'].includes(co)){
+    kresliTexty(co);
+    nahledObrazovka(co === 'pruvodce' ? 'pruvodce' : co);
+  }
+  if(co==='kalk'){ kresliKalkulacky(); nahledObrazovka('calc'); }
   if(co==='sprava') kresliSpravu();
 }
 
@@ -533,9 +618,25 @@ function editorClanku(){
     <div class="pole"><label>Nadpis</label><input type="text" id="f-nadpis" value="${esc(c.nadpis)}"></div>
     <div class="pole"><label>Krátký popis</label><input type="text" id="f-perex" value="${esc(c.perex)}">
       <p class="napoveda">Zobrazí se v seznamu pod nadpisem. <b>Je vidět vždy</b>, i u placeného článku.</p></div>
-    <div class="pole"><label>Text článku</label>
-      <textarea id="f-telo">${esc(c.telo)}</textarea>
-      <p class="napoveda">Odstavce oddělte prázdným řádkem. Řádek začínající <code>## </code> se zobrazí jako mezinadpis.</p></div>
+    <h2 style="margin-top:22px">Obsah článku</h2>
+    <p class="napoveda" style="margin:-6px 0 12px">Článek se skládá z bloků. Vpravo je hned vidět,
+       jak bude vypadat. Uloží se všechno najednou tlačítkem dole.</p>
+    <div id="bl-seznam"></div>
+    <label style="margin-top:14px">Přidat blok</label>
+    <div class="typy">
+      ${TYPY_BLOKU.map(([t, nazev, popis]) =>
+        `<button type="button" onclick="pridejBlok('${t}')"><b>${nazev}</b><span>${popis}</span></button>`).join('')}
+    </div>
+
+    <details class="sekce" style="margin-top:18px">
+      <summary>Starší text článku<span class="pocet">${(c.telo||'').trim() ? 'vyplněno' : 'prázdné'}</span></summary>
+      <div class="sekce-telo">
+        <p class="sekce-popis">Takhle se článek psal dřív — jedním polem. Aplikace ho pořád umí zobrazit,
+           ale jen dokud článek nemá žádný blok. Jakmile přidáte první blok, řídí se článek bloky.</p>
+        <div class="pole"><textarea id="f-telo" oninput="nahledClanku()">${esc(c.telo)}</textarea></div>
+        <button type="button" class="btn btn-vedl" onclick="prevedNaBloky()">Převést text na bloky</button>
+      </div>
+    </details>
     <div class="radky2">
       <div class="pole"><label>Oblast</label><select id="f-oblast">${moznosti}</select></div>
       <div class="pole"><label>Štítek</label><input type="text" id="f-kat" value="${esc(c.kategorie)}"
@@ -569,6 +670,8 @@ function editorClanku(){
       <button class="btn btn-smaz vpravo" onclick="smazClanek('${c.id}')">Smazat článek</button>
     </div>`;
   nahledZamku();
+  kresliBloky();
+  nahledClanku();
   hlidejFormular($('editor'));
 }
 
@@ -616,8 +719,10 @@ async function ulozClanek(){
   if(!zmeny.nadpis){ hlaska('Nadpis nesmí být prázdný.', true); return; }
   const { error } = await db.from('clanky').update(zmeny).eq('id', vybrano.id);
   if(error){ hlaska('Uložení selhalo: '+error.message, true); return; }
+  if(!await ulozBlokyClanku(vybrano.id)) return;
   Object.assign(clanky.find(c => c.id === vybrano.id), zmeny);
-  kresliStrom(); hlaska(zmeny.publikovano ? 'Uloženo a publikováno.' : 'Uloženo jako koncept.');
+  kresliStrom(); kresliBloky();
+  hlaska(zmeny.publikovano ? 'Uloženo a publikováno.' : 'Uloženo jako koncept.');
 }
 
 async function smazClanek(id){
@@ -713,56 +818,780 @@ async function smazSluzbu(id){
   hlaska('Služba smazána.');
 }
 
-/* ---------- texty karet (Přehled / Zprávy / Profil) ---------- */
-const NAZVY_KARET = {prehled:'Přehled', zpravy:'Zprávy', profil:'Profil'};
 
-function kresliTexty(karta){
-  const sek = $('sek-'+karta);
-  const polozky = texty.filter(t => t.karta === karta);
-  if(!polozky.length){
-    sek.innerHTML = `<h2>${NAZVY_KARET[karta]}</h2>
-      <div class="prazdno">Texty této karty zatím nejsou v databázi.<br>
-      Spusť v Supabase soubor <b>texty.sql</b> a stránku načti znovu.</div>`;
+/* ============================================================
+   ŽIVÝ NÁHLED
+   V rámu telefonu běží skutečná aplikace (index.html?nahled=1).
+   Administrace jí posílá rozpracovaný obsah, aplikace ho vykreslí
+   vlastním kódem. Nekreslíme napodobeninu, která by se časem rozešla.
+   ============================================================ */
+let nahledPripraven = false;
+const nahledFronta = [];
+let nahledObrazovkaAkt = 'prehled';
+
+const NAHLED_OBRAZOVKY = [
+  ['prehled','Přehled'], ['pruvodce','Průvodce'], ['sluzby','Služby'],
+  ['zpravy','Zprávy'], ['profil','Profil'], ['konzultace','Formulář'],
+  ['predplatne','Předplatné'], ['points-help','Jak zjistit body']
+];
+
+/* Kam který text patří — podle toho náhled sám přepne obrazovku. */
+function obrazovkaKlice(klic){
+  if(klic.startsWith('formular.'))   return 'konzultace';
+  if(klic.startsWith('predplatne.')) return 'predplatne';
+  if(klic.startsWith('pomoc.'))      return 'points-help';
+  if(klic.startsWith('nav.'))        return 'prehled';
+  if(klic.startsWith('clanek.'))     return 'pruvodce';
+  if(klic.startsWith('kalk.'))       return 'calc';
+  if(klic.startsWith('nadpis.')){
+    const m = {'nadpis.kalkulacka':'calc','nadpis.oblasti':'oblasti','nadpis.recenze':'recenze',
+               'nadpis.postup':'postup','nadpis.kontakt':'kontakt','nadpis.upozorneni':'upozorneni',
+               'nadpis.nehoda':'nehoda','nadpis.vozidla':'vozidla','nadpis.predplatne':'predplatne',
+               'nadpis.body':'points-help'};
+    return m[klic] || 'prehled';
+  }
+  if(klic.startsWith('blok.')) return klic.split('.')[1] || 'prehled';
+  return klic.split('.')[0];
+}
+
+function posliNahled(z){
+  const ram = $('telRam');
+  if(!ram || !ram.contentWindow) return;
+  if(!nahledPripraven){ nahledFronta.push(z); return; }
+  ram.contentWindow.postMessage(Object.assign({pr:'nahled'}, z), '*');
+}
+
+/* Mapa textů tak, jak vypadají PRÁVĚ TEĎ ve formuláři — tedy včetně
+   neuložených úprav. Proto je náhled živý a ne až po uložení. */
+function mapaTextu(){
+  const m = {};
+  texty.forEach(t => { const p = $('tx-' + t.klic); m[t.klic] = p ? p.value : t.hodnota; });
+  return m;
+}
+
+function nahledTexty(){ posliNahled({ texty: mapaTextu() }); }
+
+function nahledObrazovka(id, tise){
+  nahledObrazovkaAkt = id;
+  posliNahled({ obrazovka: id });
+  kresliOvladaceNahledu();
+  if(!tise) nahledTexty();
+}
+
+function kresliOvladaceNahledu(){
+  const el = $('telOvladace'); if(!el) return;
+  el.innerHTML = NAHLED_OBRAZOVKY.map(([id, nazev]) =>
+    `<button class="${id === nahledObrazovkaAkt ? 'on' : ''}" onclick="nahledObrazovka('${id}')">${nazev}</button>`
+  ).join('');
+}
+
+/* Kliknutí do náhledu otevře pole, které ten text mění. */
+function zamerPole(klic){
+  const pole = $('tx-' + klic);
+  if(!pole){ hlaska('Tenhle text se mění jinde v administraci.'); return; }
+  const det = pole.closest('details');
+  if(det) det.open = true;
+  pole.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  pole.focus();
+}
+
+/* Rám se může načíst dřív, než se spustí tenhle skript — pak by se hlášení
+   „jsem připraven" ztratilo. Proto si připravenost hlídáme i podle události load. */
+window.addEventListener('DOMContentLoaded', () => {
+  const ram = $('telRam'); if(!ram) return;
+  const spust = () => { if(!nahledPripraven){ nahledPripraven = true;
+    nahledFronta.splice(0).forEach(posliNahled); nahledTexty();
+    posliNahled({ obrazovka: nahledObrazovkaAkt }); kresliOvladaceNahledu(); } };
+  ram.addEventListener('load', spust);
+  if(ram.contentDocument && ram.contentDocument.readyState === 'complete') spust();
+});
+
+window.addEventListener('message', ev => {
+  const z = ev.data || {};
+  if(z.pr !== 'nahled') return;
+  if(z.pripraveno){
+    nahledPripraven = true;
+    const fronta = nahledFronta.splice(0);
+    nahledTexty();
+    posliNahled({ obrazovka: nahledObrazovkaAkt });
+    fronta.forEach(posliNahled);
+    kresliOvladaceNahledu();
+  }
+  if(z.kliknuto) zamerPole(z.kliknuto);
+});
+
+/* ---------- rozdělení textů do sekcí ---------- */
+const SKUPINY = [
+  ['prehled.body',      'Karta s bodovým stavem'],
+  ['prehled.vyzva',     'Výzva při 8 a více bodech'],
+  ['prehled.notif',     'Karta notifikací'],
+  ['prehled.pdf',       'Rychlá akce — načtení bodů z PDF'],
+  ['prehled.vozidla',   'Rychlá akce — vozidla a STK'],
+  ['prehled.nehoda',    'Rychlá akce — nehoda'],
+  ['pomoc.body',        'Obrazovka „Jak zjistit body"'],
+  ['pruvodce.pruh',     'Tmavý proužek s tématy'],
+  ['pruvodce.kalk',     'Karta kalkulačky'],
+  ['pruvodce.oblasti',  'Seznam oblastí'],
+  ['pruvodce.hledat',   'Hledání'],
+  ['zpravy.hero',       'Karta advokáta'],
+  ['zpravy.blog',       'Odkaz na blog'],
+  ['zpravy.oznameni',   'Oznámení'],
+  ['formular.ph',       'Formulář — nápovědy v polích'],
+  ['formular',          'Konzultační formulář'],
+  ['profil.ucet',       'Karta účtu'],
+  ['profil.plan',       'Předplatné v profilu'],
+  ['profil.plocha',     'Přidat na plochu'],
+  ['profil.tema',       'Vzhled'],
+  ['profil.upozorneni', 'Upozornění'],
+  ['profil.odkazy',     'Odkazy'],
+  ['profil.predplatne', 'Štítek předplatného'],
+  ['predplatne',        'Obrazovka Předplatné'],
+  ['nadpis',            'Názvy obrazovek'],
+  ['nav',               'Spodní lišta'],
+  ['clanek',            'Článek'],
+  ['kalk',              'Kalkulačka — texty výsledků'],
+  ['sluzby',            'Karta Služby'],
+  ['pruvodce',          'Úvod karty Průvodce'],
+  ['prehled',           'Karta Přehled'],
+  ['profil',            'Karta Profil'],
+  ['zpravy',            'Karta Zprávy']
+];
+
+function skupinaKlice(klic){
+  if(klic.startsWith('blok.')) return 'Vlastní bloky';
+  for(const [predpona, nazev] of SKUPINY){
+    if(klic === predpona || klic.startsWith(predpona + '.')) return nazev;
+  }
+  return 'Ostatní';
+}
+
+
+/* ============================================================
+   STAVEBNICE ČLÁNKU
+   Článek je seřazený seznam bloků. Změny se drží v paměti a ukládají
+   se spolu s článkem — proto je náhled živý ještě před uložením.
+   ============================================================ */
+let bloky = [];
+let blokySmazane = [];
+
+const TYPY_BLOKU = [
+  ['hero',       'Úvodní karta',  'Barevný pruh s ikonou, nadpisem a štítkem'],
+  ['odstavec',   'Odstavec',      'Běžný text. Prázdný řádek dělí odstavce.'],
+  ['mezinadpis', 'Mezinadpis',    'Tučný nadpis uvnitř článku'],
+  ['odkaz',      'Odkaz',         'Karta se šipkou — třeba na Portál dopravy'],
+  ['tabulka',    'Tabulka',       'Dva sloupce vedle sebe, na srovnání'],
+  ['seznam',     'Seznam',        'Odrážky pod sebou'],
+  ['pozor',      'Pozor',         'Oranžové upozornění na riziko'],
+  ['rada',       'Rada',          'Tyrkysový tip nebo doporučení']
+];
+const NAZEV_TYPU = t => (TYPY_BLOKU.find(x => x[0] === t) || [t, t])[1];
+
+const PALETA = [
+  ['bila',    'Bílá',        '#FFFFFF'],
+  ['kremova', 'Krémová',     '#FDF2EC'],
+  ['tyrkys',  'Tyrkysová',   '#DAF7F7'],
+  ['merunka', 'Meruňková',   '#F4B59D'],
+  ['petrol',  'Petrolejová', '#0E4A53'],
+  ['navy',    'Tmavě modrá', '#0D1424']
+];
+const VELIKOSTI = [['mala','Malé'], ['normalni','Normální'], ['velka','Velké']];
+/* U těchhle typů barvu nenabízíme — nemělo by to žádný účinek a jen by to mátlo. */
+const BEZ_PALETY = ['mezinadpis', 'pozor', 'rada'];
+const DUVOD_BEZ_PALETY = {
+  mezinadpis: 'Mezinadpis stojí přímo na pozadí obrazovky, vlastní barvu nemá.',
+  pozor: 'Oranžová patří k významu upozornění a mění se sama podle světlého či tmavého režimu.',
+  rada: 'Tyrkysová patří k významu rady a mění se sama podle světlého či tmavého režimu.'
+};
+const IKONY_BLOKU = ['shield','doc','card','gauge','car','crash','bike','glass','pill',
+                     'ban','warn','clock','lock','bell','phone','mail','chat','globe','user','scale'];
+
+function blokyClanku(id){
+  return bloky.filter(b => b.clanek_id === id && !b._smazany)
+              .sort((a, b) => (a.poradi || 0) - (b.poradi || 0));
+}
+
+function novyId(){
+  return 'novy-' + Math.random().toString(36).slice(2, 10);
+}
+
+function pridejBlok(typ){
+  if(!vybrano || vybrano.typ !== 'clanek') return;
+  const stavajici = blokyClanku(vybrano.id);
+  bloky.push({
+    id: novyId(), _novy: true, _zmeneno: true,
+    clanek_id: vybrano.id,
+    poradi: (stavajici.length ? stavajici[stavajici.length - 1].poradi : 0) + 10,
+    typ, nadpis: '', text: '', odkaz: '', odkaz_text: '', ikona: typ === 'hero' ? 'shield' : null,
+    data: typ === 'tabulka' ? {zahlavi: ['', ''], radky: [['', '']]} : (typ === 'seznam' ? {polozky: ['']} : {}),
+    pozadi: typ === 'hero' ? 'petrol' : 'bila',
+    velikost: 'normalni', _otevreny: true
+  });
+  kresliBloky(); nahledClanku();
+}
+
+function zmenBlok(id, pole, hodnota){
+  const b = bloky.find(x => x.id === id); if(!b) return;
+  b[pole] = hodnota; b._zmeneno = true;
+  nahledClanku();
+  const sh = document.querySelector('[data-shrnuti="' + id + '"]');
+  if(sh) sh.textContent = shrnutiBloku(b);
+}
+
+function zmenBlokData(id, cesta, hodnota){
+  const b = bloky.find(x => x.id === id); if(!b) return;
+  b.data = b.data || {};
+  cesta(b.data, hodnota);
+  b._zmeneno = true;
+  nahledClanku();
+}
+
+function posunBlok(id, smer){
+  const b = bloky.find(x => x.id === id); if(!b) return;
+  const rada = blokyClanku(b.clanek_id);
+  const i = rada.findIndex(x => x.id === id);
+  const j = i + smer;
+  if(j < 0 || j >= rada.length) return;
+  const a = rada[i].poradi, c = rada[j].poradi;
+  rada[i].poradi = c; rada[j].poradi = a;
+  rada[i]._zmeneno = true; rada[j]._zmeneno = true;
+  if(a === c){ rada.forEach((x, k) => { x.poradi = (k + 1) * 10; x._zmeneno = true; }); }
+  kresliBloky(); nahledClanku();
+}
+
+function smazBlokClanku(id){
+  const b = bloky.find(x => x.id === id); if(!b) return;
+  if(!confirm('Smazat blok „' + NAZEV_TYPU(b.typ) + '"? Potvrdí se až uložením článku.')) return;
+  b._smazany = true;
+  if(!b._novy) blokySmazane.push(b.id);
+  kresliBloky(); nahledClanku();
+}
+
+function shrnutiBloku(b){
+  const d = b.data || {};
+  if(b.typ === 'tabulka') return ((d.radky || []).length) + ' řádků';
+  if(b.typ === 'seznam')  return ((d.polozky || []).length) + ' položek';
+  const t = (b.nadpis || b.text || '').replace(/\s+/g, ' ').trim();
+  return t ? (t.length > 60 ? t.slice(0, 60) + '…' : t) : 'prázdné';
+}
+
+function paletaHtml(b){
+  return '<div class="paleta">' + PALETA.map(([k, nazev, barva]) =>
+    `<button type="button" title="${nazev}" style="background:${barva}"
+       class="${b.pozadi === k ? 'on' : ''}" onclick="zmenBlok('${b.id}','pozadi','${k}');kresliBloky()"></button>`
+  ).join('') + '</div>';
+}
+
+function velikostiHtml(b){
+  return '<div class="chipy">' + VELIKOSTI.map(([k, nazev]) =>
+    `<button type="button" class="${b.velikost === k ? 'on' : ''}"
+       onclick="zmenBlok('${b.id}','velikost','${k}');kresliBloky()">${nazev}</button>`
+  ).join('') + '</div>';
+}
+
+function poleBloku(b){
+  const vstup = (pole, popisek, napoveda) => `
+    <div class="pole"><label>${popisek}</label>
+      <input type="text" value="${esc(b[pole] || '')}" oninput="zmenBlok('${b.id}','${pole}',this.value)">
+      ${napoveda ? `<p class="napoveda">${napoveda}</p>` : ''}</div>`;
+  const plocha = (pole, popisek, napoveda) => `
+    <div class="pole"><label>${popisek}</label>
+      <textarea style="min-height:96px" oninput="zmenBlok('${b.id}','${pole}',this.value)">${esc(b[pole] || '')}</textarea>
+      ${napoveda ? `<p class="napoveda">${napoveda}</p>` : ''}</div>`;
+  const d = b.data || {};
+
+  switch(b.typ){
+    case 'hero':
+      return `<div class="pole"><label>Ikona</label>
+          <select onchange="zmenBlok('${b.id}','ikona',this.value)">
+            ${IKONY_BLOKU.map(i => `<option value="${i}" ${b.ikona === i ? 'selected' : ''}>${i}</option>`).join('')}
+          </select></div>
+        ${vstup('nadpis', 'Nadpis')}
+        ${plocha('text', 'Text pod nadpisem')}
+        ${vstup('odkaz_text', 'Štítek', 'Malý štítek dole, například název oblasti. Nechte prázdné, když ho nechcete.')}`;
+    case 'mezinadpis':
+      return vstup('nadpis', 'Text mezinadpisu');
+    case 'odkaz':
+      return vstup('nadpis', 'Nadpis odkazu') + vstup('text', 'Popisek pod nadpisem') +
+             vstup('odkaz', 'Adresa', 'Celá adresa včetně https://');
+    case 'tabulka':
+      return `<div class="radky2">
+          <div class="pole"><label>Záhlaví vlevo</label>
+            <input type="text" value="${esc((d.zahlavi || [])[0] || '')}"
+              oninput="zmenBlokData('${b.id}', (dd,v)=>{dd.zahlavi=dd.zahlavi||['',''];dd.zahlavi[0]=v}, this.value)"></div>
+          <div class="pole"><label>Záhlaví vpravo</label>
+            <input type="text" value="${esc((d.zahlavi || [])[1] || '')}"
+              oninput="zmenBlokData('${b.id}', (dd,v)=>{dd.zahlavi=dd.zahlavi||['',''];dd.zahlavi[1]=v}, this.value)"></div>
+        </div>
+        <label>Řádky</label>
+        ${(d.radky || []).map((r, i) => `
+          <div class="radky-tab">
+            <input type="text" value="${esc(r[0] || '')}"
+              oninput="zmenBlokData('${b.id}', (dd,v)=>{dd.radky[${i}][0]=v}, this.value)">
+            <input type="text" value="${esc(r[1] || '')}"
+              oninput="zmenBlokData('${b.id}', (dd,v)=>{dd.radky[${i}][1]=v}, this.value)">
+            <button type="button" class="smaz" title="Smazat řádek"
+              onclick="zmenBlokData('${b.id}', dd=>dd.radky.splice(${i},1));kresliBloky()">×</button>
+          </div>`).join('')}
+        <button type="button" class="btn btn-vedl" style="padding:7px 12px;font-size:13px"
+          onclick="zmenBlokData('${b.id}', dd=>{dd.radky=dd.radky||[];dd.radky.push(['',''])});kresliBloky()">+ Řádek</button>`;
+    case 'seznam':
+      return vstup('nadpis', 'Nadpis (nepovinné)') + `
+        <label>Položky</label>
+        ${(d.polozky || []).map((x, i) => `
+          <div class="radky-tab" style="grid-template-columns:1fr 34px">
+            <input type="text" value="${esc(x)}"
+              oninput="zmenBlokData('${b.id}', (dd,v)=>{dd.polozky[${i}]=v}, this.value)">
+            <button type="button" class="smaz" title="Smazat položku"
+              onclick="zmenBlokData('${b.id}', dd=>dd.polozky.splice(${i},1));kresliBloky()">×</button>
+          </div>`).join('')}
+        <button type="button" class="btn btn-vedl" style="padding:7px 12px;font-size:13px"
+          onclick="zmenBlokData('${b.id}', dd=>{dd.polozky=dd.polozky||[];dd.polozky.push('')});kresliBloky()">+ Položka</button>`;
+    case 'pozor':
+    case 'rada':
+      return vstup('nadpis', 'Nadpis', b.typ === 'pozor' ? 'Nechte prázdné pro „Pozor".' : 'Nechte prázdné pro „Rada".') +
+             plocha('text', 'Text');
+    default:
+      return plocha('text', 'Text', 'Prázdný řádek dělí odstavce.');
+  }
+}
+
+function kresliBloky(){
+  const el = $('bl-seznam'); if(!el) return;
+  const rada = vybrano && vybrano.typ === 'clanek' ? blokyClanku(vybrano.id) : [];
+  el.innerHTML = rada.length ? rada.map((b, i) => `
+    <details class="bl-karta" ${b._otevreny ? 'open' : ''} ontoggle="oznacOtevreny('${b.id}', this.open)">
+      <summary class="bl-hlava">
+        <span class="bl-typ">${esc(NAZEV_TYPU(b.typ))}</span>
+        <span class="bl-shrnuti" data-shrnuti="${b.id}">${esc(shrnutiBloku(b))}</span>
+        <span class="poradi-sipky" onclick="event.preventDefault();event.stopPropagation()">
+          <button type="button" title="Nahoru" ${i === 0 ? 'disabled' : ''} onclick="posunBlok('${b.id}',-1)">▲</button>
+          <button type="button" title="Dolů" ${i === rada.length - 1 ? 'disabled' : ''} onclick="posunBlok('${b.id}',1)">▼</button>
+          <button type="button" title="Smazat" onclick="smazBlokClanku('${b.id}')" style="color:var(--err)">×</button>
+        </span>
+      </summary>
+      <div class="bl-telo">
+        ${poleBloku(b)}
+        <div class="radky2" style="margin-top:4px">
+          ${BEZ_PALETY.includes(b.typ)
+            ? `<div class="pole"><label>Barva pozadí</label>
+                 <p class="napoveda" style="margin:0">${esc(DUVOD_BEZ_PALETY[b.typ])}</p></div>`
+            : `<div class="pole"><label>Barva pozadí</label>${paletaHtml(b)}</div>`}
+          <div class="pole"><label>Velikost písma</label>${velikostiHtml(b)}</div>
+        </div>
+      </div>
+    </details>`).join('')
+    : '<div class="prazdno" style="padding:14px">Článek zatím nemá žádné bloky. Přidejte první níž.</div>';
+}
+
+function oznacOtevreny(id, otevreny){
+  const b = bloky.find(x => x.id === id); if(b) b._otevreny = otevreny;
+}
+
+/* Náhled článku tak, jak vypadá právě teď ve formuláři. */
+function nahledClanku(){
+  if(!vybrano || vybrano.typ !== 'clanek') return;
+  const c = clanky.find(x => x.id === vybrano.id); if(!c) return;
+  const o = oblasti.find(x => x.id === (($('f-oblast') || {}).value || c.oblast_id));
+  const hod = id => { const e = $(id); return e ? e.value : ''; };
+  posliNahled({ clanek: {
+    oblast: o ? o.nazev : '',
+    kategorie: hod('f-kat') || c.kategorie || '',
+    nadpis: hod('f-nadpis') || c.nadpis,
+    perex: hod('f-perex'),
+    telo: hod('f-telo'),
+    odkaz: hod('f-odkaz'),
+    zamceno: false,
+    bloky: blokyClanku(vybrano.id).map(b => ({
+      poradi: b.poradi, typ: b.typ, nadpis: b.nadpis, text: b.text,
+      odkaz: b.odkaz, odkaz_text: b.odkaz_text, ikona: b.ikona,
+      data: b.data, pozadi: b.pozadi, velikost: b.velikost
+    }))
+  }});
+}
+
+/* Uložení bloků — volá se z ulozClanek(). */
+async function ulozBlokyClanku(clanekId){
+  for(const id of blokySmazane){
+    const { error } = await db.from('bloky').delete().eq('id', id);
+    if(error){ hlaska('Smazání bloku selhalo: ' + error.message, true); return false; }
+  }
+  blokySmazane = [];
+  bloky = bloky.filter(b => !b._smazany);
+
+  for(const b of bloky.filter(x => x.clanek_id === clanekId && x._zmeneno)){
+    const zaznam = {
+      clanek_id: clanekId, poradi: b.poradi, typ: b.typ,
+      nadpis: b.nadpis || null, text: b.text || null,
+      odkaz: b.odkaz || null, odkaz_text: b.odkaz_text || null,
+      ikona: b.ikona || null, data: b.data || {},
+      pozadi: b.pozadi || 'bila', velikost: b.velikost || 'normalni'
+    };
+    if(b._novy){
+      const { data, error } = await db.from('bloky').insert(zaznam).select().single();
+      if(error){ hlaska('Uložení bloku selhalo: ' + error.message, true); return false; }
+      b.id = data.id; b._novy = false;
+    } else {
+      const { error } = await db.from('bloky').update(zaznam).eq('id', b.id);
+      if(error){ hlaska('Uložení bloku selhalo: ' + error.message, true); return false; }
+    }
+    b._zmeneno = false;
+  }
+  return true;
+}
+
+/* Převod staršího článku: z jednoho textového pole udělá bloky. */
+function prevedNaBloky(){
+  if(!vybrano || vybrano.typ !== 'clanek') return;
+  const telo = ($('f-telo') || {}).value || '';
+  if(!telo.trim()){ hlaska('Text článku je prázdný.'); return; }
+  if(blokyClanku(vybrano.id).length && !confirm('Článek už bloky má. Přidat k nim ještě text?')) return;
+  let poradi = (blokyClanku(vybrano.id).slice(-1)[0] || {poradi: 0}).poradi;
+  telo.split(/\n\s*\n/).filter(x => x.trim()).forEach(cast => {
+    const c = cast.trim();
+    const mezinadpis = c.startsWith('## ');
+    poradi += 10;
+    bloky.push({
+      id: novyId(), _novy: true, _zmeneno: true, clanek_id: vybrano.id, poradi,
+      typ: mezinadpis ? 'mezinadpis' : 'odstavec',
+      nadpis: mezinadpis ? c.slice(3) : '', text: mezinadpis ? '' : c,
+      odkaz: '', odkaz_text: '', ikona: null, data: {},
+      pozadi: 'bila', velikost: 'normalni'
+    });
+  });
+  kresliBloky(); nahledClanku();
+  hlaska('Text rozdělen na bloky. Uložte článek, aby se to zapsalo.');
+}
+
+
+/* ============================================================
+   KALKULAČKY
+   Do administrace patří čísla a texty — tedy to, co se mění se zákonem.
+   Rozhodovací stromy (která otázka vede kam) zůstávají v kódu: špatně
+   propojená větev by udělala slepou uličku a poradila řidiči špatně
+   v situaci, kde jde o trestní řízení.
+   ============================================================ */
+let sazby = [], napoje = [];
+let napojeZmenene = new Set(), napojeSmazane = [];
+
+async function nactiKalkulacky(){
+  const [s, n] = await Promise.all([
+    db.from('sazby').select('*').order('poradi'),
+    db.from('napoje').select('*').order('poradi')
+  ]);
+  sazby = s.error ? [] : s.data;
+  napoje = n.error ? [] : n.data;
+  if(s.error) console.warn('Tabulka sazeb zatím neexistuje — spusťte kalkulacky.sql', s.error.message);
+}
+
+function kresliKalkulacky(){
+  const sek = $('sek-kalk');
+  if(!sazby.length && !napoje.length){
+    sek.innerHTML = `<div class="panel"><h2>Kalkulačky</h2>
+      <div class="prazdno">Sazby a nápoje zatím nejsou v databázi.<br>
+      Spusťte v Supabase soubor <b>kalkulacky.sql</b> a stránku načtěte znovu.</div></div>`;
     return;
   }
-  sek.innerHTML = `<h2>${NAZVY_KARET[karta]} — texty v aplikaci</h2>
-    <p class="napoveda" style="margin:-6px 0 18px">Změna se v aplikaci projeví po jejím dalším otevření.
-       Struktura obrazovky se nemění, upravuje se jen znění.</p>
-    ${polozky.map(t => {
-      const vlastni = t.klic.startsWith('blok.');
-      if(vlastni && !upravovane.has(t.klic)) return nahledBloku(t);
-      return `
-      <div class="pole ${vlastni?'blok-edit':''}">
-        ${vlastni
-          ? `<label>Nadpis bloku</label>
-             <input type="text" id="nadpis-${t.klic}" value="${esc(t.popis)}" style="margin-bottom:10px">
-             <label>Text bloku</label>`
-          : `<label for="tx-${t.klic}">${esc(t.popis)}</label>`}
-        ${t.viceradkovy
-          ? `<textarea id="tx-${t.klic}" style="min-height:${vlastni?'110':'76'}px">${esc(t.hodnota)}</textarea>`
-          : `<input type="text" id="tx-${t.klic}" value="${esc(t.hodnota)}">`}
-        ${vlastni
-          ? `<div class="radky2" style="margin-top:12px">
-               <div><label>Odkaz (nepovinné)</label>
-                 <input type="text" id="odkaz-${t.klic}" value="${esc(t.odkaz||'')}" placeholder="https://www.pravaridice.cz/…"></div>
-               <div><label>Text tlačítka</label>
-                 <input type="text" id="odkaztext-${t.klic}" value="${esc(t.odkaz_text||'')}" placeholder="Přečíst více"></div>
-             </div>
-             <div class="prepinac ${t.nove_okno!==false?'zap':''}" onclick="this.classList.toggle('zap')" id="okno-${t.klic}">
-               <div class="txt"><b>Otevřít v novém okně</b><span>Vypnuto = odkaz se otevře přímo v aplikaci.</span></div>
-               <div class="knof"></div></div>
-             <div class="lista">
-               <button class="btn btn-hlavni" data-ulozit style="padding:8px 14px;font-size:13px" onclick="ulozBlok('${t.klic}')">Uložit</button>
-               <button class="btn btn-smaz vpravo" style="padding:8px 12px;font-size:13px" onclick="smazBlok('${t.klic}')">Smazat blok</button>
-             </div>`
-          : ''}
-      </div>`; }).join('')}
-    <div class="lista">
-      <button class="btn btn-hlavni" data-ulozit onclick="ulozTexty('${karta}')">Uložit</button>
-      <button class="btn btn-vedl" onclick="novyBlok('${karta}')">+ Přidat blok</button>
+
+  const skupiny = [];
+  sazby.forEach(s => {
+    let g = skupiny.find(x => x.nazev === s.skupina);
+    if(!g){ g = {nazev: s.skupina, polozky: []}; skupiny.push(g); }
+    g.polozky.push(s);
+  });
+
+  sek.innerHTML = `
+  <div class="panel">
+    <h2>Sazby a hranice</h2>
+    <p class="napoveda" style="margin:-6px 0 14px">Tohle jsou čísla, která se mění se zákonem.
+       Používají je výpočty i texty výsledků — v textu se zapisují jako
+       <code>{klíč}</code> a dosadí se sem uvedená hodnota. Stačí je tedy změnit
+       na jednom místě.</p>
+    ${skupiny.map((g, i) => `
+      <details class="sekce" ${i === 0 ? 'open' : ''}>
+        <summary>${esc(g.nazev)}<span class="pocet">${g.polozky.length} ${mnozne(g.polozky.length,'položka','položky','položek')}</span></summary>
+        <div class="sekce-telo">
+          ${g.polozky.map(s => `
+            <div class="pole">
+              <label for="sz-${s.klic}">${esc(s.popis)}${s.jednotka ? ' <span style="text-transform:none;font-weight:600">(' + esc(s.jednotka) + ')</span>' : ''}</label>
+              <input type="text" id="sz-${s.klic}" value="${esc(s.hodnota)}"
+                ${s.cislo ? 'inputmode="decimal"' : ''} oninput="hlidejSazbu(this, ${s.cislo ? 'true' : 'false'})">
+              <p class="napoveda">V textech se zapisuje jako <code>{${esc(s.klic)}}</code>${s.cislo ? ' · musí to být číslo' : ''}</p>
+            </div>`).join('')}
+        </div>
+      </details>`).join('')}
+    <div class="lista" style="margin-top:14px">
+      <button class="btn btn-hlavni" data-ulozit onclick="ulozSazby()">Uložit</button>
+      <button class="btn btn-vedl" onclick="exportSazeb()">Stáhnout do Excelu</button>
+      <label class="btn btn-vedl" style="cursor:pointer;display:inline-block">Nahrát z Excelu
+        <input type="file" accept=".xlsx,.xls" hidden onchange="importSazeb(this)"></label>
     </div>
-    ${karta==='zpravy' ? sekceZprav() : ''}`;
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h2>Nápoje v kalkulačce</h2>
+    <p class="napoveda" style="margin:-6px 0 14px">Z názvu, objemu a procent se počítá hladina alkoholu.
+       Pořadí odpovídá pořadí v aplikaci.</p>
+    <div class="radky-tab" style="grid-template-columns:2fr 90px 90px 34px;font-size:11.5px;font-weight:700;
+         letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">
+      <div>Název</div><div>Objem (ml)</div><div>Alkohol (%)</div><div></div>
+    </div>
+    <div id="napoje-seznam"></div>
+    <div class="lista" style="margin-top:12px">
+      <button class="btn btn-hlavni" data-ulozit onclick="ulozNapoje()">Uložit</button>
+      <button class="btn btn-vedl" onclick="pridejNapoj()">+ Nápoj</button>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h2>Co se odsud nemění</h2>
+    <p class="napoveda" style="margin:-6px 0 0">Postup otázek v průvodci — tedy která odpověď vede
+       na kterou další otázku a na jaký výsledek. Je to v kódu záměrně: špatně propojená větev by
+       skončila naslepo a poradila by řidiči špatně v situaci, kde jde o trestní řízení, a nikdo by
+       si toho nemusel všimnout. Když bude potřeba postup změnit, napište Martinovi.
+       <b>Texty výsledků</b> se mění na kartě Průvodce dole, v sekcích „Kalkulačka".</p>
+  </div>`;
+
+  kresliNapoje();
   hlidejFormular(sek);
+}
+
+function hlidejSazbu(el, cislo){
+  if(!cislo) return;
+  const ok = /^-?\d+([.,]\d+)?$/.test(el.value.trim());
+  el.style.borderColor = ok || !el.value.trim() ? '' : 'var(--err)';
+}
+
+function kresliNapoje(){
+  const el = $('napoje-seznam'); if(!el) return;
+  el.innerHTML = napoje.filter(n => !n._smazany).map(n => `
+    <div class="radky-tab" style="grid-template-columns:2fr 90px 90px 34px">
+      <input type="text" value="${esc(n.nazev)}" oninput="zmenNapoj('${n.id}','nazev',this.value)">
+      <input type="text" inputmode="numeric" value="${esc(String(n.objem_ml))}" oninput="zmenNapoj('${n.id}','objem_ml',this.value)">
+      <input type="text" inputmode="decimal" value="${esc(String(n.procenta))}" oninput="zmenNapoj('${n.id}','procenta',this.value)">
+      <button type="button" class="smaz" title="Smazat nápoj" onclick="smazNapoj('${n.id}')">×</button>
+    </div>`).join('') || '<div class="prazdno">Zatím žádné nápoje.</div>';
+}
+
+function zmenNapoj(id, pole, hodnota){
+  const n = napoje.find(x => x.id === id); if(!n) return;
+  n[pole] = hodnota; napojeZmenene.add(id);
+}
+
+function pridejNapoj(){
+  const poradi = napoje.reduce((m, n) => Math.max(m, n.poradi || 0), 0) + 10;
+  const id = 'novy-' + Math.random().toString(36).slice(2, 10);
+  napoje.push({id, _novy: true, nazev: '', objem_ml: 500, procenta: 5, poradi});
+  napojeZmenene.add(id);
+  kresliNapoje();
+}
+
+function smazNapoj(id){
+  const n = napoje.find(x => x.id === id); if(!n) return;
+  n._smazany = true;
+  if(!n._novy) napojeSmazane.push(id);
+  kresliNapoje();
+}
+
+async function ulozSazby(){
+  const zmenene = [];
+  const spatne = [];
+  sazby.forEach(s => {
+    const pole = $('sz-' + s.klic); if(!pole) return;
+    const nova = pole.value.trim();
+    if(!nova){ spatne.push(s.popis + ' — prázdné'); return; }
+    if(s.cislo && !/^-?\d+([.,]\d+)?$/.test(nova)){ spatne.push(s.popis + ' — není číslo'); return; }
+    if(nova !== s.hodnota) zmenene.push({...s, hodnota: nova});
+  });
+  if(spatne.length){ hlaska('Opravte prosím: ' + spatne.join(' · '), true); return; }
+  if(!zmenene.length){ hlaska('Nic se nezměnilo.'); return; }
+  for(const s of zmenene){
+    const { error } = await db.from('sazby').update({hodnota: s.hodnota, upravil: uzivatel.email}).eq('klic', s.klic);
+    if(error){ hlaska('Uložení selhalo: ' + error.message, true); return; }
+    Object.assign(sazby.find(x => x.klic === s.klic), {hodnota: s.hodnota});
+  }
+  kresliKalkulacky();
+  hlaska('Uloženo — změněno ' + zmenene.length + ' ' + mnozne(zmenene.length,'sazba','sazby','sazeb') + '.');
+}
+
+async function ulozNapoje(){
+  for(const id of napojeSmazane){
+    const { error } = await db.from('napoje').delete().eq('id', id);
+    if(error){ hlaska('Smazání selhalo: ' + error.message, true); return; }
+  }
+  napojeSmazane = [];
+  const spatne = [];
+  for(const n of napoje.filter(x => !x._smazany && napojeZmenene.has(x.id))){
+    const ml = parseInt(String(n.objem_ml).replace(',', '.'), 10);
+    const pct = parseFloat(String(n.procenta).replace(',', '.'));
+    if(!n.nazev.trim() || !isFinite(ml) || !isFinite(pct)){ spatne.push(n.nazev || '(bez názvu)'); continue; }
+    const zaznam = {nazev: n.nazev.trim(), objem_ml: ml, procenta: pct, poradi: n.poradi || 0};
+    if(n._novy){
+      const { data, error } = await db.from('napoje').insert(zaznam).select().single();
+      if(error){ hlaska('Uložení selhalo: ' + error.message, true); return; }
+      n.id = data.id; n._novy = false;
+    } else {
+      const { error } = await db.from('napoje').update(zaznam).eq('id', n.id);
+      if(error){ hlaska('Uložení selhalo: ' + error.message, true); return; }
+    }
+  }
+  napoje = napoje.filter(n => !n._smazany);
+  napojeZmenene.clear();
+  kresliNapoje();
+  hlaska(spatne.length ? ('Uloženo, ale přeskočeno: ' + spatne.join(', ')) : 'Uloženo.');
+}
+
+/* ---------- Excel ----------
+   Aplikace Excel nikdy nečte. Slouží jen k pohodlné úpravě: co se z něj nahraje,
+   administrace nejdřív ukáže jako seznam změn a teprve po potvrzení uloží. */
+function exportSazeb(){
+  if(typeof XLSX === 'undefined'){ hlaska('Knihovna pro Excel se nenačetla.', true); return; }
+  const listSazby = XLSX.utils.json_to_sheet(sazby.map(s => ({
+    'Klíč': s.klic, 'Skupina': s.skupina, 'Popis': s.popis,
+    'Hodnota': s.hodnota, 'Jednotka': s.jednotka || '', 'Musí být číslo': s.cislo ? 'ano' : ''
+  })));
+  const listNapoje = XLSX.utils.json_to_sheet(napoje.filter(n => !n._smazany).map(n => ({
+    'Název': n.nazev, 'Objem (ml)': n.objem_ml, 'Alkohol (%)': n.procenta, 'Pořadí': n.poradi
+  })));
+  const sesit = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(sesit, listSazby, 'Sazby');
+  XLSX.utils.book_append_sheet(sesit, listNapoje, 'Nápoje');
+  XLSX.writeFile(sesit, 'prava-ridice-sazby.xlsx');
+  hlaska('Staženo. Měňte prosím jen sloupec Hodnota — podle klíče se to zpátky spáruje.');
+}
+
+function importSazeb(vstup){
+  const soubor = vstup.files && vstup.files[0];
+  vstup.value = '';
+  if(!soubor) return;
+  if(typeof XLSX === 'undefined'){ hlaska('Knihovna pro Excel se nenačetla.', true); return; }
+  const cti = new FileReader();
+  cti.onload = e => {
+    let sesit;
+    try { sesit = XLSX.read(e.target.result, {type: 'array'}); }
+    catch(err){ hlaska('Soubor se nepodařilo přečíst.', true); return; }
+    const list = sesit.Sheets['Sazby'];
+    if(!list){ hlaska('V sešitu chybí list „Sazby".', true); return; }
+    const radky = XLSX.utils.sheet_to_json(list);
+
+    const zmeny = [], potize = [];
+    radky.forEach(r => {
+      const klic = String(r['Klíč'] || '').trim();
+      if(!klic) return;
+      const s = sazby.find(x => x.klic === klic);
+      if(!s){ potize.push(klic + ' — takový klíč neznáme'); return; }
+      const nova = String(r['Hodnota'] ?? '').trim();
+      if(!nova){ potize.push(s.popis + ' — prázdná hodnota'); return; }
+      if(s.cislo && !/^-?\d+([.,]\d+)?$/.test(nova)){ potize.push(s.popis + ' — „' + nova + '" není číslo'); return; }
+      if(nova !== s.hodnota) zmeny.push({klic, popis: s.popis, ze: s.hodnota, na: nova});
+    });
+
+    if(potize.length && !zmeny.length){
+      hlaska('Nic se nedá použít: ' + potize.join(' · '), true); return;
+    }
+    if(!zmeny.length){ hlaska('Soubor se od databáze neliší.'); return; }
+
+    const soupis = zmeny.map(z => '• ' + z.popis + ':  ' + z.ze + '  →  ' + z.na).join('\n');
+    const varovani = potize.length ? '\n\nPřeskočí se:\n' + potize.map(x => '• ' + x).join('\n') : '';
+    if(!confirm('Z Excelu se změní ' + zmeny.length + ' ' + mnozne(zmeny.length,'sazba','sazby','sazeb') + ':\n\n' + soupis + varovani + '\n\nUložit?')) return;
+
+    (async () => {
+      for(const z of zmeny){
+        const { error } = await db.from('sazby').update({hodnota: z.na, upravil: uzivatel.email}).eq('klic', z.klic);
+        if(error){ hlaska('Uložení selhalo: ' + error.message, true); return; }
+        Object.assign(sazby.find(x => x.klic === z.klic), {hodnota: z.na});
+      }
+      kresliKalkulacky();
+      hlaska('Uloženo z Excelu — ' + zmeny.length + ' ' + mnozne(zmeny.length,'změna','změny','změn') + '.');
+    })();
+  };
+  cti.readAsArrayBuffer(soubor);
+}
+
+/* ---------- texty karet ---------- */
+const NAZVY_KARET = {prehled:'Přehled', pruvodce:'Průvodce', sluzby:'Služby',
+                    zpravy:'Zprávy', profil:'Profil', ostatni:'Společné'};
+
+function kresliTexty(karta){
+  const sek = $('texty-'+karta) || $('sek-'+karta);
+  const polozky = texty.filter(t => t.karta === karta);
+  if(!polozky.length){
+    sek.innerHTML = texty.length ? '' :
+      `<div class="panel"><h2>${NAZVY_KARET[karta]||karta}</h2>
+        <div class="prazdno">Texty zatím nejsou v databázi.<br>
+        Spusťte v Supabase soubor <b>texty-plne.sql</b> a stránku načtěte znovu.</div></div>`;
+    return;
+  }
+
+  /* rozdělení do sekcí podle místa v aplikaci — pořadí zůstává podle databáze */
+  const skupiny = [];
+  polozky.forEach(t => {
+    const nazev = skupinaKlice(t.klic);
+    let s = skupiny.find(x => x.nazev === nazev);
+    if(!s){ s = {nazev, polozky: []}; skupiny.push(s); }
+    s.polozky.push(t);
+  });
+
+  sek.innerHTML = `<div class="panel">
+    <h2>${NAZVY_KARET[karta]||karta} — texty v aplikaci</h2>
+    <p class="napoveda" style="margin:-6px 0 16px">Vpravo běží aplikace. Jakmile začnete psát,
+       změna je hned vidět — uložit ji ale musíte tlačítkem dole. Struktura obrazovky se nemění,
+       upravuje se jen znění.</p>
+    ${skupiny.map((s, i) => `
+      <details class="sekce" ${i === 0 ? 'open' : ''}>
+        <summary>${esc(s.nazev)}<span class="pocet">${s.polozky.length} ${mnozne(s.polozky.length,'pole','pole','polí')}</span></summary>
+        <div class="sekce-telo">${s.polozky.map(poleTextu).join('')}</div>
+      </details>`).join('')}
+    <div class="lista" style="margin-top:14px">
+      <button class="btn btn-hlavni" data-ulozit onclick="ulozTexty('${karta}')">Uložit</button>
+      <button class="btn btn-vedl" onclick="novyBlok('${karta}')">+ Přidat vlastní blok</button>
+    </div>
+    </div>
+    ${karta === 'zpravy' ? '<div class="panel" style="margin-top:16px">' + sekceZprav() + '</div>' : ''}`;
+  hlidejFormular(sek);
+  nahledTexty();
+}
+
+function mnozne(n, jeden, few, mnoho){ return n === 1 ? jeden : (n >= 2 && n <= 4 ? few : mnoho); }
+
+/* Jedno pole. onfocus přepne náhled na správnou obrazovku a text v něm zvýrazní,
+   oninput pošle rozepsanou hodnotu — proto je náhled živý ještě před uložením. */
+function poleTextu(t){
+  const vlastni = t.klic.startsWith('blok.');
+  if(vlastni && !upravovane.has(t.klic)) return nahledBloku(t);
+  const spolecne = `oninput="nahledTexty()" onfocus="naNahled('${t.klic}')"`;
+  return `
+  <div class="pole ${vlastni ? 'blok-edit' : ''}">
+    ${vlastni
+      ? `<label>Nadpis bloku</label>
+         <input type="text" id="nadpis-${t.klic}" value="${esc(t.popis)}" style="margin-bottom:10px">
+         <label>Text bloku</label>`
+      : `<label for="tx-${t.klic}">${esc(t.popis)}</label>`}
+    ${t.viceradkovy
+      ? `<textarea id="tx-${t.klic}" ${spolecne} style="min-height:${vlastni ? '110' : '72'}px">${esc(t.hodnota)}</textarea>`
+      : `<input type="text" id="tx-${t.klic}" ${spolecne} value="${esc(t.hodnota)}">`}
+    ${vlastni
+      ? `<div class="radky2" style="margin-top:12px">
+           <div><label>Odkaz (nepovinné)</label>
+             <input type="text" id="odkaz-${t.klic}" value="${esc(t.odkaz||'')}" placeholder="https://www.pravaridice.cz/…"></div>
+           <div><label>Text tlačítka</label>
+             <input type="text" id="odkaztext-${t.klic}" value="${esc(t.odkaz_text||'')}" placeholder="Přečíst více"></div>
+         </div>
+         <div class="prepinac ${t.nove_okno!==false ? 'zap' : ''}" onclick="this.classList.toggle('zap')" id="okno-${t.klic}">
+           <div class="txt"><b>Otevřít v novém okně</b><span>Vypnuto = odkaz se otevře přímo v aplikaci.</span></div>
+           <div class="knof"></div></div>
+         <div class="lista">
+           <button class="btn btn-hlavni" data-ulozit style="padding:8px 14px;font-size:13px" onclick="ulozBlok('${t.klic}')">Uložit</button>
+           <button class="btn btn-smaz vpravo" style="padding:8px 12px;font-size:13px" onclick="smazBlok('${t.klic}')">Smazat blok</button>
+         </div>`
+      : ''}
+  </div>`;
+}
+
+/* Přepnutí náhledu na obrazovku, kde ten text je, a jeho zvýraznění. */
+function naNahled(klic){
+  const kam = obrazovkaKlice(klic);
+  if(kam !== nahledObrazovkaAkt) nahledObrazovka(kam, true);
+  posliNahled({ zvyrazni: klic });
 }
 
 async function ulozTexty(karta, potichu){
