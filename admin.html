@@ -251,7 +251,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 .tel-rada{display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%}
 .tel-rada > span{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
   color:var(--muted);margin-right:2px;flex:0 0 auto}
-.tel-jako{margin-top:4px;padding-top:9px;border-top:1px solid var(--line)}
+.tel-jako{margin-top:0}
 .tel-jako button{padding:5px 9px;font-size:12px}
 .cojeco{border:1px solid var(--line);border-radius:11px;background:var(--cream);margin-bottom:16px}
 .cojeco > summary{list-style:none;cursor:pointer;padding:10px 14px;font-weight:700;font-size:13px;
@@ -365,8 +365,8 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
     <!-- ===== ŽIVÝ NÁHLED ===== -->
     <aside class="telefon" id="telefon">
       <h2 id="telNadpis">Náhled aplikace</h2>
-      <p class="tel-uvod">Vpravo běží skutečná aplikace. První řada přepíná, kterou obrazovku
-         karty ukazuje; druhá, komu se ukazuje.</p>
+      <p class="tel-uvod">Vpravo běží skutečná aplikace. Sama se přepne na obrazovku,
+         kde je pole nebo sekce, kterou právě upravujete.</p>
       <div class="tel-ovladace" id="telOvladace"></div>
       <div class="tel-ramecek"><iframe id="telRam" src="index.html?nahled=1" title="Náhled aplikace"></iframe></div>
       <p class="tel-pozn">Není to obrázek — běží tu skutečná aplikace. Co vidíte tady,
@@ -1044,12 +1044,10 @@ function kresliOvladaceNahledu(){
   const nadpis = $('telNadpis');
   if(nadpis) nadpis.textContent = 'Náhled — ' + (NAZEV_KARTY[nahledKarta] || '');
   const sez = NAHLED_PODOBRAZOVKY[nahledKarta] || NAHLED_PODOBRAZOVKY.prehled;
-  /* Obě řady mají popisek, jinak vypadají jako druhá sada záložek. */
+  /* Řada s obrazovkami tu byla, ale mátla — vypadala jako druhá sada záložek
+     a hlavně byla zbytečná: náhled se sám přepne na tu obrazovku, kde je pole
+     nebo sekce, kterou právě upravujete. Zůstává jen volba, komu se ukazuje. */
   el.innerHTML =
-    '<div class="tel-rada"><span>Obrazovka</span>' +
-    sez.map(([id, nazev]) =>
-      `<button class="${id === nahledObrazovkaAkt ? 'on' : ''}" onclick="nahledObrazovka('${id}')">${nazev}</button>`
-    ).join('') + '</div>' +
     '<div class="tel-rada tel-jako"><span>Zobrazit jako</span>' +
     NAHLED_JAKO.map(([k, nazev]) =>
       `<button class="${k === nahledJako ? 'on' : ''}" onclick="nahledJakoNastav('${k}')">${nazev}</button>`
