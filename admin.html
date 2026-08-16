@@ -317,7 +317,6 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
     <button id="t-sluzby"   onclick="prepni('sluzby')">Služby</button>
     <button id="t-zpravy"   onclick="prepni('zpravy')">Zprávy</button>
     <button id="t-profil"   onclick="prepni('profil')">Profil</button>
-    <button id="t-kalk"     onclick="prepni('kalk')">Kalkulačky</button>
     <button id="t-sprava"   onclick="prepni('sprava')">Administrace</button>
   </div>
 
@@ -337,13 +336,13 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
         <div class="prazdno">Vyberte vlevo článek nebo oblast, nebo přidejte nový.</div>
       </div>
       <div id="texty-pruvodce" style="grid-column:1/-1"></div>
+      <div id="sek-kalk" style="grid-column:1/-1"></div>
     </div>
 
     <!-- ===== TEXTY KARET (Přehled / Zprávy / Profil) ===== -->
     <div id="sek-prehled" class="panel" style="display:none"></div>
     <div id="sek-zpravy"  class="panel" style="display:none"></div>
     <div id="sek-profil"  class="panel" style="display:none"></div>
-    <div id="sek-kalk"    style="display:none"></div>
     <div id="sek-sprava"  class="panel" style="display:none"></div>
 
     <!-- ===== SLUŽBY ===== -->
@@ -470,7 +469,7 @@ async function nactiVse(){
   kresliStrom(); kresliSluzby();
 }
 
-const KARTY = ['prehled','pruvodce','sluzby','zpravy','profil','kalk','sprava'];
+const KARTY = ['prehled','pruvodce','sluzby','zpravy','profil','sprava'];
 function prepni(co){
   KARTY.forEach(k=>{
     const t=$('t-'+k); if(t) t.classList.toggle('on', k===co);
@@ -479,7 +478,7 @@ function prepni(co){
     sek.style.display = (k===co) ? (jeMrizka ? 'grid' : 'block') : 'none';
   });
   if(['prehled','pruvodce','sluzby','zpravy','profil'].includes(co)) kresliTexty(co);
-  if(co==='kalk') kresliKalkulacky();   // ta si texty vykreslí sama
+  if(co==='pruvodce') kresliKalkulacky();   // ta si své texty vykreslí sama
   if(co==='sprava') kresliSpravu();
   nahledKartaNastav(co);
 }
@@ -907,6 +906,9 @@ let nahledObrazovkaAkt = 'prehled';
 
 /* Náhled sleduje záložku administrace — jedna volba, ne dvě.
    Nabízí jen podobrazovky té karty, na které zrovna jste. */
+/* Na kartě Administrace se náhled schová — jsou tam klienti, kódy a statistiky,
+   nic z toho v aplikaci není. */
+const BEZ_NAHLEDU = ['sprava'];
 const NAHLED_PODOBRAZOVKY = {
   prehled:  [['prehled','Přehled'], ['points-help','Jak zjistit body'],
              ['vozidla','Vozidla a STK'], ['nehoda','Po nehodě']],
@@ -916,11 +918,10 @@ const NAHLED_PODOBRAZOVKY = {
              ['postup','Jak to probíhá'], ['recenze','Recenze']],
   zpravy:   [['zpravy','Zprávy'], ['konzultace','Formulář']],
   profil:   [['profil','Profil'], ['predplatne','Předplatné'], ['upozorneni','Upozornění']],
-  kalk:     [['calc','Kalkulačka'], ['pruvodce','Průvodce']],
   sprava:   [['prehled','Přehled'], ['profil','Profil']]
 };
 const NAZEV_KARTY = {prehled:'Přehled', pruvodce:'Průvodce', sluzby:'Služby',
-                     zpravy:'Zprávy', profil:'Profil', kalk:'Kalkulačky', sprava:'Administrace'};
+                     zpravy:'Zprávy', profil:'Profil', sprava:'Administrace'};
 
 /* Z čí perspektivy se náhled kreslí. Bez tohohle je snadné zapomenout,
    že běžný uživatel vidí něco jiného než správce. */
@@ -1027,6 +1028,9 @@ function sekceOtevrena(el){
 /* Přepnutí záložky přepne i náhled — na první podobrazovku té karty. */
 function nahledKartaNastav(karta){
   nahledKarta = karta;
+  const panel = $('telefon');
+  if(panel) panel.style.display = BEZ_NAHLEDU.includes(karta) ? 'none' : '';
+  if(BEZ_NAHLEDU.includes(karta)) return;
   const sez = NAHLED_PODOBRAZOVKY[karta] || NAHLED_PODOBRAZOVKY.prehled;
   nahledObrazovka(sez[0][0]);
 }
@@ -1098,7 +1102,7 @@ function zamerPole(klic){
   if(!pole){
     /* Text patří jiné kartě — přepneme na ni a zkusíme to znovu. */
     const t = texty.find(x => x.klic === klic);
-    const kam = (t && t.karta) || (klic.startsWith('kalk.') ? 'kalk' : null);
+    const kam = klic.startsWith('kalk.') ? 'pruvodce' : (t && t.karta) || null;
     if(kam && kam !== nahledKarta){ prepni(kam); pole = $('tx-' + klic); }
   }
   if(!pole){ hlaska('Tenhle text se mění jinde v administraci.'); return; }
@@ -1212,6 +1216,7 @@ const SKUPINY = [
 
 function skupinaKlice(klic){
   if(klic.startsWith('blok.')) return 'Vlastní bloky';
+  if(klic.startsWith('kalk.')) return 'Kalkulačka — texty výsledků';
   for(const [predpona, nazev] of SKUPINY){
     if(klic === predpona || klic.startsWith(predpona + '.')) return nazev;
   }
@@ -1590,8 +1595,8 @@ function kresliKalkulacky(){
   });
 
   sek.innerHTML = `
-  <div class="panel">
-    <h2>Sazby a hranice</h2>
+  <div class="panel" style="margin-top:16px">
+    <h2>Kalkulačky — sazby a hranice</h2>
     ${cojeco('kalk')}
     <p class="napoveda" style="margin:-6px 0 14px">Tohle jsou čísla, která se mění se zákonem.
        Používají je výpočty i texty výsledků — v textu se zapisují jako
@@ -1950,7 +1955,7 @@ function seznamyKarty(karta){
 
 /* ---------- texty karet ---------- */
 const NAZVY_KARET = {prehled:'Přehled', pruvodce:'Průvodce', sluzby:'Služby',
-                    zpravy:'Zprávy', profil:'Profil', ostatni:'Společné'};
+                    zpravy:'Zprávy', profil:'Profil', kalk:'Kalkulačka'};
 
 function kresliTexty(karta){
   const sek = $('texty-'+karta) || $('sek-'+karta);
@@ -2194,17 +2199,36 @@ function dlazdice(popis, hodnota, poznamka){
 
 function vykresliSpravu(){
   const s = statistika || {};
-  const bezKodu = (s.registrovanych||0) - (s.pres_promo||0);
+  /* Trychtýř: každý registrovaný je právě v jednom ze tří stavů a ty tři
+     dají dohromady celkový počet. Dřív se dvě dlaždice překrývaly a ukazovaly
+     stejné číslo, takže nebylo poznat, v čem se liší. */
+  const c = (x, z) => (x ?? z ?? 0);
+  const registrovanych = c(s.registrovanych);
+  const nepotvrzeni = c(s.nepotvrzeni, registrovanych - c(s.potvrzenych));
+  const plny = c(s.plny, s.s_pristupem);
+  const omezeny = c(s.omezeny, c(s.potvrzenych) - plny);
+  const sedi = (nepotvrzeni + omezeny + plny) === registrovanych;
+  const zdroje = [
+    plny && s.plny_kod ? s.plny_kod + '× firemní kód' : '',
+    s.plny_platba ? s.plny_platba + '× zaplaceno' : '',
+    s.plny_spravce ? s.plny_spravce + '× správce' : ''
+  ].filter(Boolean).join(' · ');
+
   $('sek-sprava').innerHTML = `
-    <h2>Přehled</h2>
+    <h2>Uživatelé</h2>
     <div class="dlazdice-rada">
-      ${dlazdice('Instalací', s.instalaci ?? '—', 'zařízení, kde appka běžela')}
-      ${dlazdice('Registrovaných', s.registrovanych ?? '—', 'zadali e-mail')}
-      ${dlazdice('Potvrzených', s.potvrzenych ?? '—', 'klikli na odkaz v mailu')}
-      ${dlazdice('S přístupem', s.s_pristupem ?? '—', 'z toho přes kód: '+(s.pres_promo ?? '—'))}
-      ${dlazdice('Bez přístupu', s.bez_pristupu ?? '—', 'registrovaní, ale neplatící')}
-      ${dlazdice('Registrovaní bez kódu', bezKodu >= 0 ? bezKodu : '—', 'nepoužili promo kód')}
+      ${dlazdice('Nepotvrzení', nepotvrzeni, 'zadali e-mail, ale neklikli na odkaz')}
+      ${dlazdice('Omezený přístup', omezeny, 'placený obsah nevidí')}
+      ${dlazdice('Plný přístup', plny, zdroje || 'vidí všechno')}
     </div>
+    <p class="napoveda">Registrovaných je celkem <b>${registrovanych}</b>${sedi ? '' : ' (součet výše nesedí — spusťte prosím znovu registrovani.sql)'}.
+       Každý je právě v jednom z těch tří stavů, takže se čísla nepřekrývají.
+       Aplikaci si nainstalovalo <b>${c(s.instalaci)}</b> ${mnozne(c(s.instalaci),'zařízení','zařízení','zařízení')} — to je víc než registrovaných,
+       protože se dá používat i bez přihlášení.</p>
+    ${c(s.klientu) ? `<div class="dlazdice-rada" style="margin-top:14px">
+      ${dlazdice('Firemních klientů', s.klientu, 'aktivních smluv')}
+      ${dlazdice('Zaplacených míst', c(s.mist_celkem), c(s.mist_pouzitych) + ' už uplatněno')}
+    </div>` : ''}
     <div class="lista" style="margin-top:14px">
       <button class="btn btn-vedl" onclick="exportVsechRegistrovanych()">Registrované do CSV</button>
     </div>
