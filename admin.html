@@ -310,7 +310,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 87</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 88</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -471,10 +471,19 @@ async function nactiVse(){
   if(bl.error) console.warn('Tabulka bloků zatím neexistuje — spusť bloky.sql', bl.error.message);
   await nactiKalkulacky();
   await nactiSeznamy();
+  prejmenujKarty();
   kresliStrom(); kresliSluzby();
 }
 
 const KARTY = ['uvod','prehled','pruvodce','sluzby','zpravy','profil','sprava'];
+
+/* Záložky nahoře se jmenují stejně jako spodní lišta v aplikaci. */
+function prejmenujKarty(){
+  ['prehled','pruvodce','sluzby','zpravy','profil'].forEach(k => {
+    const t = $('t-' + k), nazev = hodnotaPole(NAZEV_Z[k]);
+    if(t && nazev) t.textContent = nazev;
+  });
+}
 function prepni(co){
   KARTY.forEach(k=>{
     const t=$('t-'+k); if(t) t.classList.toggle('on', k===co);
@@ -1248,6 +1257,39 @@ const NAZEV_OBRAZOVKY = {
   'kontakt': ['Kontakt', 'Otevře se z Profilu, sekce Odkazy.']
 };
 
+/* Odkud se bere jméno obrazovky (aby přejmenování v aplikaci prošlo i sem)
+   a čím se otevírá — z které karty a kterým řádkem. */
+const NAZEV_Z = {
+  'prehled':'nav.prehled',
+  'pruvodce':'nav.pruvodce',
+  'sluzby':'nav.sluzby',
+  'zpravy':'nav.zpravy',
+  'profil':'nav.profil',
+  'points-help':'pomoc.body.nadpis',
+  'vozidla':'nadpis.vozidla',
+  'nehoda':'nadpis.nehoda',
+  'oblasti':'nadpis.oblasti',
+  'calc':'nadpis.kalkulacka',
+  'konzultace':'formular.nadpis',
+  'predplatne':'nadpis.predplatne',
+  'upozorneni':'nadpis.upozorneni',
+  'recenze':'nadpis.recenze',
+  'postup':'nadpis.postup',
+  'kontakt':'nadpis.kontakt'
+};
+const OTEVIRA = {
+  'points-help': ['prehled','prehled.body.btn1'],
+  'vozidla': ['prehled','prehled.vozidla.nadpis'],
+  'nehoda': ['prehled','prehled.nehoda.nadpis'],
+  'oblasti': ['pruvodce','pruvodce.pruh.nadpis'],
+  'calc': ['pruvodce','pruvodce.kalk.nadpis'],
+  'predplatne': ['profil','profil.plan.btn'],
+  'upozorneni': ['profil','profil.upozorneni.nadpis'],
+  'recenze': ['profil','profil.odkaz.recenze.nadpis'],
+  'postup': ['profil','profil.odkaz.postup.nadpis'],
+  'kontakt': ['profil','profil.odkaz.kontakt.nadpis']
+};
+
 /* Kolik znaků se do pole vejde. Delší text administrace nepustí — v aplikaci
    by přetekl z karty nebo rozhodil řádek. Vygenerováno (nastroje/admin-limity.py). */
 const LIMIT_POLE = {
@@ -1511,8 +1553,25 @@ function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ?
 
 
 
-function nazevObrazovky(o){ return (NAZEV_OBRAZOVKY[o] || [o, ''])[0]; }
-function popisObrazovky(o){ return (NAZEV_OBRAZOVKY[o] || [o, ''])[1]; }
+
+/* Jméno obrazovky se bere z aplikace — z pole, které ten nadpis drží.
+   Když ho Nela přejmenuje, přejmenuje se i sekce v administraci. */
+function hodnotaPole(klic){
+  const t = (typeof texty !== 'undefined') && texty.find(x => x.klic === klic);
+  return t ? (t.hodnota || '').trim() : '';
+}
+function nazevObrazovky(o){
+  return hodnotaPole(NAZEV_Z[o]) || (NAZEV_OBRAZOVKY[o] || [o, ''])[0];
+}
+function nazevKarty(k){ return hodnotaPole(NAZEV_Z[k]) || NAZEV_KARTY[k] || k; }
+/* Popis pod nadpisem sekce: odkud se obrazovka otevírá. Název řádku se taky
+   bere z aplikace, ať se to nerozejde po přejmenování. */
+function popisObrazovky(o){
+  const z = OTEVIRA[o];
+  if(!z) return (NAZEV_OBRAZOVKY[o] || [o, ''])[1];
+  const radek = hodnotaPole(z[1]);
+  return 'Otevře se z karty ' + nazevKarty(z[0]) + (radek ? ' — řádek „' + radek + '"' : '');
+}
 
 const NAHLED_PODOBRAZOVKY = (() => {
   const m = {};
