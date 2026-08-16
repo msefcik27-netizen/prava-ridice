@@ -1126,6 +1126,11 @@ window.addEventListener('message', ev => {
     fronta.forEach(posliNahled);
     kresliOvladaceNahledu();
   }
+  /* Klepnutí na spodní lištu v náhledu přepne i záložku administrace. */
+  if(z.karta && z.karta !== nahledKarta && KARTY.includes(z.karta)) prepni(z.karta);
+  /* Aplikace se přepnula sama — jen si poznamenáme kde jsme, ať se to
+     zbytečně nepřekresluje dokola. */
+  if(z.obrazovkaJe) nahledObrazovkaAkt = z.obrazovkaJe.replace(/^s-/, '');
   if(z.zdroj) zamerZdroj(z.zdroj);
   else if(z.blok) zamerBlok(z.blok);
   else if(z.kliknuto) zamerPole(z.kliknuto);
