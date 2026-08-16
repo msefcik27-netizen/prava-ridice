@@ -253,15 +253,6 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
   color:var(--muted);margin-right:2px;flex:0 0 auto}
 .tel-jako{margin-top:0}
 .tel-jako button{padding:5px 9px;font-size:12px}
-.cojeco{border:1px solid var(--line);border-radius:11px;background:var(--cream);margin-bottom:16px}
-.cojeco > summary{list-style:none;cursor:pointer;padding:10px 14px;font-weight:700;font-size:13px;
-  color:var(--petrol);display:flex;align-items:center;gap:8px}
-.cojeco > summary::-webkit-details-marker{display:none}
-.cojeco > summary::before{content:'?';display:inline-flex;align-items:center;justify-content:center;
-  width:18px;height:18px;border-radius:50%;background:var(--petrol);color:#fff;font-size:12px;flex:0 0 auto}
-.cojeco > div{padding:0 14px 6px}
-.cojeco p{margin:0 0 9px;font-size:13px;line-height:1.5;color:var(--ink-soft)}
-.cojeco code{background:#fff;padding:1px 5px;border-radius:4px;font-size:12.5px}
 .krok{display:flex;align-items:center;gap:9px;margin:22px 0 12px;font-weight:800;font-size:15px;color:var(--ink)}
 .krok-cislo{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
   border-radius:50%;background:var(--grad);color:#fff;font-size:13px;font-weight:800;flex:0 0 auto}
@@ -665,7 +656,6 @@ function editorClanku(){
      Nastavení se vyplní jednou a pak se k němu nikdo nevrací, proto je sbalené. */
   $('editor').innerHTML = `
     <h2>Článek</h2>
-    ${cojeco('pruvodce')}
 
     <div class="krok"><span class="krok-cislo">1</span>O čem článek je</div>
     <div class="pole"><label>Nadpis</label>
@@ -1142,33 +1132,6 @@ window.addEventListener('message', ev => {
 });
 
 
-/* Krátké vysvětlení pojmů. Zavřené nepřekáží, poprvé pomůže. */
-function cojeco(karta){
-  const spolecne = `
-    <p><b>Text</b> — jedno políčko, jedna věta v aplikaci. Změní se jen znění,
-       obrazovka zůstane, jak je.</p>
-    <p><b>Vlastní blok</b> — karta navíc, kterou přidáte na konec obrazovky.
-       Má nadpis, text a nepovinné tlačítko s odkazem. Prázdný blok se nezobrazí.</p>`;
-  const pruvodce = `
-    <p><b>Oblast</b> — složka, do které patří články. V aplikaci je vidět jako
-       položka v seznamu <i>Oblasti</i>, například „Vybodování".</p>
-    <p><b>Článek</b> — jedno téma uvnitř oblasti, třeba „Co se stane při 12 bodech".</p>
-    <p><b>Blok</b> — dílek, ze kterých se článek skládá: odstavec, mezinadpis,
-       tabulka, upozornění. Pořadí měníte šipkami.</p>
-    <p><b>Popisek nad nadpisem</b> — pár slov, která se v článku ukážou nad
-       nadpisem vedle názvu oblasti. Nemusí se vyplňovat.</p>
-    <p><b>Úroveň přístupu</b> — zapnuto znamená, že článek uvidí jen člověk
-       s firemním kódem. Text se nikomu jinému ani neodešle.</p>`;
-  const kalk = `
-    <p><b>Sazba</b> — číslo nebo částka, která se mění se zákonem. Používají ji
-       výpočty i texty výsledků.</p>
-    <p><b>Klíč</b> — jméno sazby v <code>{složených závorkách}</code>. Když ho napíšete
-       do textu výsledku, dosadí se za něj hodnota. Proto stačí částku změnit
-       na jednom místě.</p>`;
-  const obsah = (karta === 'pruvodce' ? pruvodce : '') + (karta === 'kalk' ? kalk : spolecne);
-  return `<details class="cojeco"><summary>Co je co?</summary><div>${obsah}</div></details>`;
-}
-
 /* ---------- rozdělení textů do sekcí ---------- */
 /* Názvy sekcí říkají, co je v aplikaci vidět — ne jak je poskládaná uvnitř.
    V uvozovkách je text, který Nela na obrazovce opravdu čte, takže sekci
@@ -1597,7 +1560,6 @@ function kresliKalkulacky(){
   sek.innerHTML = `
   <div class="panel" style="margin-top:16px">
     <h2>Kalkulačky — sazby a hranice</h2>
-    ${cojeco('kalk')}
     <p class="napoveda" style="margin:-6px 0 14px">Tohle jsou čísla, která se mění se zákonem.
        Používají je výpočty i texty výsledků — v textu se zapisují jako
        <code>{klíč}</code> a dosadí se sem uvedená hodnota. Stačí je tedy změnit
@@ -1982,7 +1944,6 @@ function kresliTexty(karta){
     <p class="napoveda" style="margin:-6px 0 12px">Vpravo běží aplikace. Jakmile začnete psát,
        změna je hned vidět — uložit ji ale musíte tlačítkem dole. Struktura obrazovky se nemění,
        upravuje se jen znění.</p>
-    ${cojeco(karta)}
     ${skupiny.map((s, i) => `
       <details class="sekce" data-skupina="${esc(s.nazev)}" ontoggle="sekceOtevrena(this)" ${i === 0 ? 'open' : ''}>
         <summary>${esc(s.nazev)}<span class="pocet">${s.polozky.length} ${mnozne(s.polozky.length,'pole','pole','polí')}</span></summary>
