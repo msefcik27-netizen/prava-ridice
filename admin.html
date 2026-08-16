@@ -310,7 +310,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 88</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 89</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -2712,7 +2712,8 @@ function poleTextu(t){
     ${vlastni
       ? `<label>Nadpis bloku</label>
          <textarea class="roste" rows="1" id="nadpis-${t.klic}" maxlength="60" oninput="roste(this)"
-           onkeydown="bezEnteru(event)" style="margin-bottom:10px;min-height:44px">${esc(t.popis)}</textarea>
+           onfocus="naNahled('${t.klic}')" onkeydown="bezEnteru(event)"
+           style="margin-bottom:10px;min-height:44px">${esc(t.popis)}</textarea>
          <label>Text bloku</label>`
       : `<label for="tx-${t.klic}">${esc(t.popis)}</label>`}
     <textarea class="roste" rows="1" id="tx-${t.klic}" ${spolecne}
@@ -2723,11 +2724,14 @@ function poleTextu(t){
       ? `<div class="radky2" style="margin-top:12px">
            <div><label>Odkaz (nepovinné)</label>
              <textarea class="roste" rows="1" id="odkaz-${t.klic}" maxlength="300" oninput="roste(this)"
-               onkeydown="bezEnteru(event)" style="min-height:44px" placeholder="https://www.pravaridice.cz/…">${esc(t.odkaz||'')}</textarea></div>
+               onfocus="naNahled('${t.klic}')" onkeydown="bezEnteru(event)"
+               style="min-height:44px" placeholder="https://www.pravaridice.cz/…">${esc(t.odkaz||'')}</textarea></div>
            <div><label>Text tlačítka</label>
-             <input type="text" id="odkaztext-${t.klic}" maxlength="30" value="${esc(t.odkaz_text||'')}" placeholder="Přečíst více"></div>
+             <input type="text" id="odkaztext-${t.klic}" maxlength="30" value="${esc(t.odkaz_text||'')}"
+               onfocus="naNahled('${t.klic}')" placeholder="Přečíst více"></div>
          </div>
-         <div class="prepinac ${t.nove_okno!==false ? 'zap' : ''}" onclick="this.classList.toggle('zap')" id="okno-${t.klic}">
+         <div class="prepinac ${t.nove_okno!==false ? 'zap' : ''}" id="okno-${t.klic}"
+              onclick="this.classList.toggle('zap'); naNahled('${t.klic}')">
            <div class="txt"><b>Otevřít v novém okně</b><span>Vypnuto = odkaz se otevře přímo v aplikaci.</span></div>
            <div class="knof"></div></div>
          <div class="lista">
