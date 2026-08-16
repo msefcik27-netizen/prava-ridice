@@ -2191,7 +2191,7 @@ function vykresliSpravu(){
       ${dlazdice('Zaplacených míst', c(s.mist_celkem), c(s.mist_pouzitych) + ' už uplatněno')}
     </div>` : ''}
     <div class="lista" style="margin-top:14px">
-      <button class="btn btn-vedl" onclick="exportVsechRegistrovanych()">Registrované do CSV</button>
+      <button class="btn btn-vedl" onclick="exportVsechRegistrovanych()">Uložit registrované do CSV</button>
     </div>
     <p class="napoveda">Seznam e-mailů se nikde nezobrazuje, stáhne se rovnou do souboru.
        Obsahuje datum registrace, potvrzení e-mailu, úroveň přístupu a případný promo kód.
@@ -2319,7 +2319,7 @@ function nahledKlienta(k){
         <span>${pouzito} z ${limit} ${vycerpano?'· vyčerpáno':'· zbývá '+(k.zbyva ?? (limit-pouzito))}</span>
       </div>
       ${k.kod ? `<div class="lista" style="margin-top:10px">
-        <button class="blok-akce" onclick="exportRegistrovanych('${esc(k.kod)}','${esc(k.nazev)}')">Uplatnění do CSV</button>
+        <button class="blok-akce" onclick="exportRegistrovanych('${esc(k.kod)}','${esc(k.nazev)}')">Uložit do CSV</button>
       </div>` : ''}
     </div>`;
 }
