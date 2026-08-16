@@ -310,7 +310,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 86</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 87</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -826,20 +826,45 @@ function kresliSluzby(){
   }).join('') || '<div class="prazdno">Zatím žádné služby.</div>';
 }
 
-function vyberSluzbu(id){ vybranaSluzba = id; kresliSluzby(); editorSluzby(); }
+function vyberSluzbu(id){ vybranaSluzba = id; kresliSluzby(); editorSluzby(); naNahledSluzby('radek'); }
+
+/* Kliknu do pole u služby → náhled otevře její detail a část zvýrazní. */
+function naNahledSluzby(cast){
+  if(!vybranaSluzba) return;
+  /* Jen si poznamenáme, kde náhled je. Otevírat sekci textů by ho poslalo
+     zpátky na seznam služeb — detail konkrétní služby otevře až zpráva níž. */
+  nahledObrazovkaAkt = 'service-detail';
+  posliNahled({ sluzba: vybranaSluzba });
+  posliNahled({ zvyrazniSluzbu: vybranaSluzba + ':' + cast });
+}
+
+/* Klepnu do náhledu na část služby → administrace otevře její editaci. */
+function zamerSluzbu(zn){
+  const [id, cast] = (zn || '').split(':');
+  if(nahledKarta !== 'sluzby') prepni('sluzby');
+  if(vybranaSluzba !== id){ vybranaSluzba = id; kresliSluzby(); editorSluzby(); }
+  const pole = $('s-' + (cast === 'radek' ? 'nazev' : cast));
+  if(pole){
+    pole.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    pole.focus();
+  }
+  posliNahled({ zvyrazniSluzbu: zn });
+}
 
 function editorSluzby(){
   const s = sluzby.find(x => x.id === vybranaSluzba);
   if(!s) return;
   $('editorSluzby').innerHTML = `
     <h2>Služba</h2>
-    <div class="pole"><label>Název</label><input type="text" id="s-nazev" value="${esc(s.nazev)}"></div>
-    <div class="pole"><label>Krátký popis</label><input type="text" id="s-popis" value="${esc(s.popis)}"></div>
+    <div class="pole"><label>Název</label><input type="text" id="s-nazev" value="${esc(s.nazev)}"
+      onfocus="naNahledSluzby('nazev')" oninput="naNahledSluzby('nazev')"></div>
+    <div class="pole"><label>Krátký popis</label><input type="text" id="s-popis" value="${esc(s.popis)}"
+      onfocus="naNahledSluzby('popis')" oninput="naNahledSluzby('popis')"></div>
     <div class="pole"><label>Co hrozí</label>
-      <textarea id="s-hrozi" style="min-height:130px">${esc((s.hrozi||[]).join('\n'))}</textarea>
+      <textarea id="s-hrozi" style="min-height:130px" onfocus="naNahledSluzby('hrozi')">${esc((s.hrozi||[]).join('\n'))}</textarea>
       <p class="napoveda">Každý bod na samostatný řádek.</p></div>
     <div class="pole"><label>Jak pomůžeme</label>
-      <textarea id="s-pomoc" style="min-height:130px">${esc((s.pomoc||[]).join('\n'))}</textarea>
+      <textarea id="s-pomoc" style="min-height:130px" onfocus="naNahledSluzby('pomoc')">${esc((s.pomoc||[]).join('\n'))}</textarea>
       <p class="napoveda">Každý bod na samostatný řádek.</p></div>
     <div class="pole"><label>Pořadí</label><input type="text" id="s-poradi" value="${s.poradi||0}"></div>
     <div class="prepinac pristup ${s.placeny?'zap':''}" onclick="prepniPristup(this)" id="s-placeny">
@@ -1714,7 +1739,8 @@ window.addEventListener('message', ev => {
      zbytečně nepřekresluje dokola. */
   if(z.obrazovkaJe) nahledObrazovkaAkt = z.obrazovkaJe.replace(/^s-/, '');
   if(z.nenaslo) vysvetliNeviditelne(z.nenaslo);
-  if(z.seznam) zamerSeznam(z.seznam);
+  if(z.sluzbaCast) zamerSluzbu(z.sluzbaCast);
+  else if(z.seznam) zamerSeznam(z.seznam);
   else if(z.zdroj) zamerZdroj(z.zdroj);
   else if(z.blok) zamerBlok(z.blok);
   else if(z.kliknuto) zamerPole(z.kliknuto);
@@ -2338,7 +2364,7 @@ const DRUHY_SEZNAMU = {
             popis:'Obrazovka Kontakt, sekce Pobočky.',
             a:'Město', b:'Adresa', c:null, obrazovka:'kontakt', jednotky:['pobočka','pobočky','poboček']},
   urady:   {karta:'prehled', nazev:'Doklady a úřady — odkazy',
-            popis:'Rozcestník v Garáži. Doklady se do aplikace nenahrávají, vedou odsud jen odkazy na stránky státu.',
+            popis:'Rozcestník na obrazovce Vozidla a STK. Doklady se do aplikace nenahrávají, vedou odsud jen odkazy na stránky státu.',
             a:'Název', b:'Popisek pod názvem', c:'Adresa', obrazovka:'vozidla', jednotky:['odkaz','odkazy','odkazů']},
   nehoda:  {karta:'prehled', nazev:'Co dělat po nehodě — kroky',
             popis:'Číslované kroky na obrazovce Co dělat po nehodě.',
