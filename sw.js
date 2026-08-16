@@ -1,5 +1,5 @@
 /* Práva řidiče — service worker (offline cache + push) */
-const CACHE = 'pravaridice-v33';
+const CACHE = 'pravaridice-v34';
 const ASSETS = [
   './',
   './index.html',
@@ -24,6 +24,15 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+
+  /* Administrace se nikdy nekešuje. Je to nástroj pro redakci, ne aplikace pro
+     offline — a stará verze v keši vypadá, jako by se úpravy neprojevily. */
+  if (url.pathname.endsWith('/admin.html')) {
+    e.respondWith(fetch(req, { cache: 'no-store' }));
+    return;
+  }
+
   if (req.mode === 'navigate') {
     // no-store: obejit HTTP cache -> po commitu se vzdy natahne cerstva verze
     e.respondWith(fetch(req, { cache: 'no-store' }).then(r => {
