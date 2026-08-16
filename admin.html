@@ -314,7 +314,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 95</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 96</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -693,9 +693,11 @@ function editorClanku(){
 
     <div class="krok"><span class="krok-cislo">1</span>O čem článek je</div>
     <div class="pole"><label>Nadpis</label>
-      <input type="text" id="f-nadpis" value="${esc(c.nadpis)}" oninput="nahledClanku()"></div>
+      <input type="text" id="f-nadpis" value="${esc(c.nadpis)}"
+        onfocus="naNahledClanku('nadpis')" oninput="nahledClanku()"></div>
     <div class="pole"><label>Krátký popis</label>
-      <input type="text" id="f-perex" value="${esc(c.perex)}" oninput="nahledClanku()">
+      <input type="text" id="f-perex" value="${esc(c.perex)}"
+        onfocus="naNahledClanku('perex')" oninput="nahledClanku()">
       <p class="napoveda">Zobrazí se v seznamu pod nadpisem. <b>Je vidět vždy</b>, i u placeného článku.</p></div>
 
     <div class="krok"><span class="krok-cislo">2</span>Obsah</div>
@@ -705,7 +707,7 @@ function editorClanku(){
       <p class="napoveda" style="margin:0 0 8px">Nejjednodušší cesta: napište článek jako běžný
          text. Prázdný řádek dělí odstavce. Aplikace ho takhle zobrazí — <b>dokud článek nemá
          žádný blok</b>.</p>
-      <textarea id="f-telo" oninput="nahledClanku()">${esc(c.telo)}</textarea>
+      <textarea id="f-telo" onfocus="naNahledClanku('telo')" oninput="nahledClanku()">${esc(c.telo)}</textarea>
     </div>
 
     <details class="sekce" style="margin-top:14px" id="bl-sekce"
@@ -1835,7 +1837,8 @@ window.addEventListener('message', ev => {
      zbytečně nepřekresluje dokola. */
   if(z.obrazovkaJe) nahledObrazovkaAkt = z.obrazovkaJe.replace(/^s-/, '');
   if(z.nenaslo) vysvetliNeviditelne(z.nenaslo);
-  if(z.sluzbaCast) zamerSluzbu(z.sluzbaCast);
+  if(z.clanekCast) zamerClanek(z.clanekCast);
+  else if(z.sluzbaCast) zamerSluzbu(z.sluzbaCast);
   else if(z.seznam) zamerSeznam(z.seznam);
   else if(z.zdroj) zamerZdroj(z.zdroj);
   else if(z.blok) zamerBlok(z.blok);
@@ -2079,7 +2082,9 @@ function pouzijOsnovu(){
 function kresliBloky(){
   const el = $('bl-seznam'); if(!el) return;
   const rada = vybrano && vybrano.typ === 'clanek' ? blokyClanku(vybrano.id) : [];
-  kresliOsnovu(!rada.length);
+  /* Osnova se nabídne jen u článku, který je opravdu prázdný — když už text má,
+     vypadala nabídka, jako by se měl psát znovu od začátku. */
+  kresliOsnovu(!rada.length && !(($('f-telo') || {}).value || '').trim());
   el.innerHTML = rada.length ? rada.map((b, i) => `
     <details class="bl-karta" data-blok="${b.id}" ${b._otevreny ? 'open' : ''} ontoggle="oznacOtevreny('${b.id}', this.open)">
       <summary class="bl-hlava">
@@ -2110,6 +2115,26 @@ function oznacOtevreny(id, otevreny){
 }
 
 /* Náhled článku tak, jak vypadá právě teď ve formuláři. */
+/* Kliknu do pole u článku → náhled tu část zvýrazní. */
+function naNahledClanku(cast){
+  if(nahledKarta !== 'pruvodce') return;
+  nahledObrazovkaAkt = 'clanek';
+  nahledClanku();
+  posliNahled({ zvyrazniClanek: cast });
+}
+
+/* Klepnu do náhledu na část článku → administrace otevře její pole. */
+function zamerClanek(cast){
+  if(nahledKarta !== 'pruvodce') prepni('pruvodce');
+  const pole = $({nadpis:'f-nadpis', perex:'f-perex', telo:'f-telo', bloky:'f-telo'}[cast] || 'f-nadpis');
+  if(cast === 'bloky'){
+    const sekce = $('bl-sekce'); if(sekce) sekce.open = true;
+    const prvni = document.querySelector('#bl-seznam input, #bl-seznam textarea');
+    if(prvni){ prvni.scrollIntoView({block:'center', behavior:'smooth'}); prvni.focus(); return; }
+  }
+  if(pole){ pole.scrollIntoView({ block:'center', behavior:'smooth' }); pole.focus(); }
+}
+
 function nahledClanku(){
   if(!vybrano || vybrano.typ !== 'clanek') return;
   const c = clanky.find(x => x.id === vybrano.id); if(!c) return;

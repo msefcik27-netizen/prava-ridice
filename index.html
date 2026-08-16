@@ -909,7 +909,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 95</div>
+        <div class="ver">Verze 2.5 · build 96</div>
       </div>
     </div>
 
@@ -1732,8 +1732,8 @@ function openTopic(oblastId,title){
   document.getElementById('topicBody').innerHTML=`
     <div class="card" style="margin-bottom:12px;">
       <div class="cat" style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink-2);margin-bottom:6px;">${[o.n, t.c].filter((x,i,p) => x && p.indexOf(x) === i).join(' · ')}</div>
-      <h2 class="title-md" style="margin-bottom:10px;">${t.t}${znackaPristupu(!!t.zamceno)}</h2>
-      ${t.d ? `<p style="margin:0 0 10px;line-height:1.5;font-size:13px;color:var(--muted);">${t.d}</p>` : ''}
+      <h2 class="title-md" data-clanek="nadpis" style="margin-bottom:10px;">${t.t}${znackaPristupu(!!t.zamceno)}</h2>
+      ${t.d ? `<p data-clanek="perex" style="margin:0 0 10px;line-height:1.5;font-size:13px;color:var(--muted);">${t.d}</p>` : ''}
       ${t.zamceno
         ? `<div class="zamek-blok">
              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.4" y="10.4" width="15.2" height="9.6" rx="2.4"/><path d="M8 10.4V7.8a4 4 0 0 1 8 0v2.6"/></svg>
@@ -1741,7 +1741,8 @@ function openTopic(oblastId,title){
            </div>`
         : ''}
     </div>
-    ${t.zamceno ? '' : ((t.bloky && t.bloky.length) ? vykresliBloky(t.bloky) : vykresliTelo(t.b))}
+    ${t.zamceno ? '' : `<div data-clanek="${(t.bloky && t.bloky.length) ? 'bloky' : 'telo'}">` +
+        ((t.bloky && t.bloky.length) ? vykresliBloky(t.bloky) : vykresliTelo(t.b)) + '</div>'}
     <div class="list-card">
       <div class="list-item" onclick="openExt('${t.u}')">
         <div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></div>
@@ -3435,6 +3436,17 @@ function nahledClanku(d){
 
 /* Zvýraznění položky seznamu (recenze, krok, kontakt) — stejná role jako
    nahledZvyrazni u textů, jen se hledá podle druhu a id. */
+/* Zvýraznění části článku (nadpis, perex, tělo) — v administraci se článek
+   edituje mimo systém textů, ale v náhledu má vypadat stejně jako všechno ostatní. */
+function nahledZvyrazniClanek(cast){
+  document.querySelectorAll('.nahled-zvyrazneno').forEach(e => e.classList.remove('nahled-zvyrazneno'));
+  if(!cast) return;
+  const el = document.querySelector('[data-clanek="' + cast + '"]');
+  if(!el) return;
+  el.classList.add('nahled-zvyrazneno');
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
 /* Zvýraznění části detailu služby — stejná role jako u textů a seznamů. */
 function nahledZvyrazniSluzbu(zn){
   document.querySelectorAll('.nahled-zvyrazneno').forEach(e => e.classList.remove('nahled-zvyrazneno'));
@@ -3596,6 +3608,7 @@ if(NAHLED){
         }
       }
       if('zvyrazniSluzbu' in z){ nahledZvyrazniSluzbu(z.zvyrazniSluzbu); }
+      if('zvyrazniClanek' in z){ nahledZvyrazniClanek(z.zvyrazniClanek); }
       if('garaz' in z){
         if(z.garaz){ openVozidla(); garazPrepni(z.garaz); }
         else { garazForm = null; openVozidla(); }
@@ -3622,7 +3635,7 @@ if(NAHLED){
       try { parent.postMessage({ pr: 'nahled', karta: nav.dataset.tab }, '*'); } catch(e) {}
       return;
     }
-    const el = ev.target.closest('[data-text],[data-ph],[data-blok],[data-zdroj],[data-seznam],[data-sluzba]');
+    const el = ev.target.closest('[data-text],[data-ph],[data-blok],[data-zdroj],[data-seznam],[data-sluzba],[data-clanek]');
     if(!el) return;
     ev.preventDefault(); ev.stopPropagation();
     try { parent.postMessage({ pr: 'nahled',
@@ -3630,7 +3643,8 @@ if(NAHLED){
       blok: el.dataset.blok || null,
       zdroj: el.dataset.zdroj || null,
       seznam: el.dataset.seznam || null,
-      sluzbaCast: el.dataset.sluzba || null }, '*'); } catch(e) {}
+      sluzbaCast: el.dataset.sluzba || null,
+      clanekCast: el.dataset.clanek || null }, '*'); } catch(e) {}
   }, true);
 
   /* Když se obrazovka přepne jakkoli jinak (odkaz, tlačítko uvnitř aplikace),
