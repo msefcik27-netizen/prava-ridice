@@ -931,9 +931,9 @@ const POLE_OBRAZOVKA = {
   'prehled.nehoda.nadpis':'prehled',
   'prehled.nehoda.popis':'prehled',
   'pristup.neprihlasen.nadpis':'prehled',
-  'pristup.neprihlasen.popis':'prehled',
   'pristup.omezeny.nadpis':'prehled',
   'pristup.plny.nadpis':'prehled',
+  'pristup.neprihlasen.popis':'prehled',
   'pristup.omezeny.popis':'prehled',
   'pristup.plny.popis':'prehled',
   'pristup.neprihlasen.btn':'prehled',
@@ -1187,9 +1187,9 @@ const LIMIT_POLE = {
   'prehled.nehoda.nadpis':60,
   'prehled.nehoda.popis':160,
   'pristup.neprihlasen.nadpis':60,
-  'pristup.neprihlasen.popis':400,
   'pristup.omezeny.nadpis':60,
   'pristup.plny.nadpis':60,
+  'pristup.neprihlasen.popis':400,
   'pristup.omezeny.popis':400,
   'pristup.plny.popis':400,
   'pristup.neprihlasen.btn':30,
@@ -1389,6 +1389,7 @@ const LIMIT_POLE = {
    nespadne na „bez omezení". */
 function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ? 400 : 200); }
 
+
 function nazevObrazovky(o){ return (NAZEV_OBRAZOVKY[o] || [o, ''])[0]; }
 function popisObrazovky(o){ return (NAZEV_OBRAZOVKY[o] || [o, ''])[1]; }
 
@@ -1456,6 +1457,9 @@ function nahledObrazovka(id, tise){
    náhled skočí na obrazovku, kde ta sekce je. Aby se to navzájem nehonilo,
    hlídá to jednoduchý zámek. */
 let synchronizuji = false;
+/* Co si obsluha vybrala v „Zobrazit jako". Automatické přepnutí kvůli poli
+   se sem nepočítá, ať se dá vrátit zpátky. */
+let nahledJakoRucni = 'plny';
 
 function zvyrazniSekce(obrazovka){
   const sekce = document.querySelectorAll('.sekce[data-skupina]');
@@ -1498,8 +1502,9 @@ function nahledKartaNastav(karta){
   nahledObrazovka(sez[0][0]);
 }
 
-function nahledJakoNastav(kdo){
+function nahledJakoNastav(kdo, automaticky){
   nahledJako = kdo;
+  if(!automaticky) nahledJakoRucni = kdo;
   posliNahled(kdo === 'neprihlasen' ? {prihlasen:false, pristup:false}
             : kdo === 'omezeny'     ? {prihlasen:true,  pristup:false}
                                     : {prihlasen:true,  pristup:true});
@@ -1603,7 +1608,9 @@ window.addEventListener('message', ev => {
   /* Aplikace se přepnula sama — jen si poznamenáme kde jsme, ať se to
      zbytečně nepřekresluje dokola. */
   if(z.obrazovkaJe) nahledObrazovkaAkt = z.obrazovkaJe.replace(/^s-/, '');
-  if(z.zdroj) zamerZdroj(z.zdroj);
+  if(z.nenaslo) vysvetliNeviditelne(z.nenaslo);
+  if(z.seznam) zamerSeznam(z.seznam);
+  else if(z.zdroj) zamerZdroj(z.zdroj);
   else if(z.blok) zamerBlok(z.blok);
   else if(z.kliknuto) zamerPole(z.kliknuto);
 });
@@ -2268,17 +2275,23 @@ function kresliSeznam(druh){
   const lim = LIMIT_SEZNAMU[druh] || {a:60, b:200, c:60};
   const p = polozkySeznamu(druh);
   el.innerHTML = p.length ? p.map((s, i) => `
-    <div class="sez-radek">
+    <div class="sez-radek" data-id="${esc(s.id)}">
       <div class="sez-poradi">${i + 1}</div>
       <div class="sez-pole">
         <div class="radky2">
           <div><label>${esc(d.a)}</label>
-            <input type="text" maxlength="${lim.a}" value="${esc(s.nadpis)}" oninput="zmenPolozku('${s.id}','nadpis',this.value)"></div>
+            <input type="text" maxlength="${lim.a}" value="${esc(s.nadpis)}"
+              onfocus="naNahledSeznam('${druh}','${s.id}')"
+              oninput="zmenPolozku('${s.id}','nadpis',this.value)"></div>
           <div><label>${esc(d.b)}</label>
-            <input type="text" maxlength="${lim.b}" value="${esc(s.text)}" oninput="zmenPolozku('${s.id}','text',this.value)"></div>
+            <input type="text" maxlength="${lim.b}" value="${esc(s.text)}"
+              onfocus="naNahledSeznam('${druh}','${s.id}')"
+              oninput="zmenPolozku('${s.id}','text',this.value)"></div>
         </div>
         ${d.c ? `<div class="pole" style="margin:10px 0 0"><label>${esc(d.c)}</label>
-          <input type="text" maxlength="${lim.c}" value="${esc(s.doplnek||'')}" oninput="zmenPolozku('${s.id}','doplnek',this.value)"></div>` : ''}
+          <input type="text" maxlength="${lim.c}" value="${esc(s.doplnek||'')}"
+            onfocus="naNahledSeznam('${druh}','${s.id}')"
+            oninput="zmenPolozku('${s.id}','doplnek',this.value)"></div>` : ''}
       </div>
       <div class="poradi-sipky">
         <button type="button" title="Nahoru" ${i === 0 ? 'disabled' : ''} onclick="posunPolozku('${s.id}',-1)">▲</button>
@@ -2348,6 +2361,48 @@ async function ulozSeznam(druh){
   seznamy = seznamy.filter(x => !x._smazany);
   kresliSeznam(druh);
   hlaska(ulozeno ? ('Uloženo — ' + ulozeno + ' ' + mnozne(ulozeno,'položka','položky','položek') + '.') : 'Nic se nezměnilo.');
+}
+
+/* Některé texty se v aplikaci ukážou jen v situaci, kterou náhled zrovna
+   nemá — hláška po uložení, text na vytištěném záznamu, adresa odkazu.
+   Místo aby se nestalo nic, administrace řekne proč. */
+function vysvetliNeviditelne(klic){
+  const duvod =
+    /^odkaz\.|^kontakt\.telefon$/.test(klic) ? 'Tohle je adresa, kam odkaz vede — na obrazovce vidět není.'
+    : /\.(chyba|pripsat|zprava|pridano|upraveno)$/.test(klic) ? 'Tahle hláška vyskočí až při ukládání, v náhledu se neukáže.'
+    : /^garaz\.nehoda\.tisk\./.test(klic) ? 'Tenhle text je na vytištěném záznamu o nehodě, ne na obrazovce.'
+    : 'Tenhle text se ukáže jen v určité situaci, kterou náhled zrovna nemá.';
+  hlaska(duvod);
+}
+
+/* Kliknu na řádek seznamu → náhled skočí na obrazovku a položku zvýrazní. */
+function naNahledSeznam(druh, id){
+  const d = DRUHY_SEZNAMU[druh]; if(!d) return;
+  if(d.obrazovka !== nahledObrazovkaAkt) nahledObrazovka(d.obrazovka, true);
+  posliNahled({ zvyrazniSeznam: druh + ':' + id });
+}
+
+/* Kliknu na položku v náhledu → administrace otevře její řádek. */
+function zamerSeznam(zn){
+  const [druh, id] = (zn || '').split(':');
+  const d = DRUHY_SEZNAMU[druh]; if(!d) return;
+  const kam = kartaObrazovky(d.obrazovka);
+  if(kam && kam !== nahledKarta) prepni(kam);
+  const radek = document.querySelector('#sez-' + druh + ' .sez-radek[data-id="' + id + '"]')
+             || document.querySelector('#sez-' + druh + ' .sez-radek');
+  if(!radek){ hlaska('Tenhle seznam se upravuje jinde v administraci.'); return; }
+  const det = radek.closest('details');
+  if(det) det.open = true;
+  radek.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  const pole = radek.querySelector('input');
+  if(pole) pole.focus();
+}
+
+/* Na které kartě administrace ta obrazovka je. */
+function kartaObrazovky(o){
+  for(const karta in OBRAZOVKY_KARTY)
+    if(OBRAZOVKY_KARTY[karta].includes(o)) return karta;
+  return null;
 }
 
 /* Seznam se ukazuje u obrazovky, na které v aplikaci je. */
@@ -2462,9 +2517,37 @@ function poleZmeneno(el){
 }
 
 /* Přepnutí náhledu na obrazovku, kde ten text je, a jeho zvýraznění. */
+/* Některá pole jsou vidět jen v určitém stavu — text zámku jen u omezeného
+   přístupu, výzva k přihlášení jen u nepřihlášeného. Náhled se proto přepne
+   sám, jinak by se rozsvítilo prázdno. */
+function stavPole(klic){
+  if(/zamek/.test(klic)) return 'omezeny';
+  if(/neprihlasen/.test(klic) || /^profil\.ucet\.(nepr|ph|btn)$/.test(klic)) return 'neprihlasen';
+  if(/\.omezeny/.test(klic)) return 'omezeny';
+  if(/\.plny/.test(klic) || /^profil\.ucet\.(zaloha|odhlasit)$/.test(klic)) return 'plny';
+  return null;
+}
+
 function naNahled(klic){
+  /* Stav přístupu: pole, které je vidět jen v jednom stavu, si ho vynutí.
+     Jakmile se přejde na běžné pole, náhled se vrátí k tomu, co si vybrala
+     obsluha — nezůstane viset na „omezeném přístupu". */
+  const stav = stavPole(klic) || nahledJakoRucni;
+  if(stav !== nahledJako) nahledJakoNastav(stav, true);
+  /* Texty pro prázdný stav („zatím žádné vozidlo") se ukážou jen nad prázdnými
+     daty; jinak náhled běží nad ukázkovým vozidlem, pokutou a nehodou. */
+  posliNahled({ prazdno: /\.prazdno$/.test(klic) });
   const kam = obrazovkaKlice(klic);
   if(kam !== nahledObrazovkaAkt) nahledObrazovka(kam, true);
+  /* Situace, ve které je text vidět: kolik bodů, otevřený formulář garáže,
+     krok kalkulačky. Musí se nastavit až po přepnutí obrazovky — ta se totiž
+     sestavuje znovu a předchozí nastavení by přemazala. */
+  if(/^prehled\.vyzva\./.test(klic)) posliNahled({ body: /12$/.test(klic) ? 12 : 9 });
+  if(/^garaz\./.test(klic)){
+    const g = klic.match(/^garaz\.(vozidlo|pokuta|nehoda)\.(ulozit|chyba|pridano|upraveno|pripsat|zprava)$/);
+    posliNahled({ garaz: g ? g[1] : (klic === 'garaz.zrusit' ? 'vozidlo' : '') });
+  }
+  if(/^kalk\.btn\./.test(klic)) posliNahled({ kalk: klic.endsWith('sodhadem') ? 'sodhadem' : 'bezodhadu' });
   posliNahled({ zvyrazni: klic });
 }
 
