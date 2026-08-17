@@ -347,7 +347,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 110</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 111</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -1020,6 +1020,8 @@ const POLE_OBRAZOVKA = {
   'onboard.uvod.popis':'uvod',
   'onboard.uvod.btn':'uvod',
   'onboard.uvod.plocha':'uvod',
+  'onboard.uvod.plocha.pozn':'uvod',
+  'onboard.uvod.prihlasit':'uvod',
   'onboard.body.stitek':'uvod-body',
   'onboard.body.nadpis':'uvod-body',
   'onboard.body.text1':'uvod-body',
@@ -1035,6 +1037,7 @@ const POLE_OBRAZOVKA = {
   'onboard.reg.stitek':'uvod-reg',
   'onboard.reg.nadpis':'uvod-reg',
   'onboard.reg.popis':'uvod-reg',
+  'onboard.reg.zplochy':'uvod-reg',
   'onboard.reg.email.label':'uvod-reg',
   'onboard.reg.email.ph':'uvod-reg',
   'onboard.reg.kod.label':'uvod-reg',
@@ -1066,6 +1069,11 @@ const POLE_OBRAZOVKA = {
   'prehled.notif.stitek':'prehled',
   'prehled.notif.nadpis':'prehled',
   'prehled.notif.zapnuto':'prehled',
+  'prehled.plocha.stitek':'prehled',
+  'prehled.plocha.nadpis':'prehled',
+  'prehled.plocha.popis':'prehled',
+  'prehled.plocha.btn':'prehled',
+  'prehled.plocha.pozdeji':'prehled',
   'prehled.pdf.nadpis':'prehled',
   'prehled.pdf.popis':'prehled',
   'prehled.vozidla.nadpis':'prehled',
@@ -1276,8 +1284,8 @@ const POLE_OBRAZOVKA = {
    poradi u polí, takže se texty a seznamy dají seřadit dohromady — telefony
    se ukážou hned pod štítkem Telefony, ne až pod všemi texty. */
 const SEZNAM_MISTO = {
-  urady:    {obrazovka:'vozidla', poradi:610},
-  nehoda:   {obrazovka:'nehoda', poradi:740},
+  urady:    {obrazovka:'vozidla', poradi:660},
+  nehoda:   {obrazovka:'nehoda', poradi:790},
   recenze:  {obrazovka:'recenze', poradi:670},
   postup:   {obrazovka:'postup', poradi:690},
   tel:      {obrazovka:'kontakt', poradi:720},
@@ -1364,6 +1372,8 @@ const LIMIT_POLE = {
   'onboard.uvod.popis':400,
   'onboard.uvod.btn':30,
   'onboard.uvod.plocha':120,
+  'onboard.uvod.plocha.pozn':400,
+  'onboard.uvod.prihlasit':120,
   'onboard.body.stitek':30,
   'onboard.body.nadpis':60,
   'onboard.body.text1':400,
@@ -1379,6 +1389,7 @@ const LIMIT_POLE = {
   'onboard.reg.stitek':30,
   'onboard.reg.nadpis':60,
   'onboard.reg.popis':400,
+  'onboard.reg.zplochy':400,
   'onboard.reg.email.label':120,
   'onboard.reg.email.ph':60,
   'onboard.reg.kod.label':120,
@@ -1410,6 +1421,11 @@ const LIMIT_POLE = {
   'prehled.notif.stitek':40,
   'prehled.notif.nadpis':60,
   'prehled.notif.zapnuto':400,
+  'prehled.plocha.stitek':30,
+  'prehled.plocha.nadpis':60,
+  'prehled.plocha.popis':400,
+  'prehled.plocha.btn':30,
+  'prehled.plocha.pozdeji':120,
   'prehled.pdf.nadpis':60,
   'prehled.pdf.popis':160,
   'prehled.vozidla.nadpis':60,
@@ -1629,6 +1645,7 @@ function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ?
 
 
 
+
 /* Jméno obrazovky se bere z aplikace — z pole, které ten nadpis drží.
    Když ho Nela přejmenuje, přejmenuje se i sekce v administraci. */
 function hodnotaPole(klic){
@@ -1701,7 +1718,10 @@ function mapaTextu(){
 
 function nahledTexty(){ posliNahled({ texty: mapaTextu() }); }
 
-function nahledObrazovka(id, tise){
+/* neotviret = jen zvýraznit, nerozbalovat. Používá se při otevření karty:
+   sekce mají začínat sbalené, jinak karta začne stěnou polí a rozcestník
+   ostatních sekcí je mimo obraz. */
+function nahledObrazovka(id, tise, neotviret){
   nahledObrazovkaAkt = id;
   if(id === 'clanek'){
     if(vybrano && vybrano.typ === 'clanek') nahledClanku();
@@ -1710,7 +1730,7 @@ function nahledObrazovka(id, tise){
     posliNahled({ obrazovka: id });
   }
   kresliOvladaceNahledu();
-  zvyrazniSekce(id);
+  zvyrazniSekce(id, neotviret);
   if(!tise) nahledTexty();
 }
 
@@ -1723,7 +1743,7 @@ let synchronizuji = false;
    se sem nepočítá, ať se dá vrátit zpátky. */
 let nahledJakoRucni = 'plny';
 
-function zvyrazniSekce(obrazovka){
+function zvyrazniSekce(obrazovka, neotviret){
   const sekce = document.querySelectorAll('.sekce[data-skupina]');
   if(!sekce.length) return;
   const chtene = new Set(texty
@@ -1734,7 +1754,7 @@ function zvyrazniSekce(obrazovka){
   let prvni = null;
   sekce.forEach(d => {
     const patri = chtene.has(d.dataset.skupina);
-    d.open = patri;
+    if(!neotviret) d.open = patri;
     /* Zvýrazní se jen první — víc rámečků naráz je zmatek, ne pomoc. */
     d.classList.toggle('sekce-aktivni', patri && !prvni);
     if(patri && !prvni) prvni = d;
@@ -1764,7 +1784,7 @@ function nahledKartaNastav(karta){
   if(panel) panel.style.display = BEZ_NAHLEDU.includes(karta) ? 'none' : '';
   if(BEZ_NAHLEDU.includes(karta)) return;
   const sez = NAHLED_PODOBRAZOVKY[karta] || NAHLED_PODOBRAZOVKY.prehled;
-  nahledObrazovka(sez[0][0]);
+  nahledObrazovka(sez[0][0], false, true);   // karta začíná sbalená
 }
 
 function nahledJakoNastav(kdo, automaticky){
@@ -2399,7 +2419,7 @@ function kresliKalkulacky(){
        <code>{klíč}</code> a dosadí se sem uvedená hodnota. Stačí je tedy změnit
        na jednom místě.</p>
     ${skupiny.map((g, i) => `
-      <details class="sekce" ${i === 0 ? 'open' : ''}>
+      <details class="sekce">
         <summary>${esc(g.nazev)}<span class="pocet">${g.polozky.length} ${mnozne(g.polozky.length,'položka','položky','položek')}</span></summary>
         <div class="sekce-telo">
           ${g.polozky.map(s => `
@@ -2419,6 +2439,8 @@ function kresliKalkulacky(){
     </div>
   </div>
 
+  <div id="texty-kalk"></div>
+
   <div class="panel" style="margin-top:16px">
     <details class="sekce" id="napoje-sekce">
       <summary>Nápoje v kalkulačce<span class="pocet" id="napoje-pocet"></span></summary>
@@ -2437,8 +2459,6 @@ function kresliKalkulacky(){
       </div>
     </details>
   </div>
-
-  <div id="texty-kalk"></div>
 
   <div class="panel" style="margin-top:16px">
     <h2>Co se odsud nemění</h2>
@@ -2869,7 +2889,7 @@ function kresliTexty(karta){
        pořadí jako obrazovky v aplikaci a pole v nich taky. Jakmile začnete psát, změna je hned
        vidět — uložit ji ale musíte tlačítkem dole.</p>
     ${skupiny.map((s, i) => `
-      <details class="sekce" data-skupina="${esc(s.nazev)}" ontoggle="sekceOtevrena(this)" ${i === 0 ? 'open' : ''}>
+      <details class="sekce" data-skupina="${esc(s.nazev)}" ontoggle="sekceOtevrena(this)">
         <summary>${esc(s.nazev)}<span class="pocet" id="pocet-${esc(s.obrazovka)}">${popisObsahu(s)}</span></summary>
         <div class="sekce-telo">
           ${s.popis ? `<p class="napoveda" style="margin:-2px 0 12px">${esc(s.popis)}</p>` : ''}

@@ -790,6 +790,18 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           </div>
         </div>
 
+        <!-- Připomenutí, že aplikace běží v prohlížeči. Skryté, dokud se
+             nezjistí, že na plochu přidaná není — a odložitelné. -->
+        <div class="card" style="margin-top:10px;display:none;" id="plochaCard">
+          <div class="eyebrow" style="margin-bottom:4px;" data-text="prehled.plocha.stitek">Běží v prohlížeči</div>
+          <div class="title-md" style="font-size:17px;" data-text="prehled.plocha.nadpis">Přidejte si appku na plochu</div>
+          <p class="small muted" style="margin:5px 0 0;line-height:1.45;" data-text="prehled.plocha.popis">Otevře se jedním klepnutím, funguje i bez signálu a teprve pak vám můžou chodit upozornění.</p>
+          <div class="ob-actions" style="margin-top:11px;">
+            <button class="btn btn-peach btn-sm" data-text="prehled.plocha.btn" onclick="openInstallSheet()">Přidat na plochu</button>
+            <button class="ob-free" style="color:var(--ink);opacity:.7;padding:8px;" data-text="prehled.plocha.pozdeji" onclick="odlozPlochu()">Teď ne</button>
+          </div>
+        </div>
+
         <!-- Portál občana link (feedback item) -->
         <div class="list-card" style="margin-top:10px;" id="portalCard">
           <label class="list-item" style="margin:0;">
@@ -956,7 +968,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 110<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 111<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1405,6 +1417,7 @@ if(isIOS()){
   }
 }
 function tab(name){
+  if(name==='prehled') try{ stavPlochaKarty(); }catch(e){}
   const prev=TABS.indexOf(state.screen), next=TABS.indexOf(name);
   state.tab=name; state.screen=name; state.history=[];
   showScreen(name);
@@ -1426,7 +1439,8 @@ function go(id){ state.history.push(state.screen); state.screen=id; showScreen(i
 function back(to){ state.history=[]; state.screen=to; state.tab=to; showScreen(to); document.getElementById('nav').style.display='flex';
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===to)); }
 function backAuto(){ const prev=state.history.pop()||'prehled'; if(TABS.includes(prev)) back(prev); else { state.screen=prev; showScreen(prev); } }
-function enterApp(){ document.getElementById('onboard').style.display='none'; fitScreen(); requestAnimationFrame(fitScreen); updateChromeBg(); }
+function enterApp(){ try{ stavPlochaKarty(); }catch(e){}
+  document.getElementById('onboard').style.display='none'; fitScreen(); requestAnimationFrame(fitScreen); updateChromeBg(); }
 
 /* ============ SAZBY A HRANICE ============
    Čísla a částky, které se mění se zákonem, nejsou v kódu natvrdo — jdou
@@ -2807,6 +2821,10 @@ function obCekani(){
     '<button class="ob-free" data-text="onboard.cekani.jiny" style="margin-top:4px;" onclick="obZpetNaEmail()">'+txt('onboard.cekani.jiny','Zadat jiný e-mail')+'</button></div>';
   document.getElementById('obDots').style.visibility = 'hidden';
 }
+/* Zkratka z první obrazovky rovnou na přihlášení. Nejčastější důvod, proč
+   ji někdo potřebuje: appku právě přidal na plochu a ta začíná načisto,
+   protože má vlastní úložiště. Hnát ho znovu pěti obrazovkami nemá smysl. */
+function obNaPrihlaseni(){ ob.step = 3; renderOb(); }
 function obZpetNaEmail(){ document.getElementById('obDots').style.visibility='visible'; ob.step=3; renderOb(); }
 function obChybaKod(text){
   const el = document.getElementById('obChybaKod');
@@ -2901,7 +2919,18 @@ function renderOb(){
       '<h1 class="title-xl" data-text="onboard.uvod.nadpis">'+txt('onboard.uvod.nadpis','Zachráníme vám řidičák.')+'</h1>'+
       '<p data-text="onboard.uvod.popis">'+txt('onboard.uvod.popis','Sledujte si bodový stav, dostávejte upozornění a mějte právníka po ruce. Pevná cena, obhajoba po celé ČR.')+'</p>'+
       '<div class="ob-actions"><button class="btn btn-peach" data-text="onboard.uvod.btn" onclick="obGo(1)">'+txt('onboard.uvod.btn','Začít')+'</button>'+
-      '<button class="btn btn-install" id="obInstallBtn" onclick="openInstallSheet()"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg><span data-text="onboard.uvod.plocha">'+txt('onboard.uvod.plocha','Přidat aplikaci na plochu')+'</span></button></div></div>';
+      '<button class="btn btn-install" id="obInstallBtn" onclick="openInstallSheet()"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg><span data-text="onboard.uvod.plocha">'+txt('onboard.uvod.plocha','Přidat aplikaci na plochu')+'</span></button>'+
+      /* Pořadí není jedno: kdo se přihlásí v prohlížeči a appku přidá až
+         potom, přihlašuje se v ní znovu — iPhone jí dá vlastní úložiště. */
+      /* Pole zůstává v obrazovce i skryté, jen se nezobrazuje — administrace
+         ho tak najde a Nela ho může upravit, aniž by musela mít telefon
+         v tom správném stavu. */
+      '<p data-text="onboard.uvod.plocha.pozn" style="font-size:12px;opacity:.7;text-align:center;margin-top:8px;line-height:1.4;'+
+        (isStandalone() ? 'display:none;' : '')+'">'+
+        txt('onboard.uvod.plocha.pozn','Přidejte si ji radši hned teď. Aplikace na ploše má vlastní úložiště, takže po pozdějším přidání se budete přihlašovat znovu.')+'</p>'+
+      '<button class="ob-free" data-text="onboard.uvod.prihlasit" style="margin-top:6px;" onclick="obNaPrihlaseni()">'+
+        txt('onboard.uvod.prihlasit','Už mám účet — přihlásit se')+'</button>'+
+      '</div></div>';
     if(isStandalone()) hideInstallUI();
     return;
   }
@@ -2933,6 +2962,13 @@ function renderOb(){
     '<div class="ob-eyebrow" data-text="onboard.reg.stitek">'+txt('onboard.reg.stitek','Registrace')+'</div>'+
     '<h1 class="title-lg" data-text="onboard.reg.nadpis" style="font-size:25px;">'+txt('onboard.reg.nadpis','Ještě váš e-mail a jsme hotovi.')+'</h1>'+
     '<p data-text="onboard.reg.popis" style="font-size:13.5px;margin-top:9px;">'+txt('onboard.reg.popis','Pošleme na něj potvrzovací odkaz. Slouží k zálohování bodů, zprávám od advokáta a k aktivaci plného přístupu.')+'</p>'+
+    /* Aplikace spuštěná z plochy poprvé: buď je člověk opravdu nový, nebo
+       ji používal v prohlížeči a přišel o přihlášení. Rozeznat to nejde,
+       proto se to řekne jako podmínka — novému to nevadí, druhému to ušetří
+       hledání, proč je jeho přístup pryč. */
+    '<p data-text="onboard.reg.zplochy" style="font-size:12.5px;opacity:.75;margin-top:8px;line-height:1.45;'+
+      (isStandalone() ? '' : 'display:none;')+'">'+
+      txt('onboard.reg.zplochy','Používali jste aplikaci v prohlížeči? Přihlaste se stejným e-mailem — přístup i firemní kód se vrátí.')+'</p>'+
     '<div class="ob-fill"></div>'+
     '<div class="ob-eyebrow" data-text="onboard.reg.email.label" style="margin-bottom:7px;">'+txt('onboard.reg.email.label','Váš e-mail')+'</div>'+
     '<input class="ob-code" id="obEmail" type="email" inputmode="email" autocomplete="email" data-ph="onboard.reg.email.ph" '+
@@ -2990,6 +3026,10 @@ function klicNaBajty(zaklad){
 
 /* Stav odběru — z něj se skládá text na obrazovce Upozornění. */
 async function stavPush(){
+  /* iPhone pustí oznámení jen aplikaci přidané na plochu — v Safari chybí
+     rovnou celé rozhraní. Bez téhle větve by aplikace hlásila „telefon to
+     neumí", což zní jako konec cesty, přestože stačí ji přidat na plochu. */
+  if(isIOS() && !isStandalone()) return { lze: false, duvod: 'naploche' };
   if(!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window))
     return { lze: false, duvod: 'neumi' };
   if(!PR_CFG.VAPID_PUBLIC) return { lze: false, duvod: 'nenastaveno' };
@@ -3049,7 +3089,8 @@ async function vypniPush(){
 }
 
 const POPIS_PUSH = {
-  neumi:       'Tenhle telefon nebo prohlížeč upozornění neumí. Na iPhonu je potřeba mít aplikaci přidanou na ploše.',
+  neumi:       'Tenhle telefon nebo prohlížeč upozornění neumí.',
+  naploche:    'Upozornění chodí jen aplikaci přidané na plochu — v prohlížeči je iPhone nepustí.',
   nenastaveno: 'Upozornění se teprve připravují — kancelář je ještě nespustila.',
   odmitnuto:   'Upozornění jste pro tuhle aplikaci odmítli. Povolit je jde v nastavení telefonu u oznámení.',
   neprihlasen: 'Nejdřív se přihlaste e-mailem — jinak nevíme, komu upozornění poslat.'
@@ -3101,23 +3142,26 @@ async function kresliPushKartu(){
   const stav = await stavPush();
   const zapnuto = !!stav.zapnuto;
   const nedostupne = !stav.lze;
+  /* V bílé kartě zůstává jen to, co se ovládá — název a přepínač. Vysvětlení
+     patří pod ni jako poznámka, stejně jako u ostatních sekcí; v kartě dělalo
+     z jednoduchého přepínače odstavec textu. */
   el.innerHTML =
     '<div class="section-label" style="margin-top:14px;">Upozornění do telefonu</div>' +
-    '<div class="card"><div class="row-between" style="align-items:flex-start;gap:12px;">' +
-      '<div style="flex:1;min-width:0;">' +
-        '<div class="title-md" style="font-size:16px;">Zprávy z kanceláře i do zamčeného telefonu</div>' +
-        '<p class="small muted" style="margin:4px 0 0;line-height:1.45;">' +
-          (nedostupne ? POPIS_PUSH[stav.duvod] || 'Zatím nedostupné.'
-                      : 'Když advokátní kancelář vydá zprávu, telefon ji ohlásí, i když aplikaci zrovna nemáte otevřenou.') +
-        '</p></div>' +
+    '<div class="card"><div class="row-between" style="align-items:center;gap:12px;">' +
+      '<div class="title-md" style="font-size:16px;flex:1;min-width:0;">Zprávy z kanceláře i do zamčeného telefonu</div>' +
       (nedostupne ? '' :
         '<div class="toggle ' + (zapnuto ? 'on' : '') + '" role="switch" tabindex="0" aria-checked="' +
         (zapnuto ? 'true' : 'false') + '" aria-label="Upozornění do telefonu" ' +
         'onclick="' + (zapnuto ? 'vypniPush()' : 'zapniPush()') + '" onkeydown="klavesaPrepinac(event, this)"></div>') +
-    '</div>' +
+    '</div></div>' +
+    '<p class="small muted" style="margin:9px 3px 0;line-height:1.45;">' +
+      (nedostupne ? POPIS_PUSH[stav.duvod] || 'Zatím nedostupné.'
+                  : 'Když advokátní kancelář vydá zprávu, telefon ji ohlásí, i když aplikaci zrovna nemáte otevřenou.') +
+    '</p>' +
     (nedostupne && stav.duvod === 'neprihlasen'
       ? '<button class="btn btn-outline-dark btn-sm" style="margin-top:10px" onclick="go(\'profil\')">Přihlásit se</button>' : '') +
-    '</div>';
+    (nedostupne && stav.duvod === 'naploche'
+      ? '<button class="btn btn-outline-dark btn-sm" style="margin-top:10px" onclick="openInstallSheet()">Přidat na plochu</button>' : '');
 }
 
 function renderUpozorneni(){
@@ -3683,6 +3727,24 @@ function isIOSChrome(){ return isIOS() && /crios/i.test(navigator.userAgent); }
 function isAndroid(){ return /android/i.test(navigator.userAgent); }
 function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true; }
 function hideInstallUI(){ const b=document.getElementById('obInstallBtn'); if(b)b.style.display='none'; }
+
+/* Připomenutí na Přehledu. Ukáže se jen tomu, kdo appku na ploše nemá, a jde
+   odložit — jinak by z připomenutí byla otrava, kterou lidé přestanou vnímat. */
+const PLOCHA_ODKLAD = 14 * 24 * 60 * 60 * 1000;
+function odlozPlochu(){
+  try{ localStorage.setItem('pr-plocha-odlozeno', String(Date.now())); }catch(e){}
+  const k = document.getElementById('plochaCard'); if(k) k.style.display = 'none';
+  toast('Dobře, připomeneme se za dva týdny.');
+}
+function stavPlochaKarty(){
+  const k = document.getElementById('plochaCard'); if(!k) return;
+  /* Konstanta NAHLED vzniká až dole v souboru, tahle funkce ale běží při
+     startu dřív — proto se adresa čte přímo. */
+  if(isStandalone() || /[?&]nahled=1/.test(location.search)){ k.style.display = 'none'; return; }
+  let kdy = 0;
+  try{ kdy = parseInt(localStorage.getItem('pr-plocha-odlozeno') || '0', 10) || 0; }catch(e){}
+  k.style.display = (Date.now() - kdy) > PLOCHA_ODKLAD ? 'block' : 'none';
+}
 
 const SHARE_ICON='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0b74e5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
 const MENU_ICON='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>';
