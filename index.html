@@ -909,7 +909,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 99</div>
+        <div class="ver">Verze 2.5 · build 100</div>
       </div>
     </div>
 
@@ -1430,36 +1430,39 @@ function escT(s){
 const SIPKA_SVG = '<svg class="sip" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>';
 
 function vykresliBlok(b){
-  const tridy = 'blok blok-' + (b.typ||'odstavec') + ' b-' + (b.pozadi||'bila') + ' v-' + (b.velikost||'normalni')
-    + (b.id ? '" data-blok="' + b.id : '');
+  /* Třídy a značka se skládají odděleně. Dřív se konec atributu class psal
+     dovnitř řetězce s třídami a u bloků Pozor a Rada, které ještě jednu třídu
+     přidávají, skončila ta třída uvnitř značky data-blok. */
+  const tridy = 'blok blok-' + (b.typ||'odstavec') + ' b-' + (b.pozadi||'bila') + ' v-' + (b.velikost||'normalni');
+  const zn = b.id ? ' data-blok="' + b.id + '"' : '';
   const nadpis = escT(b.nadpis), text = escT(b.text);
   const odstavce = t => t.split(/\n\s*\n/).filter(x => x.trim()).map(x => '<p>' + x.replace(/\n/g,'<br>') + '</p>').join('');
   const d = b.data || {};
   switch(b.typ){
     case 'hero':
-      return '<div class="' + tridy + '">' +
+      return '<div class="' + tridy + '"' + zn + '>' +
         (b.ikona && IKONY[b.ikona] ? '<div class="hero-ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + IKONY[b.ikona] + '</svg></div>' : '') +
         (nadpis ? '<h3>' + nadpis + '</h3>' : '') +
         (text ? odstavce(text) : '') +
         (b.odkaz_text ? '<div style="margin-top:10px;"><span class="pill">' + escT(b.odkaz_text) + '</span></div>' : '') +
         '</div>';
     case 'mezinadpis':
-      return '<div class="' + tridy + '"><h3>' + nadpis + '</h3></div>';
+      return '<div class="' + tridy + '"' + zn + '><h3>' + nadpis + '</h3></div>';
     case 'odkaz':
-      return '<div class="' + tridy + '" onclick="openExt(\'' + escT(b.odkaz||'') + '\')">' +
+      return '<div class="' + tridy + '"' + zn + ' onclick="openExt(\'' + escT(b.odkaz||'') + '\')">' +
         '<div class="txt"><h3>' + (nadpis || escT(b.odkaz||'')) + '</h3>' +
         (text ? '<p>' + text + '</p>' : '') + '</div>' + SIPKA_SVG + '</div>';
     case 'tabulka': {
       const zahlavi = Array.isArray(d.zahlavi) ? d.zahlavi : null;
       const radky = Array.isArray(d.radky) ? d.radky : [];
-      return '<div class="' + tridy + '"><table>' +
+      return '<div class="' + tridy + '"' + zn + '><table>' +
         (zahlavi ? '<tr>' + zahlavi.map(x => '<th>' + escT(x) + '</th>').join('') + '</tr>' : '') +
         radky.map(r => '<tr>' + (Array.isArray(r) ? r : [r]).map(x => '<td>' + escT(x) + '</td>').join('') + '</tr>').join('') +
         '</table></div>';
     }
     case 'seznam': {
       const p = Array.isArray(d.polozky) ? d.polozky : [];
-      return '<div class="' + tridy + '">' + (nadpis ? '<h3>' + nadpis + '</h3>' : '') +
+      return '<div class="' + tridy + '"' + zn + '>' + (nadpis ? '<h3>' + nadpis + '</h3>' : '') +
         '<ul>' + p.map(x => '<li><span>' + escT(x) + '</span></li>').join('') + '</ul></div>';
     }
     case 'pozor':
@@ -1468,12 +1471,12 @@ function vykresliBlok(b){
         ? '<path d="M10.4 4.1L2.3 17.6a1.9 1.9 0 0 0 1.6 2.9h16.2a1.9 1.9 0 0 0 1.6-2.9L13.6 4.1a1.9 1.9 0 0 0-3.2 0z"/><path d="M12 9.4v4.2M12 17h.01"/>'
         : '<circle cx="12" cy="12" r="9.2"/><path d="M12 16v-4.6M12 8.2h.01"/>';
       const vychozi = b.typ === 'pozor' ? 'Pozor' : 'Rada';
-      return '<div class="' + tridy + ' blok-vyzva">' +
+      return '<div class="' + tridy + ' blok-vyzva"' + zn + '>' +
         '<svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--bl-nadpis)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + ikona + '</svg>' +
         '<div class="txt"><h3>' + (nadpis || vychozi) + '</h3>' + odstavce(text) + '</div></div>';
     }
     default:
-      return '<div class="' + tridy + '">' + (nadpis ? '<h3>' + nadpis + '</h3>' : '') + odstavce(text) + '</div>';
+      return '<div class="' + tridy + '"' + zn + '>' + (nadpis ? '<h3>' + nadpis + '</h3>' : '') + odstavce(text) + '</div>';
   }
 }
 
