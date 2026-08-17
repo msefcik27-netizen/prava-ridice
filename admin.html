@@ -347,7 +347,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 118</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 120</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -442,6 +442,7 @@ let klienti = [], statistika = null, vybranyKlient = null;
 /* Kódy se načítají po klientech až při rozbalení sekce — u firmy se stovkou
    lidí nemá smysl tahat všechny kódy hned při otevření karty. */
 let kodyKlienta = {};
+let terminy = [];
 let poptavky = [];
 let vybrano = null;      // {typ:'oblast'|'clanek', id}
 let vybranaSluzba = null;
@@ -3274,11 +3275,15 @@ function bezeZmeny(el){
 async function kresliSpravu(){
   const sek = $('sek-sprava');
   sek.innerHTML = '<div class="prazdno">Načítám…</div>';
-  const [k, st, pop] = await Promise.all([
+  const [k, st, pop, tr] = await Promise.all([
     db.from('v_klienti').select('*').order('nazev'),
     db.rpc('statistiky'),
-    db.from('poptavky').select('*').order('vytvoreno', {ascending:false}).limit(50)
+    db.from('poptavky').select('*').order('vytvoreno', {ascending:false}).limit(50),
+    db.from('provozni_terminy').select('*').order('poradi')
   ]);
+  /* Tabulka termínů nemusí existovat, když se ještě nespustilo SQL —
+     administrace kvůli tomu nemá spadnout. */
+  terminy = (tr && !tr.error && tr.data) ? tr.data : [];
   poptavky = pop && !pop.error ? pop.data : [];
   if(k.error){
     sek.innerHTML = `<h2>Administrace</h2>
@@ -3366,6 +3371,8 @@ function vykresliSpravu(){
        Obsahuje datum registrace, potvrzení e-mailu, úroveň přístupu a případný promo kód.
        Jsou to osobní údaje — nakládejte s nimi podle zásad zpracování.</p>
 
+    ${sekceTerminu()}
+
     ${sekcePoptavek()}
 
     <h2 style="margin-top:26px">QR kód aplikace</h2>
@@ -3393,6 +3400,82 @@ function vykresliSpravu(){
                      : '<div class="prazdno">Zatím žádní klienti.</div>'}
     <div class="lista"><button class="btn btn-vedl" onclick="novyKlient()">+ Přidat klienta</button></div>`;
   hlidejVse($('sek-sprava'));
+}
+
+/* ---------- hlídané termíny provozu ---------- */
+
+function dnuDo(datum){
+  if(!datum) return null;
+  const d = new Date(datum + 'T00:00:00');
+  return Math.round((d - new Date(new Date().toDateString())) / 86400000);
+}
+
+/* Barva podle naléhavosti. Šedivé je to, co nemá datum — třeba dočasné
+   řešení, které se má jednou vyměnit, ale nikdo neurčil kdy. */
+function stavTerminu(t){
+  const dnu = dnuDo(t.plati_do);
+  if(dnu === null)  return ['bez data', 'var(--muted)', 'nemá určený termín'];
+  if(dnu < 0)       return ['prošlo', 'var(--err)', 'prošlo před ' + (-dnu) + ' dny'];
+  if(dnu <= 60)     return ['blíží se', '#b06a1a', 'zbývá ' + dnu + ' ' + mnozne(dnu,'den','dny','dní')];
+  return ['v pořádku', 'var(--teal-800)', 'zbývá ' + dnu + ' ' + mnozne(dnu,'den','dny','dní')];
+}
+
+/* Poptávky, které nedorazily do JIRA. Tohle je skutečnost, ne plán —
+   když token vyprší dřív, než měl, pozná se to tady jako první. */
+function nedorucenePoptavky(){
+  const hranice = Date.now() - 30 * 86400000;
+  return poptavky.filter(p => !p.jira_klic && new Date(p.vytvoreno) >= hranice).length;
+}
+
+function sekceTerminu(){
+  const nedoslo = nedorucenePoptavky();
+  const naleha = terminy.filter(t => { const d = dnuDo(t.plati_do); return d !== null && d <= 60; }).length;
+
+  const varovani = nedoslo ? `
+    <div class="alert-line" style="background:rgba(229,72,77,.12);border:1px solid rgba(229,72,77,.35);
+         border-radius:11px;padding:11px 13px;margin-bottom:12px;color:var(--err);font-size:13px;line-height:1.5">
+      <b>${nedoslo} ${mnozne(nedoslo,'poptávka nedorazila','poptávky nedorazily','poptávek nedorazilo')} do JIRA</b>
+      za posledních 30 dní. Poptávky se neztratily — jsou níž v seznamu — ale do systému
+      kanceláře nejdou. Nejčastější příčina je vypršelý nebo přepsaný token v Secrets.
+    </div>` : '';
+
+  const radky = terminy.length ? terminy.map(t => {
+    const [popis, barva, kdy] = stavTerminu(t);
+    return `
+    <div style="padding:10px 0;border-bottom:1px solid var(--line)">
+      <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+        <b style="font-size:13.5px">${esc(t.nazev)}</b>
+        <span style="font-size:11.5px;font-weight:700;color:${barva}">${popis}</span>
+        <span style="font-size:12px;color:var(--muted)">${kdy}</span>
+        <span style="flex:1"></span>
+        <input type="date" id="term-${t.id}" value="${esc(t.plati_do || '')}"
+          style="width:auto;padding:5px 8px;font-size:12.5px"
+          onchange="ulozTermin('${t.id}')">
+      </div>
+      ${t.kde ? `<div style="font-size:12px;color:var(--muted);margin-top:3px">${esc(t.kde)}</div>` : ''}
+      ${t.poznamka ? `<p class="napoveda" style="margin:5px 0 0">${esc(t.poznamka)}</p>` : ''}
+    </div>`;
+  }).join('') : `<div class="prazdno">Zatím se nic nehlídá.
+      Spusťte v Supabase <b>provozni-terminy.sql</b> a stránku načtěte znovu.</div>`;
+
+  return `
+    <h2 style="margin-top:26px">Co vyprší${naleha ? ' <span class="pocet" style="color:#b06a1a">'
+      + naleha + '× se blíží</span>' : ''}</h2>
+    <p class="napoveda" style="margin:-6px 0 14px">Tokeny a hesla, která jednou přestanou platit.
+       Datum přepište rovnou tady, jakmile vydáte nové — uloží se samo.</p>
+    ${varovani}
+    ${radky}`;
+}
+
+async function ulozTermin(id){
+  const pole = $('term-' + id); if(!pole) return;
+  const hodnota = pole.value || null;
+  const { error } = await db.from('provozni_terminy')
+    .update({ plati_do: hodnota, upraveno: new Date().toISOString() }).eq('id', id);
+  if(error){ hlaska('Termín se nepodařilo uložit: ' + error.message, true); return; }
+  const t = terminy.find(x => x.id === id); if(t) t.plati_do = hodnota;
+  vykresliSpravu();
+  hlaska('Termín uložen.');
 }
 
 /* Poptávky z konzultačního formuláře v aplikaci. */
@@ -3884,32 +3967,32 @@ function kresliKody(klientId){
   if(pocet) pocet.textContent = rada.length
     ? rada.length + ' ' + mnozne(rada.length,'kód','kódy','kódů') : 'zatím žádné';
   if(!rada.length){ el.innerHTML = '<div class="prazdno">Klient zatím nemá žádné kódy.</div>'; return; }
-  /* Tabulka s pěti sloupci se do editoru nevešla a tlačítka přetékala za
-     okraj. Kód je proto karta: vlevo QR, vpravo údaje pod sebou a tlačítka
-     na vlastním řádku, který se v úzkém sloupci zalomí. */
+  /* Jeden kód = jeden řádek, ať se jich vejde co nejvíc. Pevná tabulka to
+     nezvládla (tlačítka přetékala za okraj), proto pružné rozvržení: QR, kód,
+     stav a tlačítka mají pevnou šířku, a **zbytek se scvrkne** — údaj o tom,
+     kdo kód uplatnil, se v úzkém sloupci ořízne třemi tečkami. Tlačítka tak
+     zůstanou celá vždycky. */
   el.innerHTML = rada.map(k => {
       const [popis, barva] = stavKodu(k);
-      return `<div style="display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)">
-        <div style="flex:0 0 auto;line-height:0" title="Vyfocením se otevře aplikace s vyplněným kódem">${qrSvg(odkazSKodem(k.kod), 52)}</div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <code class="kod" style="font-size:12.5px">${esc(k.kod)}</code>
-            <span style="font-size:12px;font-weight:700;color:${barva}">${popis}</span>
-          </div>
-          <div style="font-size:12.5px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis">${
-            k.uplatnil_email
-              ? esc(k.uplatnil_email) + (k.ma_zarizeni ? ' · zařízení' : ' · bez zařízení') +
-                (k.zarizeni_prevzato ? ' · ' + k.zarizeni_prevzato + '× přeneseno' : '')
-              : 'zatím nikdo neuplatnil'}</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px">
-            <button type="button" class="blok-akce" title="Zkopírovat odkaz s kódem — otevře aplikaci s vyplněným kódem"
-              onclick="zkopirujOdkaz('${esc(k.kod)}')">Odkaz</button>
-            <button type="button" class="blok-akce" title="Zkopírovat kód"
-              onclick="zkopirujKod('${esc(k.kod)}')">Kopie</button>
-            ${k.aktivni ? `<button type="button" class="blok-akce" style="color:var(--err)"
-              title="Zruší kód i přístup, který z něj vznikl"
-              onclick="zneplatniKod('${esc(k.kod)}','${klientId}')">Zneplatnit</button>` : ''}
-          </div>
+      const kdo = k.uplatnil_email
+        ? esc(k.uplatnil_email) + (k.ma_zarizeni ? ' · zařízení' : ' · bez zařízení') +
+          (k.zarizeni_prevzato ? ' · ' + k.zarizeni_prevzato + '× přeneseno' : '')
+        : 'zatím nikdo neuplatnil';
+      const tl = 'padding:4px 9px;font-size:11.5px';
+      return `<div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line)">
+        <div style="flex:0 0 auto;line-height:0" title="Vyfocením se otevře aplikace s vyplněným kódem">${qrSvg(odkazSKodem(k.kod), 40)}</div>
+        <code class="kod" style="flex:0 0 auto;font-size:12px">${esc(k.kod)}</code>
+        <span style="flex:0 0 auto;font-size:11.5px;font-weight:700;color:${barva}">${popis}</span>
+        <div style="flex:1 1 auto;min-width:0;font-size:12px;color:var(--muted);
+             overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${kdo}">${kdo}</div>
+        <div style="flex:0 0 auto;display:flex;gap:4px">
+          <button type="button" class="blok-akce" style="${tl}" title="Zkopírovat odkaz s kódem — otevře aplikaci s vyplněným kódem"
+            onclick="zkopirujOdkaz('${esc(k.kod)}')">Odkaz</button>
+          <button type="button" class="blok-akce" style="${tl}" title="Zkopírovat kód"
+            onclick="zkopirujKod('${esc(k.kod)}')">Kopie</button>
+          ${k.aktivni ? `<button type="button" class="blok-akce" style="${tl};color:var(--err)"
+            title="Zruší kód i přístup, který z něj vznikl"
+            onclick="zneplatniKod('${esc(k.kod)}','${klientId}')">Zneplatnit</button>` : ''}
         </div>
       </div>`;
     }).join('');
