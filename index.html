@@ -325,11 +325,28 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .field{margin-bottom:18px;}
 .field label{display:block;font-size:14px;font-weight:600;margin-bottom:8px;}
 .field .req{color:var(--red);}
-.field input[type=text],.field input[type=tel],.field textarea{
-  width:100%;border:1px solid var(--line);border-radius:14px;padding:15px 16px;font-family:inherit;font-size:16px;
+/* Jedno pravidlo pro celou aplikaci: co je ve formulářovém poli, je přes
+   celou šířku a vypadá stejně. Dřív byla šířka nastavená jen textovým
+   vstupům, takže výběry a ostatní typy zůstávaly úzké podle prohlížeče
+   a formulář vypadal rozházeně. */
+.field input:not([type=checkbox]):not([type=radio]),
+.field select,
+.field textarea{
+  width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:14px;
+  padding:15px 16px;font-family:inherit;font-size:16px;
   background:var(--card);color:var(--ink);outline:none;}
-.field input:focus,.field textarea:focus{border-color:var(--teal-700);}
+/* Vlastní šipka u výběru — systémová se na každém telefonu kreslí jinak
+   a mění šířku pole. */
+.field select{appearance:none;-webkit-appearance:none;padding-right:42px;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2377837f' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 15px center;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal-700);}
 .field .hint{font-size:12.5px;color:var(--muted);margin-top:7px;}
+/* Chyba patří k poli, ne do proužku dole — ten zmizí dřív, než se člověk
+   stihne podívat, co má opravit. */
+.chyba-pole{display:none;font-size:12.5px;font-weight:600;color:var(--red);margin-top:7px;line-height:1.4;}
+.chyba-pole.vidno{display:block;}
+.field.spatne input,.field.spatne textarea,.field.spatne select{border-color:var(--red);}
 .field textarea{min-height:120px;resize:vertical;}
 .attach{border:1px dashed var(--line);border-radius:14px;padding:15px;display:flex;align-items:center;gap:10px;color:var(--ink-soft);font-weight:600;font-size:15px;cursor:pointer;background:var(--card);}
 .attach-row{display:flex;gap:10px;}
@@ -760,7 +777,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/></svg>
               </div>
               <div>
-                <div data-text="prehled.body.nadpis" style="font-size:19px;font-weight:800;">Váš bodový stav</div>
+                <div data-text="prehled.body.nadpis" style="font-size:19px;font-weight:800;">Vaše body řidiče</div>
               </div>
             </div>
             <span class="risk-pill" id="riskPill"><span class="dot"></span> Bez rizika</span>
@@ -776,7 +793,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           <div class="status-actions">
             <button class="chip-btn light" onclick="go('points-help')">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3a2413" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h4M7 13h7"/></svg>
-              <span data-text="prehled.body.btn1">Jak zjistit body</span>
+              <span data-text="prehled.body.btn1">Jak zjistit body řidiče</span>
             </button>
             <button class="chip-btn outline" onclick="go('konzultace')">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -806,7 +823,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="card" style="margin-top:10px;" id="notifCard">
           <div class="row-between">
             <div>
-              <div class="eyebrow" style="margin-bottom:4px;" data-text="prehled.notif.stitek">Notifikace podle bodů</div>
+              <div class="eyebrow" style="margin-bottom:4px;" data-text="prehled.notif.stitek">Upozornění podle bodů řidiče</div>
               <div class="title-md" style="font-size:17px;" data-text="prehled.notif.nadpis">Včasná výstraha před 12 body</div>
             </div>
             <div class="toggle on" role="switch" tabindex="0" aria-checked="true" id="notifToggle" onclick="toggleNotif()" onkeydown="klavesaPrepinac(event, this)"></div>
@@ -836,7 +853,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2.8H7a2 2 0 0 0-2 2v14.4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.8z"/><path d="M14 2.8v5h5"/><path d="M12 11.6v5.2"/><path d="M9.6 14.4l2.4 2.4 2.4-2.4"/></svg>
             </div>
             <div class="li-body">
-              <h4 data-text="prehled.pdf.nadpis">Načíst body z PDF výpisu</h4>
+              <h4 data-text="prehled.pdf.nadpis">Načíst body řidiče z PDF výpisu</h4>
               <p data-text="prehled.pdf.popis">Nahrajte výpis z Portálu dopravy — body se nastaví samy.</p>
             </div>
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
@@ -995,13 +1012,13 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 119<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 120<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
     <!-- SUB: JAK ZJISTIT BODY -->
     <div class="screen" id="s-points-help">
-      <div class="subhead"><button class="back-btn" onclick="back('prehled')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" data-text="pomoc.body.nadpis">Jak zjistit body</div></div>
+      <div class="subhead"><button class="back-btn" onclick="back('prehled')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" data-text="pomoc.body.nadpis">Jak zjistit body řidiče</div></div>
       <div class="pad">
         <p class="muted" style="line-height:1.6;margin-top:0;" data-text="pomoc.body.uvod">Přesný počet bodů zjistíte třemi způsoby:</p>
         <div class="list-card">
@@ -1029,17 +1046,20 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           <input type="text" id="fName" autocapitalize="words" data-ph="formular.ph.jmeno" placeholder="Jan Novák" />
         </div>
         <div class="field">
-          <label data-text="formular.email">E-mail</label>
+          <label><span data-text="formular.email">E-mail</span> <span class="req">*</span></label>
           <input type="text" id="fMail" inputmode="email" autocapitalize="none" data-ph="formular.ph.email" placeholder="jan.novak@email.cz" />
+          <div class="chyba-pole" id="chybaMail"></div>
         </div>
         <div class="field">
           <label><span data-text="formular.telefon">Telefon</span> <span class="req">*</span></label>
           <input type="tel" id="fTel" inputmode="tel" data-ph="formular.ph.telefon" placeholder="739 66 22 66" />
+          <div class="chyba-pole" id="chybaTel"></div>
           <div class="hint" data-text="formular.telefon.hint">Zavoláme vám do 2 hodin v pracovní době.</div>
         </div>
         <div class="field">
-          <label data-text="formular.zprava">Zpráva</label>
+          <label><span data-text="formular.zprava">Zpráva</span> <span class="req">*</span></label>
           <textarea id="fMsg" autocapitalize="sentences" data-ph="formular.ph.zprava" placeholder="Stručně popište situaci…"></textarea>
+          <div class="chyba-pole" id="chybaMsg"></div>
         </div>
         <div class="field">
           <label data-text="formular.prilohy">Přílohy</label>
@@ -2253,14 +2273,52 @@ function oknoOdeslano(neprosly){
    že ztratit poptávku řidiče, kterému právě zadrželi průkaz, je to nejhorší,
    co může aplikace udělat. Když selže obojí, řekne se to a nabídne telefon;
    mlčky data zahodit se nesmí. */
+/* Telefon si každý píše po svém — mezery, lomítka, závorky, předvolba.
+   Kontroluje se proto až to, co zbude: devět číslic, případně s předvolbou.
+   Cizí čísla mají jinou délku, ta se nezamítají. */
+function overTelefon(t){
+  const cislice = String(t||'').replace(/[\s\-().\/]/g,'');
+  if(!cislice) return 'Zadejte prosím telefonní číslo — budeme vám volat.';
+  if(!/^\+?\d+$/.test(cislice)) return 'V telefonním čísle jsou znaky, které tam nepatří.';
+  const holé = cislice.replace(/^\+?420/,'').replace(/^\+/,'');
+  if(holé.length < 9) return 'Číslo je krátké — české má devět číslic.';
+  if(holé.length > 15) return 'Číslo je moc dlouhé — zkontrolujte ho prosím.';
+  if(/^(\d)\1+$/.test(holé)) return 'Tohle číslo nevypadá jako skutečné.';
+  return null;
+}
+
+/* Chyba se ukáže u pole a pole se obarví. Vrací false, aby se dalo psát
+   `if(!ukazChybu(...)) return;`. */
+function ukazChybu(idPole, idChyby, text){
+  const pole = document.getElementById(idPole);
+  const el = document.getElementById(idChyby);
+  if(el){ el.textContent = text || ''; el.classList.toggle('vidno', !!text); }
+  if(pole && pole.closest('.field')) pole.closest('.field').classList.toggle('spatne', !!text);
+  return !text;
+}
+
 async function submitForm(){
   const jmeno = (document.getElementById('fName').value||'').trim();
   const tel   = (document.getElementById('fTel').value||'').trim();
   const mail  = (document.getElementById('fMail').value||'').trim();
   const msg   = (document.getElementById('fMsg').value||'').trim();
 
-  if(tel.length<6){ toast('Zadejte prosím telefonní číslo.'); return; }
-  if(mail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ toast('Zkontrolujte prosím formát e-mailu.'); return; }
+  /* Kontrolují se všechna pole najednou, ne po jednom — jinak člověk opraví
+     telefon, odešle a dozví se o e-mailu. */
+  const chybaTel  = overTelefon(tel);
+  const chybaMail = overEmail(mail);
+  const chybaMsg  = msg.length < 10
+    ? 'Napište prosím pár slov o tom, co se stalo — bez toho nevíme, s čím pomoct.'
+    : null;
+  ukazChybu('fTel',  'chybaTel',  chybaTel);
+  ukazChybu('fMail', 'chybaMail', chybaMail);
+  ukazChybu('fMsg',  'chybaMsg',  chybaMsg);
+  if(chybaTel || chybaMail || chybaMsg){
+    /* Doskrolovat na první chybu — na telefonu nemusí být vidět. */
+    const prvni = document.querySelector('#s-konzultace .field.spatne');
+    if(prvni && prvni.scrollIntoView) prvni.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
   if(!document.getElementById('fConsent').classList.contains('on')){ toast('Potvrďte prosím souhlas se zpracováním údajů.'); return; }
 
   const tlacitko = document.getElementById("fSend");
@@ -2328,6 +2386,8 @@ async function submitForm(){
     document.getElementById('fTel').value=''; document.getElementById('fMsg').value='';
     document.getElementById('fName').value=''; document.getElementById('fMail').value='';
     document.getElementById('fConsent').classList.remove('on');
+    ukazChybu('fTel','chybaTel',null); ukazChybu('fMail','chybaMail',null);
+    ukazChybu('fMsg','chybaMsg',null);
     prilohy = []; state.fileName = ''; kresliPrilohy();
     /* Žádné potvrzení e-mailem nechodí, takže se ani neslibuje. */
     backAuto();
@@ -2524,12 +2584,14 @@ async function authInit(){
       await hlidejZarizeni(); await nactiSouhlasy();
       let ceka=null; try{ ceka=JSON.parse(localStorage.getItem('pr-cekam-na-potvrzeni')||'null'); }catch(e){}
       if(ceka) await poPotvrzeni();
+      else dovnitrPoPrihlaseni();
     } else {
       nastavAuthStav('neprihlasen');
     }
     sb.auth.onAuthStateChange(async (_e,session)=>{
       authUser = session ? session.user : null;
       nastavAuthStav(authUser ? 'prihlasen' : 'neprihlasen');
+      if(authUser) ucetCeka = '';
       renderAccount();
       if(authUser){
         await afterLogin(); await zjistiPristup();
@@ -2539,6 +2601,10 @@ async function authInit(){
         await nactiSouhlasy();
         let ceka=null; try{ ceka=JSON.parse(localStorage.getItem('pr-cekam-na-potvrzeni')||'null'); }catch(e){}
         if(ceka) await poPotvrzeni();
+        /* Odkaz z e-mailu se může projevit až tady — knihovna adresu čte až
+           po vytvoření spojení. Bez tohohle by úvod zůstal viset přes
+           přihlášenou aplikaci. */
+        else dovnitrPoPrihlaseni();
       }
     });
     renderAccount();
@@ -3074,7 +3140,7 @@ function renderAccount(){
     box.innerHTML='<div class="row-between"><div style="min-width:0;">'+
       '<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:4px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
       '<div class="title-md" style="font-size:16px;overflow:hidden;text-overflow:ellipsis;">'+authName()+'</div>'+
-      '<div data-text="profil.ucet.zaloha" class="small muted" style="margin-top:2px;">'+txt('profil.ucet.zaloha','Body a nastavení se zálohují')+'</div></div>'+
+      '<div data-text="profil.ucet.zaloha" class="small muted" style="margin-top:2px;">'+txt('profil.ucet.zaloha','Body řidiče a nastavení se zálohují')+'</div></div>'+
       '<button data-text="profil.ucet.odhlasit" class="btn btn-outline-dark btn-sm" style="width:auto;padding:10px 14px;" onclick="authSignOut()">'+txt('profil.ucet.odhlasit','Odhlásit')+'</button></div>'+
       /* Právo na přístup k údajům a na výmaz. Schovávat to do drobného písma
          nemá smysl — kdo to hledá, má to najít. */
@@ -3089,6 +3155,27 @@ function renderAccount(){
           txt('profil.data.popis','Stažením dostanete soubor se vším, co o vás víme. Zrušením účtu se to smaže — zpátky to nejde.')+'</p>'+
       '</div>';
   } else {
+    /* Poslali jsme e-mail a čekáme na kód. Odkaz z e-mailu funguje dál —
+       tohle je cesta pro toho, kdo čte poštu jinde, než má aplikaci. */
+    if(ucetCeka){
+      box.innerHTML='<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:6px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
+        '<div class="title-md" style="font-size:16px;margin-bottom:4px;">Otevřete si e-mail</div>'+
+        '<div class="small muted" style="margin-bottom:10px;line-height:1.45;">Poslali jsme ho na <b>'+
+          String(ucetCeka).replace(/&/g,'&amp;').replace(/</g,'&lt;')+
+          '</b>. Je v něm odkaz i číselný kód — stačí jedno z toho. '+
+          'Když čtete poštu na počítači, opište sem kód.</div>'+
+        '<div class="field" style="margin-bottom:0;"><input class="pole-input" id="uctKod" inputmode="numeric" '+
+          'autocomplete="one-time-code" maxlength="10" placeholder="kód z e-mailu" '+
+          'style="letter-spacing:.22em;font-weight:700;" '+
+          'onkeydown="if(event.key===\'Enter\')ucetOverKod()" /></div>'+
+        '<div class="small" id="uctChyba" style="display:none;color:var(--red);margin-top:7px;"></div>'+
+        '<button class="btn btn-dark btn-sm" style="margin-top:10px;" id="uctKodBtn" onclick="ucetOverKod()">Přihlásit</button>'+
+        '<div class="row-between" style="gap:10px;margin-top:8px;">'+
+          '<button class="btn btn-outline-dark btn-sm" style="flex:1;" onclick="ucetZnovu()">Poslat znovu</button>'+
+          '<button class="btn btn-outline-dark btn-sm" style="flex:1;" onclick="ucetJinyEmail()">Jiný e-mail</button>'+
+        '</div>';
+      return;
+    }
     let posledni=''; try{ posledni = localStorage.getItem('pr-ucet-email')||''; }catch(e){}
     box.innerHTML='<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:6px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
       '<div data-text="profil.ucet.neprihlasen" class="title-md" style="font-size:16px;margin-bottom:4px;">'+txt('profil.ucet.neprihlasen','Nepřihlášeno')+'</div>'+
@@ -3103,7 +3190,28 @@ function renderAccount(){
   }
 }
 
+/* Přihlášení platí — úvodní obrazovky nemají co dělat přes aplikaci.
+   Rozhodnutí „už jsem tu byl" se totiž čte z úložiště při načtení stránky,
+   tedy dřív, než se přihlášení stihne ověřit. Kdo přišel z odkazu v e-mailu
+   do nového úložiště, viděl kvůli tomu úvod znovu. */
+function dovnitrPoPrihlaseni(){
+  try{
+    const u = document.getElementById('onboard');
+    if(!u || u.style.display === 'none') return;
+    /* Kdo je zrovna uprostřed zadávání kódu, ať o rozepsanou obrazovku
+       nepřijde — o zbytek se postará poPotvrzeni(). */
+    if(ob.step === 4) return;
+    localStorage.setItem('pr-onboarded','1');
+    enterApp();
+  }catch(e){}
+}
+
 /* Přihlášení e-mailem — stejná cesta jako v onboardingu, žádné cizí účty. */
+/* Na jakou adresu jsme právě poslali přihlášení. Dokud je vyplněná, ukazuje
+   Profil pole na kód — v e-mailu je odkaz i kód a kód je jediná cesta, která
+   funguje i tehdy, když člověk čte poštu jinde, než má aplikaci. */
+let ucetCeka = '';
+
 async function prihlasEmailem(){
   const pole = document.getElementById('uctEmail');
   const chybaEl = document.getElementById('uctChyba');
@@ -3122,9 +3230,51 @@ async function prihlasEmailem(){
     if(tl){ tl.disabled = false; tl.textContent = 'Poslat přihlašovací odkaz'; }
     ukaz('Odeslání se nepovedlo: '+error.message); return;
   }
-  if(tl){ tl.textContent = 'Odkaz odeslán ✓'; }
-  toast('Odkaz jsme poslali na '+email+'. Podívejte se do e-mailu.');
+  ucetCeka = email;
+  renderAccount();
+  toast('Poslali jsme e-mail na '+email+'.');
 }
+
+/* Ověření kódu z e-mailu v Profilu. Totéž co v úvodu aplikace — jen se sem
+   dostane ten, kdo aplikaci už má. */
+async function ucetOverKod(){
+  const pole = document.getElementById('uctKod');
+  const chybaEl = document.getElementById('uctChyba');
+  const ukaz = t => { if(!chybaEl) return; chybaEl.textContent = t||''; chybaEl.style.display = t ? 'block' : 'none'; };
+  const kod = ((pole && pole.value) || '').replace(/\D/g,'');
+  /* Kolik má kód míst, si určuje server (šest až deset). Tady se hlídá jen
+     to, že je to vůbec kód. */
+  if(kod.length < 6 || kod.length > 10){
+    ukaz('Opište prosím z e-mailu celý kód — jsou to jen číslice.'); return; }
+  if(!sb || !ucetCeka){ ukaz('Přihlášení je dočasně nedostupné.'); return; }
+  ukaz('');
+  const tl = document.getElementById('uctKodBtn');
+  if(tl){ tl.disabled = true; tl.textContent = 'Ověřuji…'; }
+  let error = null;
+  try{
+    const v = await sb.auth.verifyOtp({ email: ucetCeka, token: kod, type: 'email' });
+    error = v && v.error;
+  }catch(e){ error = e; }
+  if(error){
+    if(tl){ tl.disabled = false; tl.textContent = 'Přihlásit'; }
+    ukaz(/expired|invalid|token/i.test(error.message || '')
+      ? 'Tenhle kód neplatí nebo už vypršel. Nechte si poslat nový.'
+      : 'Přihlášení se nepovedlo: '+(error.message || ''));
+    return;
+  }
+  ucetCeka = '';
+  if(tl){ tl.textContent = 'Hotovo ✓'; }
+  toast('Přihlášeno.');
+}
+
+async function ucetZnovu(){
+  if(!sb || !ucetCeka) return;
+  const { error } = await sb.auth.signInWithOtp({ email: ucetCeka,
+    options:{ emailRedirectTo: location.href.split('#')[0].split('?')[0] } });
+  toast(error ? 'Odeslání se nepovedlo.' : 'Poslali jsme nový e-mail.');
+}
+
+function ucetJinyEmail(){ ucetCeka = ''; renderAccount(); }
 
 /* ============ ONBOARDING (4 kroky dle původní aplikace + feedback testerky) ============ */
 const OB_STEPS=4;
@@ -3388,7 +3538,7 @@ function renderOb(){
   }
   if(ob.step===1){
     B.innerHTML='<div class="ob-step"><div style="height:26px;"></div>'+
-      '<div class="ob-eyebrow" data-text="onboard.body.stitek">'+txt('onboard.body.stitek','Proč sledovat body')+'</div>'+
+      '<div class="ob-eyebrow" data-text="onboard.body.stitek">'+txt('onboard.body.stitek','Proč sledovat body řidiče')+'</div>'+
       '<h1 class="title-lg" data-text="onboard.body.nadpis" style="font-size:30px;">'+txt('onboard.body.nadpis','Vybodování se dá předejít.')+'</h1>'+
       '<p data-text="onboard.body.text1" style="font-size:15.5px;">'+txt('onboard.body.text1','Po nasbírání 12 bodů přijdete o řidičský průkaz na 12 měsíců. Bodový stav lze ověřit jen u úřadu, takže mnoho řidičů ho zná až ve chvíli, kdy je pozdě.')+'</p>'+
       '<p data-text="onboard.body.text2" style="font-size:15.5px;margin-top:12px;">'+txt('onboard.body.text2','Aplikace vám pomůže držet přehled. Když si zaznamenáte aktuální stav, uvidíte varování na kartě Zprávy — typicky už při 9 bodech — abyste měli čas reagovat.')+'</p>'+
@@ -3625,7 +3775,7 @@ function renderUpozorneni(){
   const c=getNotifCfg();
   const vs=getVehicles();
   document.getElementById('upozorneniBody').innerHTML=
-    '<div data-text="upozorneni.body.stitek" class="section-label">'+txt('upozorneni.body.stitek','Bodový stav')+'</div>'+
+    '<div data-text="upozorneni.body.stitek" class="section-label">'+txt('upozorneni.body.stitek','Body řidiče')+'</div>'+
     sw('body',txt('upozorneni.body.nadpis','Upozornění na body'),
             txt('upozorneni.body.popis','Když se přiblížíte hranici 12 bodů'),c.body,'upozorneni.body.nadpis','upozorneni.body.popis')+
     '<div class="card" style="margin-top:8px;"><div class="eyebrow" style="margin-bottom:8px;">Od kolika bodů upozornit</div>'+
@@ -4446,7 +4596,7 @@ function formPokuty(p){
       'placeholder="dd. mm. rrrr" data-iso="' + escT(p.splatnost || '') + '"' +
       (p.splatnost ? ' value="' + escT(datumNaCesky(p.splatnost)) + '"' : '') +
       ' onclick="otevriKalendar(\'pSplatnost\',\'Splatnost\')" onchange="srovnejDatum(this)"/></div>' +
-    '<div class="field"><label>Body</label><input type="text" id="pBody" inputmode="numeric"' + h(p.body) + ' placeholder="0"/></div>' +
+    '<div class="field"><label>Body řidiče</label><input type="text" id="pBody" inputmode="numeric"' + h(p.body) + ' placeholder="0"/></div>' +
     '<div class="field"><label>Stav</label><select id="pStav">' +
       STAVY_POKUT.map(x => '<option value="' + x[0] + '"' + (p.stav === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select></div>' +
     '<label class="attach" style="margin-bottom:6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> ' +
