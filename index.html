@@ -909,7 +909,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 96</div>
+        <div class="ver">Verze 2.5 · build 98</div>
       </div>
     </div>
 
@@ -1635,7 +1635,7 @@ function renderGuideOblasti(){
   box.innerHTML = GUIDE.map((o,i)=>{
     const otevreno = otevrenaOblast === i;
     const temata = o.topics || [];
-    return '<div class="list-item" onclick="prepniOblast('+i+')">'+
+    return '<div class="list-item" data-oblast="'+(o.oid||o.id)+'" onclick="prepniOblast('+i+')">'+
       '<div class="li-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+
         (IKONY[o.ic]||IKONY.doc)+'</svg></div>'+
       '<div class="li-body"><h4>'+o.n+znackaOblasti(temata)+'</h4><p>'+temata.length+' '+plural(temata.length,'téma','témata','témat')+'</p></div>'+
@@ -1731,7 +1731,7 @@ function openTopic(oblastId,title){
   const t=o.topics.find(x=>x.t===title);
   document.getElementById('topicBody').innerHTML=`
     <div class="card" style="margin-bottom:12px;">
-      <div class="cat" style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink-2);margin-bottom:6px;">${[o.n, t.c].filter((x,i,p) => x && p.indexOf(x) === i).join(' · ')}</div>
+      <div class="cat" data-clanek="kategorie" style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink-2);margin-bottom:6px;">${[o.n, t.c].filter((x,i,p) => x && p.indexOf(x) === i).join(' · ')}</div>
       <h2 class="title-md" data-clanek="nadpis" style="margin-bottom:10px;">${t.t}${znackaPristupu(!!t.zamceno)}</h2>
       ${t.d ? `<p data-clanek="perex" style="margin:0 0 10px;line-height:1.5;font-size:13px;color:var(--muted);">${t.d}</p>` : ''}
       ${t.zamceno
@@ -1744,7 +1744,7 @@ function openTopic(oblastId,title){
     ${t.zamceno ? '' : `<div data-clanek="${(t.bloky && t.bloky.length) ? 'bloky' : 'telo'}">` +
         ((t.bloky && t.bloky.length) ? vykresliBloky(t.bloky) : vykresliTelo(t.b)) + '</div>'}
     <div class="list-card">
-      <div class="list-item" onclick="openExt('${t.u}')">
+      <div class="list-item" data-clanek="odkaz" onclick="openExt('${t.u}')">
         <div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></div>
         <div class="li-body"><h4 data-text="clanek.web.nadpis">${txt('clanek.web.nadpis','Celý článek na webu')}</h4><p data-text="clanek.web.popis">${txt('clanek.web.popis','pravaridice.cz — vždy aktuální znění')}</p></div>
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
@@ -3330,7 +3330,7 @@ async function nactiObsah(){
     oblasti.filter(o => o.rodic_id && !serazene.includes(o)).forEach(o => serazene.push(o));
 
     const nove = serazene.map(o => ({
-      id: o.slug, n: o.nazev, ic: o.ikona || 'doc',
+      id: o.slug, oid: o.id, n: o.nazev, ic: o.ikona || 'doc',
       topics: clanky.filter(c => c.oblast_id === o.id).map(c => ({
         t: c.nadpis, c: c.kategorie || o.nazev, d: c.perex || '',
         b: c.telo || '', u: c.odkaz || WEB, zamceno: !!c.zamceno,
@@ -3442,6 +3442,17 @@ function nahledZvyrazniClanek(cast){
   document.querySelectorAll('.nahled-zvyrazneno').forEach(e => e.classList.remove('nahled-zvyrazneno'));
   if(!cast) return;
   const el = document.querySelector('[data-clanek="' + cast + '"]');
+  if(!el) return;
+  el.classList.add('nahled-zvyrazneno');
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+/* Zvýraznění oblasti v seznamu na Průvodci — název oblasti se edituje
+   v administraci, v aplikaci je to řádek seznamu. */
+function nahledZvyrazniOblast(id){
+  document.querySelectorAll('.nahled-zvyrazneno').forEach(e => e.classList.remove('nahled-zvyrazneno'));
+  if(!id) return;
+  const el = document.querySelector('[data-oblast="' + id + '"]');
   if(!el) return;
   el.classList.add('nahled-zvyrazneno');
   el.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -3609,6 +3620,7 @@ if(NAHLED){
       }
       if('zvyrazniSluzbu' in z){ nahledZvyrazniSluzbu(z.zvyrazniSluzbu); }
       if('zvyrazniClanek' in z){ nahledZvyrazniClanek(z.zvyrazniClanek); }
+      if('zvyrazniOblast' in z){ nahledZvyrazniOblast(z.zvyrazniOblast); }
       if('garaz' in z){
         if(z.garaz){ openVozidla(); garazPrepni(z.garaz); }
         else { garazForm = null; openVozidla(); }
@@ -3635,7 +3647,7 @@ if(NAHLED){
       try { parent.postMessage({ pr: 'nahled', karta: nav.dataset.tab }, '*'); } catch(e) {}
       return;
     }
-    const el = ev.target.closest('[data-text],[data-ph],[data-blok],[data-zdroj],[data-seznam],[data-sluzba],[data-clanek]');
+    const el = ev.target.closest('[data-text],[data-ph],[data-blok],[data-zdroj],[data-seznam],[data-sluzba],[data-clanek],[data-oblast]');
     if(!el) return;
     ev.preventDefault(); ev.stopPropagation();
     try { parent.postMessage({ pr: 'nahled',
@@ -3644,7 +3656,8 @@ if(NAHLED){
       zdroj: el.dataset.zdroj || null,
       seznam: el.dataset.seznam || null,
       sluzbaCast: el.dataset.sluzba || null,
-      clanekCast: el.dataset.clanek || null }, '*'); } catch(e) {}
+      clanekCast: el.dataset.clanek || null,
+      oblastId: el.dataset.oblast || null }, '*'); } catch(e) {}
   }, true);
 
   /* Když se obrazovka přepne jakkoli jinak (odkaz, tlačítko uvnitř aplikace),

@@ -314,7 +314,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 96</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 98</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -611,7 +611,8 @@ function editorOblasti(){
     <p class="napoveda" style="margin:-6px 0 14px">Struktura má dvě úrovně: <b>oblast → článek</b>.
        Oblast je jen složka a sama žádný text nemá — obsah se píše do článků uvnitř ní
        (tlačítko <b>+ Článek do této oblasti</b> dole nebo <b>+ článek</b> u oblasti vlevo).</p>
-    <div class="pole"><label>Název</label><input type="text" id="f-nazev" value="${esc(o.nazev)}"></div>
+    <div class="pole"><label>Název</label><input type="text" id="f-nazev" value="${esc(o.nazev)}"
+      onfocus="naNahledOblasti()" oninput="naNahledOblasti()"></div>
     <p class="napoveda" style="margin:0 0 14px">Pořadí oblastí se mění šipkami ve struktuře vlevo.</p>
     <div class="prepinac pristup ${o.placeny?'zap':''}" onclick="prepniPristup(this)" id="f-placeny">
       <div class="txt"><b>Úroveň přístupu</b>
@@ -752,16 +753,19 @@ function editorClanku(){
       <summary>Zařazení, odkaz a přístup<span class="pocet">nastavíte jednou</span></summary>
       <div class="sekce-telo">
         <div class="radky2">
-          <div class="pole"><label>Oblast</label><select id="f-oblast" onchange="nahledClanku()">${moznosti}</select>
+          <div class="pole"><label>Oblast</label><select id="f-oblast"
+            onfocus="naNahledClanku('kategorie')" onchange="nahledClanku()">${moznosti}</select>
             <p class="napoveda">Složka, do které článek patří.</p></div>
           <div class="pole"><label>Popisek nad nadpisem</label>
             <input type="text" id="f-kat" value="${esc(c.kategorie)}"
-              placeholder="například Lhůty, Sankce, Postup" oninput="nahledClanku()">
+              placeholder="například Lhůty, Sankce, Postup"
+              onfocus="naNahledClanku('kategorie')" oninput="nahledClanku()">
             <p class="napoveda">Ukáže se v článku nad nadpisem vedle názvu oblasti.
                Nechte prázdné, když stačí samotný název oblasti.</p></div>
         </div>
         <div class="pole"><label>Odkaz na web</label>
-          <input type="text" id="f-odkaz" value="${esc(c.odkaz)}" oninput="nahledClanku()">
+          <input type="text" id="f-odkaz" value="${esc(c.odkaz)}"
+            onfocus="naNahledClanku('odkaz')" oninput="nahledClanku()">
           <p class="napoveda">Kam vede řádek „Celý článek na webu“ dole v článku.</p></div>
 
         ${zamekShora}
@@ -1837,7 +1841,8 @@ window.addEventListener('message', ev => {
      zbytečně nepřekresluje dokola. */
   if(z.obrazovkaJe) nahledObrazovkaAkt = z.obrazovkaJe.replace(/^s-/, '');
   if(z.nenaslo) vysvetliNeviditelne(z.nenaslo);
-  if(z.clanekCast) zamerClanek(z.clanekCast);
+  if(z.oblastId) zamerOblast(z.oblastId);
+  else if(z.clanekCast) zamerClanek(z.clanekCast);
   else if(z.sluzbaCast) zamerSluzbu(z.sluzbaCast);
   else if(z.seznam) zamerSeznam(z.seznam);
   else if(z.zdroj) zamerZdroj(z.zdroj);
@@ -2115,6 +2120,24 @@ function oznacOtevreny(id, otevreny){
 }
 
 /* Náhled článku tak, jak vypadá právě teď ve formuláři. */
+/* Kliknu do názvu oblasti → náhled ji v seznamu na Průvodci zvýrazní. */
+function naNahledOblasti(){
+  if(!vybrano || vybrano.typ !== 'oblast') return;
+  if(nahledKarta !== 'pruvodce') prepni('pruvodce');
+  nahledObrazovkaAkt = 'pruvodce';
+  posliNahled({ obrazovka: 'pruvodce', zvyrazniOblast: vybrano.id });
+}
+
+/* Klepnu v náhledu na oblast → administrace ji vybere ve struktuře. */
+function zamerOblast(id){
+  if(nahledKarta !== 'pruvodce') prepni('pruvodce');
+  vyberOblast(id);
+  setTimeout(() => {
+    const pole = $('f-nazev');
+    if(pole){ pole.scrollIntoView({ block:'center', behavior:'smooth' }); pole.focus(); }
+  }, 60);
+}
+
 /* Kliknu do pole u článku → náhled tu část zvýrazní. */
 function naNahledClanku(cast){
   if(nahledKarta !== 'pruvodce') return;
@@ -2126,7 +2149,11 @@ function naNahledClanku(cast){
 /* Klepnu do náhledu na část článku → administrace otevře její pole. */
 function zamerClanek(cast){
   if(nahledKarta !== 'pruvodce') prepni('pruvodce');
-  const pole = $({nadpis:'f-nadpis', perex:'f-perex', telo:'f-telo', bloky:'f-telo'}[cast] || 'f-nadpis');
+  const pole = $({nadpis:'f-nadpis', perex:'f-perex', telo:'f-telo', bloky:'f-telo',
+                  kategorie:'f-kat', odkaz:'f-odkaz'}[cast] || 'f-nadpis');
+  /* Zařazení a odkaz jsou ve sbalené sekci Nastavení — bez rozbalení by
+     zaměření pole nebylo vidět. */
+  if(pole){ const det = pole.closest('details'); if(det) det.open = true; }
   if(cast === 'bloky'){
     const sekce = $('bl-sekce'); if(sekce) sekce.open = true;
     const prvni = document.querySelector('#bl-seznam input, #bl-seznam textarea');
