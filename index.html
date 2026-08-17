@@ -650,6 +650,26 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
    text jinou šířku a seznam by vypadal rozházeně. */
 .chev-misto{flex:0 0 auto;width:18px;height:18px;}
 
+/* Vlastní okno — nahrazuje systémové confirm/prompt, které kreslí prohlížeč
+   a jehož tlačítka jsou v jazyce telefonu. */
+.okno-pozadi{position:fixed;inset:0;background:rgba(13,20,36,.52);z-index:400;
+  display:flex;align-items:center;justify-content:center;padding:22px;
+  opacity:0;transition:opacity .16s}
+.okno-pozadi.vidno{opacity:1}
+.okno{background:var(--card,#fff);color:var(--ink);border-radius:18px;padding:20px 20px 16px;
+  width:100%;max-width:340px;box-shadow:0 18px 48px rgba(13,20,36,.32);
+  transform:translateY(8px) scale(.98);transition:transform .16s}
+.okno-pozadi.vidno .okno{transform:none}
+.okno h3{margin:0 0 8px;font-size:16.5px;font-weight:800}
+.okno p{margin:0;font-size:14px;line-height:1.55;color:var(--ink-soft,#4a5560)}
+.okno input{width:100%;margin-top:12px;padding:11px 12px;font-size:15px;font-family:inherit;
+  border:1px solid var(--line);border-radius:11px;background:var(--bg,#fff);color:var(--ink)}
+.okno-lista{display:flex;gap:9px;margin-top:16px}
+.okno-lista .btn{flex:1;justify-content:center}
+/* Nevratná akce má barvu varování, ne firemní tyrkysovou — ať se nezaklikne omylem. */
+.okno .btn-nebezpecne{background:#C0392B;color:#fff;border:0}
+.okno .btn-nebezpecne:active{background:#A33227}
+
 .zamek-blok{display:flex;gap:10px;align-items:center;background:var(--cream);
   border:1px solid var(--cream-line);border-radius:12px;padding:13px 14px;
   color:var(--accent-ink);font-size:13.5px;font-weight:600;}
@@ -909,7 +929,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 103</div>
+        <div class="ver">Verze 2.5 · build 104<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1219,13 +1239,16 @@ const GUIDE=[
    b:'Poškozený má nárok na finanční náhradu za zdravotní i psychickou újmu proti řidiči, který nehodu zavinil. Náhrada se v drtivé většině případů vyplácí z povinného ručení viníka — vlastní úrazové pojištění není nutné.',u:WEB+'/odskodneni-obeti-dopravni-nehody'},
   {t:'Co dělat hned po nehodě',c:'Přestupky',d:'První kroky na místě — podrobný průvodce v aplikaci.',
    b:'Zabezpečte místo, zkontrolujte zranění a podle situace volejte 155 nebo 158. Kompletní postup krok za krokem najdete na Přehledu v kartě „Stala se vám dopravní nehoda?".',u:WEB+'/zpusobeni-nehody-se-zranenim-nebo-umrtim'}]},
+ /* Placená oblast: ve vestavěném znění zůstávají jen nadpisy a krátké popisy.
+    Text přijde z databáze, která ho nezaplacenému nevydá — kdyby byl tady,
+    byl by čitelný v souboru aplikace, který je veřejný. */
  {id:'l17',n:'Řízení od 17 let',ic:'card',topics:[
   {t:'Podmínky režimu L17',c:'Od 17 let',d:'Jízda pouze s mentorem, minimálně 1, maximálně 4 mentoři.',
-   b:'Mladý řidič absolvuje standardní výcvik v autoškole a zajistí si minimálně jednoho mentora (nejvýše čtyři). Řídit smí pouze pod dohledem mentora, který po celou dobu jízdy sedí na místě spolujezdce.',u:WEB+'/'},
+   b:'',zamceno:true,u:WEB+'/'},
   {t:'Kdo může být mentor',c:'Od 17 let',d:'10 let praxe, 5 let bez zákazu, nula bodů.',
-   b:'Mentor musí mít řidičské oprávnění skupiny B minimálně 10 let, nesmí mít zákaz řízení posledních 5 let a musí mít nulový bodový stav.',u:WEB+'/'},
+   b:'',zamceno:true,u:WEB+'/'},
   {t:'Sankce při porušení pravidel L17',c:'Od 17 let',d:'Bez mentora zabavení průkazu a zákaz 6–12 měsíců.',
-   b:'Řízení bez mentora: zabavení řidičského průkazu na místě, pokuta 2 000–5 000 Kč a zákaz řízení 6–12 měsíců.\nMentor není ve vozidle: bloková pokuta 2 500–3 500 Kč, ve správním řízení 4 000–10 000 Kč.\nMentor pod vlivem alkoholu či drog: bloková pokuta 4 500–5 500 Kč, ve správním řízení 7 000–25 000 Kč.\nZákaz řízení zaniká až jeho uplynutím, zkrátit jej nelze.',u:WEB+'/'}]},
+   b:'',zamceno:true,u:WEB+'/'}]},
 ];
 const ALL_TOPICS = GUIDE.flatMap(o=>o.topics.map(t=>({...t,oblast:o.n,oblastId:o.id})));
 /* Stavy bodového konta podle barevného manuálu.
@@ -1597,7 +1620,9 @@ function openService(id){
       '<p class="muted small" data-sluzba="'+(x.sid||x.id)+':popis" style="margin:0;line-height:1.5;">'+x.d+'</p></div>'+
     (x.zamceno?'<div class="zamek-blok" style="margin-top:12px;">'+
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.4" y="10.4" width="15.2" height="9.6" rx="2.4"/><path d="M8 10.4V7.8a4 4 0 0 1 8 0v2.6"/></svg>'+
-      '<span data-text="sluzby.zamek">'+txt('sluzby.zamek','Tato služba je popsaná v plném přístupu.')+'</span></div>':'')+
+      '<span data-text="sluzby.zamek">'+txt('sluzby.zamek','Tato služba je popsaná v plném přístupu.')+'</span></div>'+
+      '<button class="btn btn-dark btn-sm" style="margin-top:10px" data-text="sluzby.zamek.btn" onclick="go(\'predplatne\')">'+
+        txt('sluzby.zamek.btn','Získat plný přístup')+'</button>':'')+
     (x.zamceno ? '' :
       ((x.hrozi&&x.hrozi.length?'<div class="section-label" data-text="sluzby.hrozi.stitek" style="margin-top:14px;">'+txt('sluzby.hrozi.stitek','Co vám hrozí')+'</div>'+
         '<div class="card" data-sluzba="'+(x.sid||x.id)+':hrozi">'+x.hrozi.map(h=>'<div style="display:flex;gap:9px;padding:5px 0;"><span style="color:var(--orange);font-weight:800;">•</span><span style="font-size:13.5px;line-height:1.45;color:var(--ink-soft);">'+h+'</span></div>').join('')+'</div>':'')+
@@ -1741,7 +1766,9 @@ function openTopic(oblastId,title){
         ? `<div class="zamek-blok">
              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.4" y="10.4" width="15.2" height="9.6" rx="2.4"/><path d="M8 10.4V7.8a4 4 0 0 1 8 0v2.6"/></svg>
              <span data-text="clanek.zamek">${txt('clanek.zamek','Tato část je dostupná s plným přístupem.')}</span>
-           </div>`
+           </div>
+           <button class="btn btn-dark btn-sm" style="margin:0 0 4px" data-text="clanek.zamek.btn"
+             onclick="go('predplatne')">${txt('clanek.zamek.btn','Získat plný přístup')}</button>`
         : ''}
     </div>
     ${t.zamceno ? '' : `<div data-clanek="${(t.bloky && t.bloky.length) ? 'bloky' : 'telo'}">` +
@@ -2154,7 +2181,7 @@ function renderCalcG(){
     const bac=widmark();
     B.innerHTML=stepsHtml(1,3)+'<div class="q">Kalkulačka hladiny (volitelná)</div>'+
       '<div class="field-label-sm">Pohlaví</div><div class="seg"><button class="'+(cg.gender==='m'?'on':'')+'" onclick="cg.gender=\'m\';renderCalcG()">Muž</button><button class="'+(cg.gender==='z'?'on':'')+'" onclick="cg.gender=\'z\';renderCalcG()">Žena</button></div>'+
-      '<div class="field-label-sm">Hmotnost</div><div class="stepper"><button class="step-min" onclick="cg.weight=Math.max(40,cg.weight-5);renderCalcG()">−</button><div class="val" onclick="var v=prompt(\'Váha v kg:\',cg.weight);if(v&&!isNaN(+v)){cg.weight=Math.max(40,Math.min(200,+v));renderCalcG();}">'+cg.weight+'<small>kg</small></div><button class="step-min" onclick="cg.weight=Math.min(200,cg.weight+5);renderCalcG()">+</button></div>'+
+      '<div class="field-label-sm">Hmotnost</div><div class="stepper"><button class="step-min" onclick="cg.weight=Math.max(40,cg.weight-5);renderCalcG()">−</button><div class="val" onclick="zeptejSeNaVahu()">'+cg.weight+'<small>kg</small></div><button class="step-min" onclick="cg.weight=Math.min(200,cg.weight+5);renderCalcG()">+</button></div>'+
       '<div class="field-label-sm">Hodin od posledního napití</div><div class="stepper"><button class="step-min" onclick="cg.hours=Math.max(0,+(cg.hours-0.5).toFixed(1));renderCalcG()">−</button><div class="val">'+cg.hours.toFixed(1)+'<small>h</small></div><button class="step-min" onclick="cg.hours=Math.min(24,+(cg.hours+0.5).toFixed(1));renderCalcG()">+</button></div>'+
       '<div class="field-label-sm">Nápoje</div><div class="search-box" style="margin-top:0;"><div class="search-input"><input id="drinkQ" placeholder="Hledat (pivo, panák, mojito…)" oninput="drawDrinkOpts()"/></div><div id="drinkOpts"></div></div>'+
       '<div style="margin-top:10px;">'+cg.drinks.map((d,i)=>'<div class="added"><div class="info"><h5>'+d.n+'</h5><small>'+d.ml+' ml · '+d.abv+'%</small></div><button class="qbtn" onclick="cg.drinks['+i+'].q--;if(cg.drinks['+i+'].q<1)cg.drinks.splice('+i+',1);renderCalcG()">−</button><span class="qty">'+d.q+'</span><button class="qbtn" onclick="cg.drinks['+i+'].q++;renderCalcG()">+</button></div>').join('')+'</div>'+
@@ -2172,7 +2199,7 @@ function renderCalcG(){
       '<div class="field-label-sm">Látka</div><div class="chips">'+DRUGS.map((d,i)=>'<div class="chip '+(cg.drug===i?'active':'')+'" onclick="cg.drug='+i+';renderCalcG()">'+d.n+'</div>').join('')+'</div>'+
       '<div class="field-label-sm">Pohlaví</div><div class="seg"><button class="'+(cg.gender==='m'?'on':'')+'" onclick="cg.gender=\'m\';renderCalcG()">Muž</button><button class="'+(cg.gender==='z'?'on':'')+'" onclick="cg.gender=\'z\';renderCalcG()">Žena</button></div>'+
       '<div class="field-label-sm">Jak často užíváte</div><div class="seg"><button class="'+(cg.freq===0?'on':'')+'" onclick="cg.freq=0;renderCalcG()">Příležitostně</button><button class="'+(cg.freq===1?'on':'')+'" onclick="cg.freq=1;renderCalcG()">Pravidelně</button><button class="'+(cg.freq===2?'on':'')+'" onclick="cg.freq=2;renderCalcG()">Denně</button></div>'+
-      '<div class="field-label-sm">Hmotnost</div><div class="stepper"><button class="step-min" onclick="cg.weight=Math.max(40,cg.weight-5);renderCalcG()">−</button><div class="val" onclick="var v=prompt(\'Váha v kg:\',cg.weight);if(v&&!isNaN(+v)){cg.weight=Math.max(40,Math.min(200,+v));renderCalcG();}">'+cg.weight+'<small>kg</small></div><button class="step-min" onclick="cg.weight=Math.min(200,cg.weight+5);renderCalcG()">+</button></div>'+
+      '<div class="field-label-sm">Hmotnost</div><div class="stepper"><button class="step-min" onclick="cg.weight=Math.max(40,cg.weight-5);renderCalcG()">−</button><div class="val" onclick="zeptejSeNaVahu()">'+cg.weight+'<small>kg</small></div><button class="step-min" onclick="cg.weight=Math.min(200,cg.weight+5);renderCalcG()">+</button></div>'+
       '<div class="field-label-sm">Hodin od užití</div><div class="stepper"><button class="step-min" onclick="cg.hours=Math.max(0,+(cg.hours-1).toFixed(1));renderCalcG()">−</button><div class="val">'+cg.hours.toFixed(1)+'<small>h</small></div><button class="step-min" onclick="cg.hours=Math.min(72,+(cg.hours+1).toFixed(1));renderCalcG()">+</button></div>'+
       '<div class="result '+cls[0]+'" style="margin-top:12px;"><div class="big">~'+est.toFixed(0)+' ng/ml</div><h4>'+D.n+': '+cls[1]+'</h4><p>Přestupek: '+hr.pMin+'–'+hr.pMax+' ng/ml · Trestný čin od: '+Math.round(hr.pMax+0.01)+' ng/ml</p></div>'+
       '<button class="btn btn-dark" style="margin-top:10px;" onclick="cg.node=\'D1\';renderCalcG()">Pokračovat</button>'+
@@ -2293,6 +2320,61 @@ function znackaPristupu(zamceno, castecne){
   return castecne
     ? '<span class="zamek-znacka castecne">část plný</span>'
     : '<span class="zamek-znacka">plný</span>';
+}
+
+/* Okno v duchu aplikace. Vrací slib: potvrzení true/false, vstup text nebo null.
+   Zavře se Escapem i klepnutím mimo — obojí znamená zrušit. */
+function okno({nadpis, text, potvrdit, zrusit, vstup, nebezpecne}){
+  return new Promise(hotovo => {
+    const pozadi = document.createElement('div');
+    pozadi.className = 'okno-pozadi';
+    const esc = s => String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    pozadi.innerHTML =
+      '<div class="okno" role="dialog" aria-modal="true">' +
+        (nadpis ? '<h3>' + esc(nadpis) + '</h3>' : '') +
+        (text ? '<p>' + esc(text) + '</p>' : '') +
+        (vstup ? '<input type="' + (vstup.typ || 'text') + '" inputmode="' +
+                 (vstup.typ === 'number' ? 'numeric' : 'text') + '" value="' + esc(vstup.hodnota) + '">' : '') +
+        '<div class="okno-lista">' +
+          '<button type="button" class="btn btn-outline-dark btn-sm" data-ne>' + esc(zrusit || 'Zrušit') + '</button>' +
+          '<button type="button" class="btn ' + (nebezpecne ? 'btn-nebezpecne' : 'btn-dark') + ' btn-sm" data-ano>' +
+            esc(potvrdit || 'Potvrdit') + '</button>' +
+        '</div></div>';
+    document.body.appendChild(pozadi);
+    const pole = pozadi.querySelector('input');
+    requestAnimationFrame(() => {
+      pozadi.classList.add('vidno');
+      (pole || pozadi.querySelector('[data-ano]')).focus();
+      if(pole) pole.select();
+    });
+    const konec = (vysledek) => {
+      document.removeEventListener('keydown', klavesa, true);
+      pozadi.classList.remove('vidno');
+      setTimeout(() => pozadi.remove(), 170);
+      hotovo(vysledek);
+    };
+    const ano = () => konec(vstup ? (pole ? pole.value : '') : true);
+    const ne  = () => konec(vstup ? null : false);
+    function klavesa(e){
+      if(e.key === 'Escape'){ e.preventDefault(); ne(); }
+      if(e.key === 'Enter' && (!pole || document.activeElement === pole)){ e.preventDefault(); ano(); }
+    }
+    pozadi.querySelector('[data-ano]').addEventListener('click', ano);
+    pozadi.querySelector('[data-ne]').addEventListener('click', ne);
+    pozadi.addEventListener('click', e => { if(e.target === pozadi) ne(); });
+    document.addEventListener('keydown', klavesa, true);
+  });
+}
+
+/* Hmotnost jde měnit i šipkami po pěti; tohle je zadání přesné hodnoty. */
+async function zeptejSeNaVahu(){
+  const v = await okno({
+    nadpis: 'Hmotnost', text: 'Zadejte hmotnost v kilogramech (40 až 200).',
+    vstup: { typ: 'number', hodnota: cg.weight }, potvrdit: 'Použít' });
+  if(v === null || v === '' || isNaN(+v)) return;
+  cg.weight = Math.max(40, Math.min(200, +v));
+  renderCalcG();
 }
 
 function maPlnyPristup(){
@@ -2844,9 +2926,13 @@ function ulozPokutu(){
   setPokuty(p);
   garazForm = null; renderVozidla(); renderZpravy(); renderUnread();
   if(body > 0 && stary < 0){
-    setTimeout(() => {
-      if(confirm(txt('garaz.pokuta.pripsat',
-        'Připsat {body} bodů k vašemu bodovému stavu? Body se připisují až po nabytí právní moci — pokud řízení běží, počkejte.', {body: body}))){
+    setTimeout(async () => {
+      const ok = await okno({
+        nadpis: txt('garaz.pokuta.pripsat.nadpis','Připsat body?'),
+        text: txt('garaz.pokuta.pripsat',
+          'Připsat {body} bodů k vašemu bodovému stavu? Body se připisují až po nabytí právní moci — pokud řízení běží, počkejte.', {body: body}),
+        potvrdit: 'Připsat', zrusit: 'Zatím ne' });
+      if(ok){
         state.points = Math.min(12, state.points + body);
         renderPoints(); saveState(); if(authUser) pushProfile();
       }
@@ -3134,9 +3220,14 @@ function addVehicle(){
   garazForm = null; renderVozidla(); renderZpravy(); renderUnread();
   toast(uprava ? txt('garaz.vozidlo.upraveno','Vozidlo upraveno.') : txt('garaz.vozidlo.pridano','Vozidlo přidáno.'));
 }
-function rmVehicle(i){
+async function rmVehicle(i){
   const vs=getVehicles();
-  if(!confirm('Smazat vozidlo '+vs[i].spz+'? Tuto akci nelze vrátit.')) return;
+  const ok = await okno({
+    nadpis: txt('garaz.vozidlo.smazat.nadpis','Smazat vozidlo?'),
+    text: txt('garaz.vozidlo.smazat.text','{spz} se z přehledu odstraní. Tuto akci nelze vrátit.',
+              {spz: vs[i] ? vs[i].spz : ''}),
+    potvrdit: 'Smazat', zrusit: 'Ponechat', nebezpecne: true });
+  if(!ok) return;
   vs.splice(i,1); setVehicles(vs); renderVozidla();
 }
 
@@ -3300,6 +3391,13 @@ async function ohlasInstalaci(){
   }catch(e){}
 }
 
+/* Bez tohohle údaje se nedá poznat, jestli aplikace ukazuje obsah z administrace,
+   nebo vestavěné znění ze souboru — a rozdíl je vidět až na obsahu samotném. */
+function zdrojObsahu(odkud){
+  const el = document.getElementById('zdrojObsahu');
+  if(el) el.textContent = ' · obsah: ' + odkud;
+}
+
 async function nactiObsah(){
   if(!PR_CFG.SUPABASE_URL || !PR_CFG.SUPABASE_ANON) return;
   const hlavicky = { apikey: PR_CFG.SUPABASE_ANON, Authorization: 'Bearer ' + PR_CFG.SUPABASE_ANON };
@@ -3330,7 +3428,9 @@ async function nactiObsah(){
       DRINKS.length = 0;
       napoje.forEach(n => DRINKS.push({n: n.nazev, ml: n.objem_ml, abv: n.procenta}));
     }
-    if(!oblasti.length || !clanky.length) return;   // prázdná databáze — nesahat na vestavěný obsah
+    if(!oblasti.length || !clanky.length){          // prázdná databáze — nesahat na vestavěný obsah
+      zdrojObsahu('vestavěné znění'); return;
+    }
 
     /* oblasti: rodiče v pořadí, každé dítě hned za svým rodičem */
     const serazene = [];
@@ -3392,8 +3492,10 @@ async function nactiObsah(){
     try{ if(typeof renderServices === 'function') renderServices(); }catch(e){}
     requestAnimationFrame(fitScreen);
     console.log('[obsah] načteno z databáze:', GUIDE.length, 'oblastí,', clanky.length, 'článků');
+    zdrojObsahu('databáze');
   }catch(e){
     console.log('[obsah] databáze nedostupná, používá se vestavěný obsah', e);
+    zdrojObsahu('vestavěné znění');
   }
 }
 
