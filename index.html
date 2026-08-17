@@ -909,7 +909,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 98</div>
+        <div class="ver">Verze 2.5 · build 99</div>
       </div>
     </div>
 
@@ -2627,7 +2627,15 @@ function getNotifCfg(){
 }
 function setNotifCfg(c){ try{ localStorage.setItem('pr-notif',JSON.stringify(c)); }catch(e){} }
 /* ===== VZHLED (světlý / tmavý / podle telefonu) ===== */
+/* V náhledu se aplikace neřídí tmavým režimem počítače — vzhled určuje
+   administrace. Bez toho vypadal náhled tmavě jen proto, že tmavé Windows má
+   ten, kdo administraci otevřel. */
 function nactiTema(){
+  /* Test na adresu přímo — konstanta NAHLED je deklarovaná až níž v souboru
+     a nactiTema() běží dřív. */
+  if(/[?&]nahled=1/.test(location.search)){
+    document.documentElement.setAttribute('data-tema', 'svetly'); return;
+  }
   let t='auto';
   try{ t = localStorage.getItem('pr-tema') || 'auto'; }catch(e){}
   pouzijTema(t);
@@ -3621,6 +3629,8 @@ if(NAHLED){
       if('zvyrazniSluzbu' in z){ nahledZvyrazniSluzbu(z.zvyrazniSluzbu); }
       if('zvyrazniClanek' in z){ nahledZvyrazniClanek(z.zvyrazniClanek); }
       if('zvyrazniOblast' in z){ nahledZvyrazniOblast(z.zvyrazniOblast); }
+      /* Vzhled náhledu určuje administrace, ne nastavení počítače. */
+      if(z.tema){ document.documentElement.setAttribute('data-tema', z.tema); }
       if('garaz' in z){
         if(z.garaz){ openVozidla(); garazPrepni(z.garaz); }
         else { garazForm = null; openVozidla(); }

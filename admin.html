@@ -35,7 +35,9 @@ header button:hover{background:rgba(255,255,255,.24)}
        font-weight:600;color:var(--muted);font-size:14px}
 .tabs button.on{color:var(--petrol);border-bottom-color:var(--turq)}
 
-main{max-width:1180px;margin:0 auto;padding:22px 20px 80px}
+/* Zarovnáno doleva, ať obsah lícuje s hlavičkou a záložkami — vycentrované
+   to na širokém monitoru odsazovalo o několik set pixelů. */
+main{max-width:1180px;margin:0;padding:22px 20px 80px}
 .wrap{display:grid;grid-template-columns:330px 1fr;gap:20px;align-items:start}
 @media(max-width:900px){.wrap{grid-template-columns:1fr}}
 
@@ -314,7 +316,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 98</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 99</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -1700,7 +1702,10 @@ function zvyrazniSekce(obrazovka){
     d.classList.toggle('sekce-aktivni', patri && !prvni);
     if(patri && !prvni) prvni = d;
   });
-  if(prvni) prvni.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  /* Dřív se tu stránka posunula na první otevřenou sekci. Jenže tohle běží
+     při každém přepnutí náhledu — i při přepnutí karty nebo výběru oblasti —
+     takže stránka sama ujela dolů a horní panely zmizely z pohledu. Posun na
+     konkrétní pole dělají funkce zamer*, které reagují na klepnutí do náhledu. */
   setTimeout(() => { synchronizuji = false; }, 0);
 }
 
@@ -1745,7 +1750,21 @@ function kresliOvladaceNahledu(){
     '<div class="tel-rada tel-jako"><span>Zobrazit jako</span>' +
     NAHLED_JAKO.map(([k, nazev]) =>
       `<button class="${k === nahledJako ? 'on' : ''}" onclick="nahledJakoNastav('${k}')">${nazev}</button>`
+    ).join('') + '</div>' +
+    '<div class="tel-rada tel-jako"><span>Vzhled</span>' +
+    [['svetly', 'Světlý'], ['tmavy', 'Tmavý']].map(([k, nazev]) =>
+      `<button class="${k === nahledTema ? 'on' : ''}" onclick="nahledTemaNastav('${k}')">${nazev}</button>`
     ).join('') + '</div>';
+}
+
+/* Vzhled náhledu. Aplikace je ve výchozím stavu světlá — tmavý režim si zapíná
+   uživatel v Profilu. Náhled se dřív řídil nastavením počítače, takže s tmavými
+   Windows vypadal tmavě, i když tak aplikaci nikdo nevidí. */
+let nahledTema = 'svetly';
+function nahledTemaNastav(k){
+  nahledTema = k;
+  posliNahled({ tema: k });
+  kresliOvladaceNahledu();
 }
 
 /* Oznámení má dva původy: buď je to zpráva z databáze, kterou někdo napsal,
@@ -1827,6 +1846,7 @@ window.addEventListener('message', ev => {
   const z = ev.data || {};
   if(z.pr !== 'nahled') return;
   if(z.pripraveno){
+    posliNahled({ tema: nahledTema });
     nahledPripraven = true;
     const fronta = nahledFronta.splice(0);
     nahledTexty();
