@@ -347,7 +347,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 108</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 109</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -746,8 +746,7 @@ function editorClanku(){
       <textarea id="f-telo" onfocus="naNahledClanku('telo')" oninput="nahledClanku()">${esc(c.telo)}</textarea>
     </div>
 
-    <details class="sekce" style="margin-top:14px" id="bl-sekce"
-      ${bloky.some(b => b.clanek_id === c.id && !b._smazany) ? 'open' : ''}>
+    <details class="sekce" style="margin-top:14px" id="bl-sekce">
       <summary>Bloky — když má článek vypadat jinak než jako odstavce<span class="pocet"
         id="bl-pocet">${bloky.filter(b => b.clanek_id === c.id && !b._smazany).length
           ? bloky.filter(b => b.clanek_id === c.id && !b._smazany).length + ' ' +
@@ -1045,6 +1044,10 @@ const POLE_OBRAZOVKA = {
   'onboard.reg.souhlas':'uvod-reg',
   'onboard.cekani.nadpis':'uvod-cekani',
   'onboard.cekani.popis':'uvod-cekani',
+  'onboard.cekani.kod.label':'uvod-cekani',
+  'onboard.cekani.kod.ph':'uvod-cekani',
+  'onboard.cekani.kod.pozn':'uvod-cekani',
+  'onboard.cekani.kod.btn':'uvod-cekani',
   'onboard.cekani.spam':'uvod-cekani',
   'onboard.cekani.znovu':'uvod-cekani',
   'onboard.cekani.jiny':'uvod-cekani',
@@ -1200,10 +1203,10 @@ const POLE_OBRAZOVKA = {
   'profil.ucet.neprihlasen':'profil',
   'profil.ucet.nepr':'profil',
   'profil.ucet.zaloha':'profil',
-  'profil.ucet.ph':'profil',
   'profil.ucet.odhlasit':'profil',
-  'profil.ucet.btn':'profil',
+  'profil.ucet.ph':'profil',
   'profil.predplatne.stitek':'profil',
+  'profil.ucet.btn':'profil',
   'profil.plan.plny':'profil',
   'profil.plan.omezeny':'profil',
   'profil.plan.btn':'profil',
@@ -1385,6 +1388,10 @@ const LIMIT_POLE = {
   'onboard.reg.souhlas':400,
   'onboard.cekani.nadpis':60,
   'onboard.cekani.popis':400,
+  'onboard.cekani.kod.label':120,
+  'onboard.cekani.kod.ph':60,
+  'onboard.cekani.kod.pozn':400,
+  'onboard.cekani.kod.btn':30,
   'onboard.cekani.spam':400,
   'onboard.cekani.znovu':120,
   'onboard.cekani.jiny':120,
@@ -1540,10 +1547,10 @@ const LIMIT_POLE = {
   'profil.ucet.neprihlasen':120,
   'profil.ucet.nepr':400,
   'profil.ucet.zaloha':120,
-  'profil.ucet.ph':60,
   'profil.ucet.odhlasit':30,
-  'profil.ucet.btn':40,
+  'profil.ucet.ph':60,
   'profil.predplatne.stitek':30,
+  'profil.ucet.btn':40,
   'profil.plan.plny':120,
   'profil.plan.omezeny':120,
   'profil.plan.btn':30,
@@ -1611,6 +1618,7 @@ const LIMIT_POLE = {
 /* Vlastní bloky a co v tabulce přibylo později: rozumný strop, ať to nikdy
    nespadne na „bez omezení". */
 function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ? 400 : 200); }
+
 
 
 
@@ -2410,18 +2418,22 @@ function kresliKalkulacky(){
   </div>
 
   <div class="panel" style="margin-top:16px">
-    <h2>Nápoje v kalkulačce</h2>
-    <p class="napoveda" style="margin:-6px 0 14px">Z názvu, objemu a procent se počítá hladina alkoholu.
-       Pořadí odpovídá pořadí v aplikaci.</p>
-    <div class="radky-tab" style="grid-template-columns:2fr 90px 90px 34px;font-size:11.5px;font-weight:700;
-         letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">
-      <div>Název</div><div>Objem (ml)</div><div>Alkohol (%)</div><div></div>
-    </div>
-    <div id="napoje-seznam"></div>
-    <div class="lista" style="margin-top:12px">
-      <button class="btn btn-hlavni" data-ulozit onclick="ulozNapoje()">Uložit</button>
-      <button class="btn btn-vedl" onclick="pridejNapoj()">+ Nápoj</button>
-    </div>
+    <details class="sekce" id="napoje-sekce">
+      <summary>Nápoje v kalkulačce<span class="pocet" id="napoje-pocet"></span></summary>
+      <div class="sekce-telo">
+        <p class="sekce-popis">Z názvu, objemu a procent se počítá hladina alkoholu.
+           Pořadí odpovídá pořadí v aplikaci.</p>
+        <div class="radky-tab" style="grid-template-columns:2fr 90px 90px 34px;font-size:11.5px;font-weight:700;
+             letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">
+          <div>Název</div><div>Objem (ml)</div><div>Alkohol (%)</div><div></div>
+        </div>
+        <div id="napoje-seznam"></div>
+        <div class="lista" style="margin-top:12px">
+          <button class="btn btn-hlavni" data-ulozit onclick="ulozNapoje()">Uložit</button>
+          <button class="btn btn-vedl" onclick="pridejNapoj()">+ Nápoj</button>
+        </div>
+      </div>
+    </details>
   </div>
 
   <div id="texty-kalk"></div>
@@ -2455,6 +2467,13 @@ function kresliNapoje(){
       <input type="text" inputmode="decimal" value="${esc(String(n.procenta))}" oninput="zmenNapoj('${n.id}','procenta',this.value)">
       <button type="button" class="smaz" title="Smazat nápoj" onclick="smazNapoj('${n.id}')">×</button>
     </div>`).join('') || '<div class="prazdno">Zatím žádné nápoje.</div>';
+  /* Kolik jich uvnitř je, musí být vidět i na sbalené sekci — jinak se do ní
+     musí kliknout, aby člověk zjistil, jestli je vůbec čím se zabývat. */
+  const p = $('napoje-pocet');
+  if(p){
+    const kolik = napoje.filter(n => !n._smazany).length;
+    p.textContent = kolik ? kolik + ' ' + mnozne(kolik,'nápoj','nápoje','nápojů') : 'zatím žádné';
+  }
 }
 
 function zmenNapoj(id, pole, hodnota){
@@ -2467,6 +2486,7 @@ function pridejNapoj(){
   const id = 'novy-' + Math.random().toString(36).slice(2, 10);
   napoje.push({id, _novy: true, nazev: '', objem_ml: 500, procenta: 5, poradi});
   napojeZmenene.add(id);
+  const s = $('napoje-sekce'); if(s) s.open = true;
   kresliNapoje();
 }
 
@@ -2931,7 +2951,7 @@ function poleTextu(t){
            <div class="txt"><b>Otevřít v novém okně</b><span>Vypnuto = odkaz se otevře přímo v aplikaci.</span></div>
            <div class="knof"></div></div>
          <div class="lista">
-           <button class="btn btn-hlavni" data-ulozit style="padding:8px 14px;font-size:13px" onclick="ulozBlok('${t.klic}')">Uložit</button>
+           <button class="btn btn-hlavni" data-ulozit data-zavrit="sam" style="padding:8px 14px;font-size:13px" onclick="ulozBlok('${t.klic}')">Uložit</button>
            <button class="btn btn-smaz vpravo" style="padding:8px 12px;font-size:13px" onclick="smazBlok('${t.klic}')">Smazat blok</button>
          </div>`
       : ''}
@@ -3158,9 +3178,14 @@ function hlidejFormular(el){
   el.addEventListener('change', prekresli);
   el.addEventListener('click', () => setTimeout(prekresli, 0));
   /* Dokud se nic nezměnilo, tlačítko se jmenuje Zavřít a taky zavírá —
-     ukládací funkce se vůbec nespustí. */
+     ukládací funkce se vůbec nespustí.
+
+     Výjimka: formulář, který se otevírá výběrem položky ze seznamu (zpráva,
+     klient, rozepsaný blok), se zavírá zrušením toho výběru, ne sbalením
+     sekce. Takový formulář se hlásí atributem data-zavrit="sam" a kliknutí
+     se pustí do jeho ukládací funkce, která si prázdnou změnu ošetří sama. */
   btn.addEventListener('click', ev => {
-    if(btn.dataset.zmeneno) return;
+    if(btn.dataset.zmeneno || btn.dataset.zavrit === 'sam') return;
     ev.preventDefault();
     ev.stopImmediatePropagation();
     zavriSekce(btn);
@@ -3479,7 +3504,7 @@ function formularKlienta(k){
         <div class="txt"><b>Aktivní klient</b><span>Vypnuto = kód přestane fungovat.</span></div>
         <div class="knof"></div></div>
       <div class="lista">
-        <button class="btn btn-hlavni" data-ulozit style="padding:8px 14px;font-size:13px" onclick="ulozKlienta('${k.id}')">Uložit</button>
+        <button class="btn btn-hlavni" data-ulozit data-zavrit="sam" style="padding:8px 14px;font-size:13px" onclick="ulozKlienta('${k.id}')">Uložit</button>
         <button class="btn btn-smaz vpravo" style="padding:8px 12px;font-size:13px" onclick="smazKlienta('${k.id}')">Smazat klienta</button>
       </div>
     </div>`;
@@ -3540,7 +3565,9 @@ async function novyKlient(){
 
 async function ulozKlienta(id){
   const k = klienti.find(x => x.id === id); if(!k) return;
-  if(bezeZmeny($('sek-sprava'))){ vybranyKlient = null; vykresliSpravu(); return; }
+  /* Ptát se celé karty by odpovědělo za statistiky a poptávky, ne za
+     rozepsaného klienta — a úprava by se zahodila. Stejná past jako u zpráv. */
+  if(bezeZmeny(formularPole($('k-nazev')))){ vybranyKlient = null; vykresliSpravu(); return; }
   const zmeny = {
     nazev: $('k-nazev').value.trim(),
     domeny: (function(){
@@ -3627,7 +3654,7 @@ function formularZpravy(z){
         <div class="txt"><b>Publikováno</b><span>Vypnuto = koncept, uživatelé zprávu nevidí.</span></div>
         <div class="knof"></div></div>
       <div class="lista">
-        <button class="btn btn-hlavni" data-ulozit style="padding:8px 14px;font-size:13px" onclick="ulozZpravu('${z.id}')">Uložit</button>
+        <button class="btn btn-hlavni" data-ulozit data-zavrit="sam" style="padding:8px 14px;font-size:13px" onclick="ulozZpravu('${z.id}')">Uložit</button>
         ${z.publikovano ? `<button class="btn btn-vedl" style="padding:8px 14px;font-size:13px"
           onclick="posliUpozorneni('${z.id}', this)">Poslat upozornění do telefonů</button>` : ''}
         <button class="btn btn-smaz vpravo" style="padding:8px 12px;font-size:13px" onclick="smazZpravu('${z.id}')">Smazat zprávu</button>

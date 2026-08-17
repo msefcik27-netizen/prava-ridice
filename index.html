@@ -953,7 +953,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 108<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 109<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -2783,25 +2783,82 @@ function obCekani(){
     /* Text obsahuje tučnou adresu, takže se nedá jen dosadit jako holý text —
        značka je proto data-zdroj, podle které ho náhled pozná taky. */
     '<p data-zdroj="text:onboard.cekani.popis" style="font-size:14px;margin-top:10px;">'+
-      txt('onboard.cekani.popis','Poslali jsme odkaz na {email}. Klepnutím na něj potvrdíte adresu a aplikace se otevře.',
-          {email: '<b>'+(ob.email||'')+'</b>'})+'</p>'+
-    '<p data-text="onboard.cekani.spam" style="font-size:12.5px;opacity:.72;margin-top:14px;">'+
-      txt('onboard.cekani.spam','Nepřišel? Podívejte se do spamu — první zpráva tam občas spadne.')+'</p></div>'+
+      txt('onboard.cekani.popis','Poslali jsme e-mail na {email}. Je v něm odkaz i šestimístný kód — stačí jedno z toho.',
+          {email: '<b>'+(ob.email||'')+'</b>'})+'</p></div>'+
     '<div class="ob-fill"></div>'+
-    '<button class="btn btn-outline" data-text="onboard.cekani.znovu" onclick="obZnovu()">'+txt('onboard.cekani.znovu','Poslat znovu')+'</button>'+
+    /* Kód je tu proto, že odkaz přihlásí jen to zařízení, na kterém se otevře.
+       Kdo čte poštu na počítači a aplikaci má v telefonu, opíše kód. */
+    '<div class="ob-eyebrow" data-text="onboard.cekani.kod.label" style="margin-bottom:7px;">'+
+      txt('onboard.cekani.kod.label','Kód z e-mailu')+'</div>'+
+    '<input class="ob-code" id="obKodEmail" inputmode="numeric" autocomplete="one-time-code" maxlength="6" '+
+      'data-ph="onboard.cekani.kod.ph" placeholder="'+txt('onboard.cekani.kod.ph','------')+'" '+
+      'style="letter-spacing:.34em;font-size:22px;font-weight:700;" onkeydown="if(event.key===\'Enter\')obOverKod()" />'+
+    '<p data-text="onboard.cekani.kod.pozn" style="font-size:12.5px;opacity:.72;margin-top:9px;">'+
+      txt('onboard.cekani.kod.pozn','Odkaz v e-mailu přihlásí jen to zařízení, na kterém ho otevřete. Když čtete poštu na počítači, opište sem kód.')+'</p>'+
+    '<div id="obChybaKod" class="ob-chyba"></div>'+
+    '<button class="btn btn-peach" id="obKodBtn" data-text="onboard.cekani.kod.btn" style="margin-top:12px;" onclick="obOverKod()">'+
+      txt('onboard.cekani.kod.btn','Potvrdit')+'</button>'+
+    '<p data-text="onboard.cekani.spam" style="font-size:12.5px;opacity:.72;margin-top:14px;text-align:center;">'+
+      txt('onboard.cekani.spam','Nepřišel? Podívejte se do spamu — první zpráva tam občas spadne.')+'</p>'+
+    '<button class="btn btn-outline" data-text="onboard.cekani.znovu" style="margin-top:10px;" onclick="obZnovu()">'+txt('onboard.cekani.znovu','Poslat znovu')+'</button>'+
     '<button class="ob-free" data-text="onboard.cekani.jiny" style="margin-top:4px;" onclick="obZpetNaEmail()">'+txt('onboard.cekani.jiny','Zadat jiný e-mail')+'</button></div>';
   document.getElementById('obDots').style.visibility = 'hidden';
 }
 function obZpetNaEmail(){ document.getElementById('obDots').style.visibility='visible'; ob.step=3; renderOb(); }
+function obChybaKod(text){
+  const el = document.getElementById('obChybaKod');
+  if(!el) return;
+  el.textContent = text || '';
+  el.style.display = text ? 'block' : 'none';
+}
+/* Ověření kódu opsaného z e-mailu. Vede ke stejnému přihlášení jako klepnutí
+   na odkaz, jen se odehraje na tom zařízení, kde registrace opravdu běží. */
+async function obOverKod(){
+  const pole = document.getElementById('obKodEmail');
+  const tl = document.getElementById('obKodBtn');
+  const kod = ((pole && pole.value) || '').replace(/\D/g,'');
+  if(kod.length !== 6){ obChybaKod('Kód má šest číslic — najdete ho v e-mailu pod odkazem.'); return; }
+  if(!sb || !ob.email){ obChybaKod('Ověření je dočasně nedostupné. Zkuste to prosím později.'); return; }
+  obChybaKod('');
+  if(tl){ tl.disabled = true; tl.textContent = 'Ověřuji…'; }
+  let error = null;
+  try{
+    const v = await sb.auth.verifyOtp({ email: ob.email, token: kod, type: 'email' });
+    error = v && v.error;
+  }catch(e){ error = e; }
+  if(error){
+    if(tl){ tl.disabled = false; tl.textContent = txt('onboard.cekani.kod.btn','Potvrdit'); }
+    obChybaKod(/expired|invalid|token/i.test(error.message || '')
+      ? 'Tenhle kód neplatí nebo už vypršel. Nechte si poslat nový.'
+      : 'Ověření se nepovedlo: '+(error.message || ''));
+    return;
+  }
+  /* Přihlášení proběhlo. Zbytek (uplatnění firemního kódu, zavření úvodu)
+     obstará onAuthStateChange; kdyby se neozval, dodělá se to tady. */
+  if(tl){ tl.textContent = 'Hotovo ✓'; }
+  setTimeout(function(){
+    const u = document.getElementById('onboard');
+    if(u && u.style.display !== 'none') poPotvrzeni();
+  }, 2500);
+}
 async function obZnovu(){
   if(!sb || !ob.email) return;
   const { error } = await sb.auth.signInWithOtp({ email: ob.email,
     options:{ emailRedirectTo: location.href.split('#')[0].split('?')[0] } });
-  toast(error ? 'Odeslání se nepovedlo.' : 'Odkaz odeslán znovu.');
+  const p = document.getElementById('obKodEmail'); if(p) p.value = '';
+  obChybaKod('');
+  toast(error ? 'Odeslání se nepovedlo.' : 'Nový e-mail odeslán — kód i odkaz platí jen ten poslední.');
 }
 
-/* po návratu z potvrzovacího odkazu */
+/* po návratu z potvrzovacího odkazu (nebo po opsání kódu)
+
+   Uplatnit firemní kód dvakrát by odečetlo dvě místa z licence, a cest sem
+   vede víc — obnovená relace, ohlášená změna přihlášení, opsaný kód. Proto
+   se to pustí jen jednou za spuštění aplikace. */
+let potvrzeniBezi = false;
 async function poPotvrzeni(){
+  if(potvrzeniBezi) return;
+  potvrzeniBezi = true;
   let cekani = null;
   try{ cekani = JSON.parse(localStorage.getItem('pr-cekam-na-potvrzeni')||'null'); }catch(e){}
   const kod = cekani && cekani.kod;
