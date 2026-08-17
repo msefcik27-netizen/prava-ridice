@@ -953,7 +953,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 107<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 108<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1780,6 +1780,14 @@ function openOblast(id){
     `<div class="topic" onclick="openTopic('${id}','${t.t.replace(/'/g,"\\'")}')"><div class="cat">${t.c}</div><h4>${t.t}</h4><p>${t.d}</p></div>`).join('');
   go('oblast');
 }
+/* Odemčený článek bez textu znamená, že obsah nedorazil z databáze — placené
+   články jsou ve vestavěném znění záměrně bez těla. Prázdná obrazovka by
+   vypadala jako porucha, proto se to řekne. */
+function prazdnyClanek(t){
+  const maText = (t.b || '').trim() || (t.bloky && t.bloky.length);
+  return !maText && !obsahZDatabaze;
+}
+
 function openTopic(oblastId,title){
   const o=GUIDE.find(x=>x.id===oblastId);
   const t=o.topics.find(x=>x.t===title);
@@ -1797,8 +1805,14 @@ function openTopic(oblastId,title){
              onclick="go('predplatne')">${txt('clanek.zamek.btn','Získat plný přístup')}</button>`
         : ''}
     </div>
-    ${t.zamceno ? '' : `<div data-clanek="${(t.bloky && t.bloky.length) ? 'bloky' : 'telo'}">` +
-        ((t.bloky && t.bloky.length) ? vykresliBloky(t.bloky) : vykresliTelo(t.b)) + '</div>'}
+    ${t.zamceno ? '' : (prazdnyClanek(t)
+        ? `<div class="zamek-blok"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+             <path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 7v6M12 17h.01"/></svg>
+           <span data-text="clanek.chybi">${txt('clanek.chybi',
+             'Text tohoto článku se nepodařilo načíst. Zkuste aplikaci otevřít znovu s připojením k internetu.')}</span></div>`
+        : `<div data-clanek="${(t.bloky && t.bloky.length) ? 'bloky' : 'telo'}">` +
+          ((t.bloky && t.bloky.length) ? vykresliBloky(t.bloky) : vykresliTelo(t.b)) + '</div>')}
     <div class="list-card">
       <div class="list-item" data-clanek="odkaz" onclick="openExt('${t.u}')">
         <div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></div>
@@ -3709,7 +3723,9 @@ async function ohlasInstalaci(){
 
 /* Bez tohohle údaje se nedá poznat, jestli aplikace ukazuje obsah z administrace,
    nebo vestavěné znění ze souboru — a rozdíl je vidět až na obsahu samotném. */
+let obsahZDatabaze = false;
 function zdrojObsahu(odkud){
+  obsahZDatabaze = odkud === 'databáze';
   const el = document.getElementById('zdrojObsahu');
   if(el) el.textContent = ' · obsah: ' + odkud;
 }

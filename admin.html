@@ -149,6 +149,18 @@ label.btn{text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink);m
 
 /* ---------- administrace ---------- */
 .dlazdice-rada{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px}
+/* QR kód aplikace — k naskenování z letáku nebo z obrazovky. */
+.qr-blok{display:flex;gap:20px;align-items:center;flex-wrap:wrap;
+  background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:14px 0}
+.qr-obr{flex:0 0 auto;width:168px;height:168px;background:#fff;border:1px solid var(--line);
+  border-radius:12px;padding:10px}
+.qr-obr svg{width:100%;height:100%;display:block}
+.qr-text{flex:1;min-width:220px}
+.qr-text h3{margin:0 0 6px;font-size:16px}
+.qr-adresa{display:inline-block;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+  font-size:13px;background:var(--bg);border:1px solid var(--line);border-radius:8px;
+  padding:7px 10px;margin:6px 0 10px;word-break:break-all}
+
 .dlazdice{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:13px 14px}
 .dlazdice .dl-popis{display:block;font-size:11.5px;font-weight:700;letter-spacing:.06em;
   text-transform:uppercase;color:var(--muted);margin-bottom:4px}
@@ -335,7 +347,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 107</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 108</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -3211,6 +3223,38 @@ async function kresliSpravu(){
   vykresliSpravu();
 }
 
+/* Stažení QR. SVG se vezme přímo ze stránky, PNG se z něj vykreslí — obojí
+   vzniká v prohlížeči, nikam se nic neposílá. */
+function stahniQr(druh){
+  const svgEl = document.querySelector('#qrObr svg');
+  if(!svgEl){ hlaska('QR kód se nenašel.', true); return; }
+  const svg = new XMLSerializer().serializeToString(svgEl);
+  const uloz = (blob, jmeno) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = jmeno;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+  if(druh === 'svg'){
+    uloz(new Blob([svg], {type:'image/svg+xml'}), 'prava-ridice-qr.svg');
+    hlaska('QR kód stažen.');
+    return;
+  }
+  /* PNG: 1024 px stačí i na plakát */
+  const obr = new Image();
+  obr.onload = () => {
+    const p = document.createElement('canvas');
+    p.width = p.height = 1024;
+    const k = p.getContext('2d');
+    k.fillStyle = '#fff'; k.fillRect(0, 0, 1024, 1024);
+    k.drawImage(obr, 0, 0, 1024, 1024);
+    p.toBlob(b => { uloz(b, 'prava-ridice-qr.png'); hlaska('QR kód stažen.'); }, 'image/png');
+  };
+  obr.onerror = () => hlaska('PNG se nepodařilo vytvořit.', true);
+  obr.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+}
+
 function dlazdice(popis, hodnota, poznamka){
   return `<div class="dlazdice"><span class="dl-popis">${popis}</span>
     <b>${hodnota}</b>${poznamka?`<span class="dl-pozn">${poznamka}</span>`:''}</div>`;
@@ -3255,6 +3299,23 @@ function vykresliSpravu(){
        Jsou to osobní údaje — nakládejte s nimi podle zásad zpracování.</p>
 
     ${sekcePoptavek()}
+
+    <h2 style="margin-top:26px">QR kód aplikace</h2>
+    <div class="qr-blok">
+      <div class="qr-obr" id="qrObr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 41 41" shape-rendering="crispEdges"><rect width="41" height="41" fill="#fff"/><path d="M2 2h7v1h-7zM10 2h5v1h-5zM17 2h1v1h-1zM20 2h1v1h-1zM23 2h2v1h-2zM26 2h1v1h-1zM28 2h1v1h-1zM30 2h1v1h-1zM32 2h7v1h-7zM2 3h1v1h-1zM8 3h1v1h-1zM11 3h1v1h-1zM13 3h1v1h-1zM16 3h2v1h-2zM21 3h1v1h-1zM24 3h1v1h-1zM29 3h2v1h-2zM32 3h1v1h-1zM38 3h1v1h-1zM2 4h1v1h-1zM4 4h3v1h-3zM8 4h1v1h-1zM11 4h2v1h-2zM14 4h2v1h-2zM18 4h4v1h-4zM23 4h1v1h-1zM26 4h1v1h-1zM29 4h1v1h-1zM32 4h1v1h-1zM34 4h3v1h-3zM38 4h1v1h-1zM2 5h1v1h-1zM4 5h3v1h-3zM8 5h1v1h-1zM11 5h2v1h-2zM14 5h4v1h-4zM20 5h1v1h-1zM22 5h1v1h-1zM24 5h1v1h-1zM26 5h3v1h-3zM32 5h1v1h-1zM34 5h3v1h-3zM38 5h1v1h-1zM2 6h1v1h-1zM4 6h3v1h-3zM8 6h1v1h-1zM10 6h2v1h-2zM13 6h1v1h-1zM17 6h1v1h-1zM19 6h1v1h-1zM21 6h1v1h-1zM23 6h1v1h-1zM25 6h2v1h-2zM28 6h1v1h-1zM32 6h1v1h-1zM34 6h3v1h-3zM38 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h3v1h-3zM20 7h1v1h-1zM24 7h1v1h-1zM29 7h2v1h-2zM32 7h1v1h-1zM38 7h1v1h-1zM2 8h7v1h-7zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h1v1h-1zM26 8h1v1h-1zM28 8h1v1h-1zM30 8h1v1h-1zM32 8h7v1h-7zM12 9h1v1h-1zM17 9h1v1h-1zM19 9h1v1h-1zM22 9h3v1h-3zM26 9h1v1h-1zM28 9h1v1h-1zM30 9h1v1h-1zM3 10h7v1h-7zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h4v1h-4zM24 10h1v1h-1zM26 10h1v1h-1zM33 10h2v1h-2zM38 10h1v1h-1zM3 11h1v1h-1zM5 11h1v1h-1zM13 11h3v1h-3zM20 11h3v1h-3zM25 11h1v1h-1zM27 11h4v1h-4zM32 11h1v1h-1zM35 11h3v1h-3zM5 12h4v1h-4zM11 12h1v1h-1zM13 12h1v1h-1zM16 12h3v1h-3zM20 12h2v1h-2zM23 12h2v1h-2zM26 12h3v1h-3zM32 12h3v1h-3zM37 12h2v1h-2zM2 13h1v1h-1zM5 13h3v1h-3zM9 13h1v1h-1zM12 13h4v1h-4zM17 13h2v1h-2zM20 13h1v1h-1zM22 13h4v1h-4zM28 13h1v1h-1zM30 13h1v1h-1zM32 13h3v1h-3zM38 13h1v1h-1zM4 14h2v1h-2zM8 14h1v1h-1zM10 14h2v1h-2zM14 14h2v1h-2zM18 14h1v1h-1zM20 14h2v1h-2zM24 14h5v1h-5zM30 14h3v1h-3zM34 14h3v1h-3zM2 15h2v1h-2zM6 15h2v1h-2zM10 15h1v1h-1zM13 15h1v1h-1zM15 15h5v1h-5zM21 15h2v1h-2zM24 15h2v1h-2zM27 15h1v1h-1zM30 15h2v1h-2zM33 15h1v1h-1zM35 15h3v1h-3zM3 16h4v1h-4zM8 16h2v1h-2zM11 16h2v1h-2zM15 16h3v1h-3zM20 16h1v1h-1zM24 16h1v1h-1zM27 16h1v1h-1zM29 16h3v1h-3zM34 16h2v1h-2zM38 16h1v1h-1zM3 17h1v1h-1zM5 17h3v1h-3zM10 17h1v1h-1zM12 17h1v1h-1zM17 17h3v1h-3zM21 17h2v1h-2zM30 17h1v1h-1zM33 17h2v1h-2zM37 17h1v1h-1zM3 18h1v1h-1zM5 18h1v1h-1zM7 18h5v1h-5zM14 18h3v1h-3zM18 18h1v1h-1zM23 18h2v1h-2zM26 18h3v1h-3zM31 18h2v1h-2zM34 18h1v1h-1zM36 18h1v1h-1zM4 19h2v1h-2zM12 19h2v1h-2zM17 19h4v1h-4zM22 19h2v1h-2zM30 19h1v1h-1zM33 19h1v1h-1zM35 19h1v1h-1zM3 20h1v1h-1zM5 20h1v1h-1zM7 20h3v1h-3zM15 20h3v1h-3zM20 20h1v1h-1zM22 20h1v1h-1zM25 20h3v1h-3zM29 20h1v1h-1zM33 20h1v1h-1zM35 20h4v1h-4zM2 21h1v1h-1zM9 21h1v1h-1zM13 21h2v1h-2zM20 21h6v1h-6zM29 21h7v1h-7zM37 21h2v1h-2zM2 22h1v1h-1zM4 22h1v1h-1zM7 22h2v1h-2zM10 22h2v1h-2zM13 22h3v1h-3zM17 22h1v1h-1zM19 22h2v1h-2zM24 22h6v1h-6zM31 22h4v1h-4zM36 22h1v1h-1zM38 22h1v1h-1zM2 23h1v1h-1zM5 23h3v1h-3zM10 23h2v1h-2zM13 23h3v1h-3zM18 23h2v1h-2zM22 23h1v1h-1zM25 23h1v1h-1zM27 23h1v1h-1zM33 23h1v1h-1zM2 24h1v1h-1zM4 24h3v1h-3zM8 24h2v1h-2zM12 24h1v1h-1zM14 24h3v1h-3zM19 24h1v1h-1zM21 24h3v1h-3zM26 24h4v1h-4zM31 24h1v1h-1zM37 24h2v1h-2zM2 25h2v1h-2zM5 25h3v1h-3zM10 25h5v1h-5zM17 25h1v1h-1zM21 25h1v1h-1zM23 25h3v1h-3zM27 25h1v1h-1zM33 25h1v1h-1zM38 25h1v1h-1zM4 26h1v1h-1zM6 26h1v1h-1zM8 26h1v1h-1zM10 26h4v1h-4zM15 26h1v1h-1zM18 26h3v1h-3zM22 26h1v1h-1zM24 26h1v1h-1zM26 26h1v1h-1zM28 26h1v1h-1zM30 26h2v1h-2zM34 26h5v1h-5zM2 27h2v1h-2zM5 27h1v1h-1zM9 27h1v1h-1zM11 27h3v1h-3zM17 27h1v1h-1zM22 27h6v1h-6zM29 27h1v1h-1zM32 27h1v1h-1zM35 27h1v1h-1zM2 28h1v1h-1zM4 28h1v1h-1zM7 28h7v1h-7zM17 28h1v1h-1zM22 28h1v1h-1zM26 28h1v1h-1zM28 28h3v1h-3zM32 28h2v1h-2zM36 28h3v1h-3zM2 29h1v1h-1zM5 29h2v1h-2zM10 29h1v1h-1zM12 29h1v1h-1zM14 29h3v1h-3zM19 29h3v1h-3zM23 29h1v1h-1zM25 29h1v1h-1zM28 29h2v1h-2zM31 29h1v1h-1zM33 29h1v1h-1zM38 29h1v1h-1zM2 30h1v1h-1zM4 30h1v1h-1zM6 30h3v1h-3zM11 30h3v1h-3zM15 30h1v1h-1zM19 30h2v1h-2zM24 30h15v1h-15zM10 31h1v1h-1zM12 31h6v1h-6zM20 31h4v1h-4zM25 31h1v1h-1zM28 31h3v1h-3zM34 31h1v1h-1zM2 32h7v1h-7zM10 32h2v1h-2zM14 32h1v1h-1zM16 32h2v1h-2zM19 32h5v1h-5zM28 32h1v1h-1zM30 32h1v1h-1zM32 32h1v1h-1zM34 32h2v1h-2zM37 32h2v1h-2zM2 33h1v1h-1zM8 33h1v1h-1zM10 33h2v1h-2zM18 33h1v1h-1zM21 33h1v1h-1zM23 33h4v1h-4zM28 33h3v1h-3zM34 33h1v1h-1zM37 33h2v1h-2zM2 34h1v1h-1zM4 34h3v1h-3zM8 34h1v1h-1zM10 34h1v1h-1zM12 34h1v1h-1zM16 34h1v1h-1zM21 34h1v1h-1zM23 34h1v1h-1zM27 34h8v1h-8zM36 34h1v1h-1zM2 35h1v1h-1zM4 35h3v1h-3zM8 35h1v1h-1zM10 35h1v1h-1zM14 35h4v1h-4zM19 35h2v1h-2zM22 35h1v1h-1zM24 35h1v1h-1zM26 35h1v1h-1zM30 35h1v1h-1zM32 35h1v1h-1zM34 35h1v1h-1zM37 35h1v1h-1zM2 36h1v1h-1zM4 36h3v1h-3zM8 36h1v1h-1zM10 36h4v1h-4zM15 36h7v1h-7zM23 36h1v1h-1zM30 36h2v1h-2zM36 36h1v1h-1zM38 36h1v1h-1zM2 37h1v1h-1zM8 37h1v1h-1zM10 37h3v1h-3zM18 37h2v1h-2zM21 37h4v1h-4zM26 37h1v1h-1zM28 37h1v1h-1zM30 37h3v1h-3zM34 37h2v1h-2zM38 37h1v1h-1zM2 38h7v1h-7zM12 38h1v1h-1zM14 38h3v1h-3zM19 38h1v1h-1zM21 38h1v1h-1zM24 38h1v1h-1zM27 38h2v1h-2zM31 38h2v1h-2zM35 38h4v1h-4z" fill="#0E4A53"/></svg></div>
+      <div class="qr-text">
+        <h3>Odkaz na aplikaci k naskenování</h3>
+        <p class="napoveda" style="margin:0">Kdo si ho vyfotí telefonem, otevře aplikaci rovnou —
+           nemusí adresu opisovat. Hodí se na leták, vizitku, do e-mailu i na obrazovku v kanceláři.</p>
+        <div class="qr-adresa">https://msefcik27-netizen.github.io/prava-ridice/</div>
+        <div class="lista" style="margin:0">
+          <button class="btn btn-vedl" onclick="stahniQr('svg')">Stáhnout pro tisk (SVG)</button>
+          <button class="btn btn-vedl" onclick="stahniQr('png')">Stáhnout obrázek (PNG)</button>
+        </div>
+        <p class="napoveda" style="margin:10px 0 0">Pro tisk použijte SVG — zůstane ostrý v jakékoli
+           velikosti. PNG se hodí do e-mailu nebo na web.</p>
+      </div>
+    </div>
 
     <h2 style="margin-top:26px">Klienti a promo kódy</h2>
     <p class="napoveda" style="margin:-6px 0 16px">Každý klient má jeden kód. Kód projde jen z povolené domény
