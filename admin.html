@@ -337,17 +337,38 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
   </div>
   <h2>Správa obsahu</h2>
   <p>Práva řidiče — přihlaste se e-mailem, na který máte oprávnění.</p>
-  <div class="pole">
-    <label for="email">E-mail</label>
-    <input type="text" id="email" placeholder="jmeno@pravaridice.cz" autocomplete="email">
+  <div id="krok-email">
+    <div class="pole">
+      <label for="email">E-mail</label>
+      <input type="text" id="email" placeholder="jmeno@pravaridice.cz" autocomplete="email">
+    </div>
+    <button class="btn btn-hlavni" style="width:100%" onclick="prihlas()">Poslat přihlašovací odkaz</button>
+    <p class="napoveda" style="margin-top:12px">Na e-mail přijde odkaz i číselný kód. Žádné heslo si pamatovat nemusíte.</p>
   </div>
-  <button class="btn btn-hlavni" style="width:100%" onclick="prihlas()">Poslat přihlašovací odkaz</button>
-  <p class="napoveda" style="margin-top:12px">Na e-mail přijde odkaz, kterým se přihlásíte. Žádné heslo si pamatovat nemusíte.</p>
+
+  <!-- Odkaz přihlásí jen ten prohlížeč, ve kterém se otevře. Kdo si
+       administraci otevřel jinde, než čte poštu, opíše kód. -->
+  <div id="krok-kod" style="display:none">
+    <p style="margin:0 0 14px">Poslali jsme e-mail na <b id="kam-jsme-poslali"></b>.
+       Je v něm odkaz i číselný kód — stačí jedno z toho. Když čtete poštu jinde,
+       než máte otevřenou administraci, opište sem kód.</p>
+    <div class="pole">
+      <label for="kod">Kód z e-mailu</label>
+      <input type="text" id="kod" inputmode="numeric" autocomplete="one-time-code" maxlength="10"
+             placeholder="123456" style="letter-spacing:.22em;font-weight:700"
+             onkeydown="if(event.key==='Enter')prihlasKodem()">
+    </div>
+    <button class="btn btn-hlavni" style="width:100%" onclick="prihlasKodem()">Přihlásit</button>
+    <div style="display:flex;gap:9px;margin-top:9px">
+      <button class="btn" style="flex:1" onclick="prihlas()">Poslat znovu</button>
+      <button class="btn" style="flex:1" onclick="zpetNaEmail()">Jiný e-mail</button>
+    </div>
+  </div>
 </div>
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 121</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 122</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -476,7 +497,35 @@ async function prihlas(){
     email, options:{ emailRedirectTo: location.href.split('#')[0] }
   });
   if(error){ hlaska('Nepodařilo se odeslat: ' + error.message, true); return; }
-  hlaska('Odkaz odeslán — podívejte se do e-mailu.');
+  $('kam-jsme-poslali').textContent = email;
+  $('krok-email').style.display = 'none';
+  $('krok-kod').style.display   = 'block';
+  const pole = $('kod'); if(pole){ pole.value = ''; pole.focus(); }
+  hlaska('E-mail odeslán — otevřete si ho.');
+}
+
+/* Druhá cesta k témuž přihlášení. Kolik má kód míst, si určuje Supabase
+   (šest až deset), proto se tady hlídá jen to, že je to vůbec kód. */
+async function prihlasKodem(){
+  const email = $('email').value.trim();
+  const kod = ($('kod').value || '').replace(/\D/g, '');
+  if(kod.length < 6 || kod.length > 10){
+    hlaska('Opište prosím z e-mailu celý kód — jsou to jen číslice.', true); return; }
+  const { error } = await db.auth.verifyOtp({ email, token: kod, type: 'email' });
+  if(error){
+    hlaska(/expired|invalid|token/i.test(error.message || '')
+      ? 'Tenhle kód neplatí nebo už vypršel. Nechte si poslat nový.'
+      : 'Přihlášení se nepovedlo: ' + error.message, true);
+    return;
+  }
+  /* Dál se o všechno postará onAuthStateChange — včetně ověření, že tenhle
+     účet na správu obsahu vůbec má oprávnění. */
+}
+
+function zpetNaEmail(){
+  $('krok-kod').style.display   = 'none';
+  $('krok-email').style.display = 'block';
+  const pole = $('email'); if(pole) pole.focus();
 }
 
 async function poPrihlaseni(session){
@@ -486,6 +535,7 @@ async function poPrihlaseni(session){
   if(error || !data || !data.length){
     hlaska('Tento účet nemá oprávnění ke správě obsahu.', true);
     await db.auth.signOut();
+    zpetNaEmail();
     return;
   }
   const ja = data.find(a => a.email.toLowerCase() === (uzivatel.email||'').toLowerCase());

@@ -344,6 +344,14 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .field .hint{font-size:12.5px;color:var(--muted);margin-top:7px;}
 /* Chyba patří k poli, ne do proužku dole — ten zmizí dřív, než se člověk
    stihne podívat, co má opravit. */
+/* Kolečko v tlačítku po dobu odesílání. Zpětná vazba patří tam, kam se
+   člověk dívá — na to, na co právě klepnul. */
+.kolecko{width:17px;height:17px;border:2.2px solid rgba(255,255,255,.34);
+  border-top-color:#fff;border-radius:50%;display:inline-block;
+  animation:tocse .7s linear infinite;flex:0 0 auto;}
+@keyframes tocse{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){ .kolecko{animation-duration:2.4s} }
+
 .chyba-pole{display:none;font-size:12.5px;font-weight:600;color:var(--red);margin-top:7px;line-height:1.4;}
 .chyba-pole.vidno{display:block;}
 .field.spatne input,.field.spatne textarea,.field.spatne select{border-color:var(--red);}
@@ -824,13 +832,13 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           <div class="row-between">
             <div>
               <div class="eyebrow" style="margin-bottom:4px;" data-text="prehled.notif.stitek">Upozornění podle bodů řidiče</div>
-              <div class="title-md" style="font-size:17px;" data-text="prehled.notif.nadpis">Včasná výstraha před 12 body</div>
+              <div class="title-md" style="font-size:17px;" data-text="prehled.notif.nadpis">Včasná výstraha před 12 body řidiče</div>
             </div>
             <div class="toggle on" role="switch" tabindex="0" aria-checked="true" id="notifToggle" onclick="toggleNotif()" onkeydown="klavesaPrepinac(event, this)"></div>
           </div>
           <div class="alert-line" id="notifInfo">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b5a3f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>
-            <span data-text="prehled.notif.zapnuto">Upozornění je aktivní. Při 8+ bodech dostanete výzvu ke konzultaci.</span>
+            <span data-text="prehled.notif.zapnuto">Upozornění je aktivní. Při 8+ bodech řidiče dostanete výzvu ke konzultaci.</span>
           </div>
         </div>
 
@@ -854,7 +862,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
             </div>
             <div class="li-body">
               <h4 data-text="prehled.pdf.nadpis">Načíst body řidiče z PDF výpisu</h4>
-              <p data-text="prehled.pdf.popis">Nahrajte výpis z Portálu dopravy — body se nastaví samy.</p>
+              <p data-text="prehled.pdf.popis">Nahrajte výpis z Portálu dopravy — body řidiče se nastaví samy.</p>
             </div>
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
             <input type="file" accept="application/pdf,.pdf" hidden onchange="pdfPicked(this)"/>
@@ -1012,7 +1020,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 120<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 122<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1020,7 +1028,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
     <div class="screen" id="s-points-help">
       <div class="subhead"><button class="back-btn" onclick="back('prehled')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" data-text="pomoc.body.nadpis">Jak zjistit body řidiče</div></div>
       <div class="pad">
-        <p class="muted" style="line-height:1.6;margin-top:0;" data-text="pomoc.body.uvod">Přesný počet bodů zjistíte třemi způsoby:</p>
+        <p class="muted" style="line-height:1.6;margin-top:0;" data-text="pomoc.body.uvod">Přesný počet bodů řidiče zjistíte třemi způsoby:</p>
         <div class="list-card">
           <div class="list-item" onclick="openExt(odk('odkaz.portal-obcana','https://obcan.portal.gov.cz/'))"><div class="li-icon">1</div><div class="li-body"><h4 data-text="pomoc.body.1.nadpis">Portál občana</h4><p data-text="pomoc.body.1.popis">Online, s bankovní identitou nebo datovou schránkou.</p></div><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg></div>
           <div class="list-item"><div class="li-icon">2</div><div class="li-body"><h4 data-text="pomoc.body.2.nadpis">Czech POINT</h4><p data-text="pomoc.body.2.popis">Na poště nebo úřadě proti dokladu totožnosti.</p></div><span class="chev-misto"></span></div>
@@ -1656,7 +1664,7 @@ function renderPoints(){
   document.getElementById('ptNum').textContent=p;
   const remain=12-p;
   // FIX: correct Czech plural for "bod"
-  znac('ptSub','prehled.body.jednotka'); document.getElementById('ptSub').textContent=txt('prehled.body.jednotka','z 12 bodů');
+  znac('ptSub','prehled.body.jednotka'); document.getElementById('ptSub').textContent=txt('prehled.body.jednotka','z 12 bodů řidiče');
   let noteVerb = remain===0 ? 'Nezbývá vám žádný bod'
     : 'Zbýv'+(remain>=2&&remain<=4?'ají':'á')+' vám '+remain+' '+plural(remain,'bod','body','bodů');
   document.getElementById('ptNote').textContent = noteVerb + ' do hranice 12 bodů.' + ((p>=6&&p<=7)?' Pozor: jediný 6bodový přestupek může znamenat vybodování.':'');
@@ -1683,8 +1691,8 @@ function renderPoints(){
       : txt('prehled.vyzva.nadpis8','Ozvěte se nám včas');
     znac('c12p', p>=12 ? 'prehled.vyzva.text12' : 'prehled.vyzva.text8');
   document.getElementById('c12p').textContent = p>=12
-      ? txt('prehled.vyzva.text12','Máte 12 z 12 bodů. Ozvěte se nám ihned — nezávazná konzultace je zdarma.')
-      : txt('prehled.vyzva.text8','Máte {body} z 12 bodů. Od 8 bodů doporučujeme situaci řešit — konzultace je zdarma.',{body:p});
+      ? txt('prehled.vyzva.text12','Máte 12 z 12 bodů řidiče. Ozvěte se nám ihned — nezávazná konzultace je zdarma.')
+      : txt('prehled.vyzva.text8','Máte {body} z 12 bodů řidiče. Od 8 bodů doporučujeme situaci řešit — konzultace je zdarma.',{body:p});
   }
 }
 function changePoints(d){ state.points=Math.max(0,Math.min(12,state.points+d)); renderPoints(); saveState(); requestAnimationFrame(fitScreen); if(authUser)pushProfile(); }
@@ -1924,8 +1932,8 @@ function vlastniUpozorneni(){
   if(n.body && state.points >= (n.prah||9)){
     out.push({ id:'auto-body-'+state.points, zdroj:'text:zpravy.auto.body.nadpis',
       klice:{nadpis:'zpravy.auto.body.nadpis', telo:'zpravy.auto.body.text', btn:'zpravy.auto.body.btn'},
-      nadpis: txt('zpravy.auto.body.nadpis','Blížíte se hranici 12 bodů'),
-      telo: txt('zpravy.auto.body.text','Máte {body} z 12 bodů. Doporučujeme situaci řešit — konzultace je zdarma.', {body: state.points}),
+      nadpis: txt('zpravy.auto.body.nadpis','Blížíte se hranici 12 bodů řidiče'),
+      telo: txt('zpravy.auto.body.text','Máte {body} z 12 bodů řidiče. Doporučujeme situaci řešit — konzultace je zdarma.', {body: state.points}),
       datum:'', dulezita:true, akce:"go('konzultace')",
       akceText: txt('zpravy.auto.body.btn','Napsat nám') });
   }
@@ -2287,6 +2295,22 @@ function overTelefon(t){
   return null;
 }
 
+/* Jakmile člověk pole opraví, hláška zmizí. Nechat ji svítit, dokud se
+   znovu neodešle, znamená nechat na obrazovce vytýkat něco, co už neplatí —
+   a člověk pak neví, jestli to opravil dobře. */
+(function hlidejOpravy(){
+  const spoj = () => {
+    [['fTel','chybaTel'], ['fMail','chybaMail'], ['fMsg','chybaMsg']].forEach(([p, c]) => {
+      const pole = document.getElementById(p);
+      if(!pole || pole.dataset.hlidano) return;
+      pole.dataset.hlidano = '1';
+      pole.addEventListener('input', () => ukazChybu(p, c, null));
+    });
+  };
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', spoj);
+  else spoj();
+})();
+
 /* Chyba se ukáže u pole a pole se obarví. Vrací false, aby se dalo psát
    `if(!ukazChybu(...)) return;`. */
 function ukazChybu(idPole, idChyby, text){
@@ -2296,6 +2320,8 @@ function ukazChybu(idPole, idChyby, text){
   if(pole && pole.closest('.field')) pole.closest('.field').classList.toggle('spatne', !!text);
   return !text;
 }
+
+let odesilaniBezi = false;
 
 async function submitForm(){
   const jmeno = (document.getElementById('fName').value||'').trim();
@@ -2321,9 +2347,19 @@ async function submitForm(){
   }
   if(!document.getElementById('fConsent').classList.contains('on')){ toast('Potvrďte prosím souhlas se zpracováním údajů.'); return; }
 
+  /* Pojistka proti dvojímu odeslání. Blokované tlačítko nestačí — odeslat
+     jde i Enterem a mezi dvěma klepnutími je zlomek vteřiny, kdy blokované
+     ještě není. Dvě stejné poptávky v JIRA vypadají jako chyba kanceláře. */
+  if(odesilaniBezi) return;
+  odesilaniBezi = true;
+
   const tlacitko = document.getElementById("fSend");
-  if(tlacitko){ tlacitko.disabled = true; }
-  toast('Odesílám…');
+  const puvodni = tlacitko ? tlacitko.innerHTML : '';
+  if(tlacitko){
+    tlacitko.disabled = true;
+    tlacitko.innerHTML = '<span class="kolecko"></span><span>'+
+      txt('formular.odesilam','Odesílám…')+'</span>';
+  }
 
   let odeslano = false, doJiry = false, neprosloPriloh = [];
 
@@ -2380,7 +2416,8 @@ async function submitForm(){
     }catch(e){ console.warn('poptávka', e); }
   }
 
-  if(tlacitko){ tlacitko.disabled = false; }
+  odesilaniBezi = false;
+  if(tlacitko){ tlacitko.disabled = false; tlacitko.innerHTML = puvodni; }
 
   if(odeslano){
     document.getElementById('fTel').value=''; document.getElementById('fMsg').value='';
@@ -3179,7 +3216,7 @@ function renderAccount(){
     let posledni=''; try{ posledni = localStorage.getItem('pr-ucet-email')||''; }catch(e){}
     box.innerHTML='<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:6px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
       '<div data-text="profil.ucet.neprihlasen" class="title-md" style="font-size:16px;margin-bottom:4px;">'+txt('profil.ucet.neprihlasen','Nepřihlášeno')+'</div>'+
-      '<div data-text="profil.ucet.nepr" class="small muted" style="margin-bottom:10px;">'+txt('profil.ucet.nepr','Přihlášením se vám vrátí body, nastavení i plný přístup — třeba po přechodu na nový telefon.')+'</div>'+
+      '<div data-text="profil.ucet.nepr" class="small muted" style="margin-bottom:10px;">'+txt('profil.ucet.nepr','Přihlášením se vám vrátí body řidiče, nastavení i plný přístup — třeba po přechodu na nový telefon.')+'</div>'+
       '<input data-ph="profil.ucet.ph" class="pole-input" id="uctEmail" aria-label="Váš e-mail" type="email" inputmode="email" autocomplete="email" '+
         'autocapitalize="off" spellcheck="false" placeholder="'+txt('profil.ucet.ph','vas@email.cz')+'" '+
         'value="'+posledni.replace(/"/g,'&quot;')+'" />'+
@@ -3519,7 +3556,7 @@ function renderOb(){
       '<div class="ob-fill"></div>'+
       '<div class="ob-eyebrow" data-text="onboard.uvod.stitek">'+txt('onboard.uvod.stitek','Právní ochrana řidiče')+'</div>'+
       '<h1 class="title-xl" data-text="onboard.uvod.nadpis">'+txt('onboard.uvod.nadpis','Zachráníme vám řidičák.')+'</h1>'+
-      '<p data-text="onboard.uvod.popis">'+txt('onboard.uvod.popis','Sledujte si bodový stav, dostávejte upozornění a mějte právníka po ruce. Pevná cena, obhajoba po celé ČR.')+'</p>'+
+      '<p data-text="onboard.uvod.popis">'+txt('onboard.uvod.popis','Sledujte si body řidiče, dostávejte upozornění a mějte právníka po ruce. Pevná cena, obhajoba po celé ČR.')+'</p>'+
       '<div class="ob-actions"><button class="btn btn-peach" data-text="onboard.uvod.btn" onclick="obGo(1)">'+txt('onboard.uvod.btn','Začít')+'</button>'+
       '<button class="btn btn-install" id="obInstallBtn" onclick="openInstallSheet()"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg><span data-text="onboard.uvod.plocha">'+txt('onboard.uvod.plocha','Přidat aplikaci na plochu')+'</span></button>'+
       /* Pořadí není jedno: kdo se přihlásí v prohlížeči a appku přidá až
@@ -3540,8 +3577,8 @@ function renderOb(){
     B.innerHTML='<div class="ob-step"><div style="height:26px;"></div>'+
       '<div class="ob-eyebrow" data-text="onboard.body.stitek">'+txt('onboard.body.stitek','Proč sledovat body řidiče')+'</div>'+
       '<h1 class="title-lg" data-text="onboard.body.nadpis" style="font-size:30px;">'+txt('onboard.body.nadpis','Vybodování se dá předejít.')+'</h1>'+
-      '<p data-text="onboard.body.text1" style="font-size:15.5px;">'+txt('onboard.body.text1','Po nasbírání 12 bodů přijdete o řidičský průkaz na 12 měsíců. Bodový stav lze ověřit jen u úřadu, takže mnoho řidičů ho zná až ve chvíli, kdy je pozdě.')+'</p>'+
-      '<p data-text="onboard.body.text2" style="font-size:15.5px;margin-top:12px;">'+txt('onboard.body.text2','Aplikace vám pomůže držet přehled. Když si zaznamenáte aktuální stav, uvidíte varování na kartě Zprávy — typicky už při 9 bodech — abyste měli čas reagovat.')+'</p>'+
+      '<p data-text="onboard.body.text1" style="font-size:15.5px;">'+txt('onboard.body.text1','Po nasbírání 12 bodů řidiče přijdete o řidičský průkaz na 12 měsíců. Body řidiče lze ověřit jen u úřadu, takže mnoho řidičů je zná až ve chvíli, kdy je pozdě.')+'</p>'+
+      '<p data-text="onboard.body.text2" style="font-size:15.5px;margin-top:12px;">'+txt('onboard.body.text2','Aplikace vám pomůže držet přehled. Když si zaznamenáte aktuální stav, uvidíte varování na kartě Zprávy — typicky už při 9 bodech řidiče — abyste měli čas reagovat.')+'</p>'+
       '<div class="ob-fill"></div>'+
       '<div class="ob-actions"><button class="btn btn-peach" data-text="onboard.body.btn" onclick="obGo(1)">'+txt('onboard.body.btn','Pokračovat')+'</button></div></div>';
     return;
@@ -3549,12 +3586,12 @@ function renderOb(){
   if(ob.step===2){
     B.innerHTML='<div class="ob-step"><div style="height:26px;"></div>'+
       '<div class="ob-eyebrow" data-text="onboard.stav.stitek">'+txt('onboard.stav.stitek','Aktuální stav')+'</div>'+
-      '<h1 class="title-lg" data-text="onboard.stav.nadpis" style="font-size:30px;">'+txt('onboard.stav.nadpis','Kolik máte aktuálně bodů?')+'</h1>'+
+      '<h1 class="title-lg" data-text="onboard.stav.nadpis" style="font-size:30px;">'+txt('onboard.stav.nadpis','Kolik máte aktuálně bodů řidiče?')+'</h1>'+
       '<p data-text="onboard.stav.popis" style="font-size:15px;">'+txt('onboard.stav.popis','Nastavte stav z karty řidiče. Můžete vyplnit i později v profilu.')+'</p>'+
       '<div class="ob-fill"></div>'+
       '<div class="ob-count"><button class="round-btn" onclick="obPoints(-1)">−</button><div class="num">'+ob.points+'</div><button class="round-btn" onclick="obPoints(1)">+</button></div>'+
-      '<div data-text="onboard.stav.jednotka" style="text-align:center;font-size:13px;color:rgba(255,255,255,.7);margin-bottom:14px;">'+txt('onboard.stav.jednotka','z 12 bodů')+'</div>'+
-      '<div class="ob-note" onclick="ob.notif=!ob.notif;renderOb()"><div class="toggle '+(ob.notif?'on':'')+'" role="switch" tabindex="0" aria-checked="true" style="pointer-events:none;" onkeydown="klavesaPrepinac(event, this)"></div><div class="tx" data-text="onboard.stav.notif">'+txt('onboard.stav.notif','Chci dostávat upozornění, když se přiblížím k 12 bodům.')+'</div></div>'+
+      '<div data-text="onboard.stav.jednotka" style="text-align:center;font-size:13px;color:rgba(255,255,255,.7);margin-bottom:14px;">'+txt('onboard.stav.jednotka','z 12 bodů řidiče')+'</div>'+
+      '<div class="ob-note" onclick="ob.notif=!ob.notif;renderOb()"><div class="toggle '+(ob.notif?'on':'')+'" role="switch" tabindex="0" aria-checked="true" style="pointer-events:none;" onkeydown="klavesaPrepinac(event, this)"></div><div class="tx" data-text="onboard.stav.notif">'+txt('onboard.stav.notif','Chci dostávat upozornění, když se přiblížím k 12 bodům řidiče.')+'</div></div>'+
       '<div class="ob-fill"></div>'+
       '<div class="ob-actions"><button class="btn btn-peach" data-text="onboard.stav.btn" onclick="obFinish(true)">'+txt('onboard.stav.btn','Dokončit')+'</button>'+
       '<button class="btn btn-outline" data-text="onboard.stav.pozdeji" onclick="obFinish(false)">'+txt('onboard.stav.pozdeji','Vyplním později')+'</button></div></div>';
@@ -3563,7 +3600,7 @@ function renderOb(){
   B.innerHTML='<div class="ob-step"><div style="height:18px;"></div>'+
     '<div class="ob-eyebrow" data-text="onboard.reg.stitek">'+txt('onboard.reg.stitek','Registrace')+'</div>'+
     '<h1 class="title-lg" data-text="onboard.reg.nadpis" style="font-size:25px;">'+txt('onboard.reg.nadpis','Ještě váš e-mail a jsme hotovi.')+'</h1>'+
-    '<p data-text="onboard.reg.popis" style="font-size:13.5px;margin-top:9px;">'+txt('onboard.reg.popis','Pošleme na něj potvrzovací odkaz. Slouží k zálohování bodů, zprávám od advokáta a k aktivaci plného přístupu.')+'</p>'+
+    '<p data-text="onboard.reg.popis" style="font-size:13.5px;margin-top:9px;">'+txt('onboard.reg.popis','Pošleme na něj potvrzovací odkaz. Slouží k zálohování bodů řidiče, zprávám od advokáta a k aktivaci plného přístupu.')+'</p>'+
     /* Aplikace spuštěná z plochy poprvé: buď je člověk opravdu nový, nebo
        ji používal v prohlížeči a přišel o přihlášení. Rozeznat to nejde,
        proto se to řekne jako podmínka — novému to nevadí, druhému to ušetří
@@ -3776,11 +3813,11 @@ function renderUpozorneni(){
   const vs=getVehicles();
   document.getElementById('upozorneniBody').innerHTML=
     '<div data-text="upozorneni.body.stitek" class="section-label">'+txt('upozorneni.body.stitek','Body řidiče')+'</div>'+
-    sw('body',txt('upozorneni.body.nadpis','Upozornění na body'),
-            txt('upozorneni.body.popis','Když se přiblížíte hranici 12 bodů'),c.body,'upozorneni.body.nadpis','upozorneni.body.popis')+
+    sw('body',txt('upozorneni.body.nadpis','Upozornění na body řidiče'),
+            txt('upozorneni.body.popis','Když se přiblížíte hranici 12 bodů řidiče'),c.body,'upozorneni.body.nadpis','upozorneni.body.popis')+
     '<div class="card" style="margin-top:8px;"><div class="eyebrow" style="margin-bottom:8px;">Od kolika bodů upozornit</div>'+
       '<div class="chips">'+[6,7,8,9,10,11].map(v=>'<div class="chip '+(c.prah===v?'active':'')+'" onclick="setPrah('+v+')">'+v+' bodů</div>').join('')+'</div>'+
-      '<div class="alert-line" style="margin-top:10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b5a3f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span data-text="upozorneni.prah.pozn">'+txt('upozorneni.prah.pozn','Už 6 bodů je rizikových — jediný 6bodový přestupek pak znamená vybodování.')+'</span></div></div>'+
+      '<div class="alert-line" style="margin-top:10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b5a3f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span data-text="upozorneni.prah.pozn">'+txt('upozorneni.prah.pozn','Už 6 bodů řidiče je rizikových — jediný 6bodový přestupek pak znamená vybodování.')+'</span></div></div>'+
     '<div data-text="upozorneni.vozidlo.stitek" class="section-label" style="margin-top:14px;">'+txt('upozorneni.vozidlo.stitek','Vozidlo a termíny')+'</div>'+
     /* Souhlas se zálohou. Bez něj termíny fungují, ale upozornění dorazí až
        při otevření aplikace — proto je hned nad přepínači termínů. */
@@ -4186,9 +4223,9 @@ function ulozPokutu(){
   if(body > 0 && stary < 0){
     setTimeout(async () => {
       const ok = await okno({
-        nadpis: txt('garaz.pokuta.pripsat.nadpis','Připsat body?'),
+        nadpis: txt('garaz.pokuta.pripsat.nadpis','Připsat body řidiče?'),
         text: txt('garaz.pokuta.pripsat',
-          'Připsat {body} bodů k vašemu bodovému stavu? Body se připisují až po nabytí právní moci — pokud řízení běží, počkejte.', {body: body}),
+          'Připsat {body} bodů řidiče? Body se připisují až po nabytí právní moci — pokud řízení běží, počkejte.', {body: body}),
         potvrdit: 'Připsat', zrusit: 'Zatím ne' });
       if(ok){
         state.points = Math.min(12, state.points + body);
