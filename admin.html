@@ -347,7 +347,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 111</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 117</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -439,6 +439,9 @@ let db = null, uzivatel = null;
 let oblasti = [], clanky = [], sluzby = [], texty = [], zpravy = [];
 let vybranaZprava = null;
 let klienti = [], statistika = null, vybranyKlient = null;
+/* Kódy se načítají po klientech až při rozbalení sekce — u firmy se stovkou
+   lidí nemá smysl tahat všechny kódy hned při otevření karty. */
+let kodyKlienta = {};
 let poptavky = [];
 let vybrano = null;      // {typ:'oblast'|'clanek', id}
 let vybranaSluzba = null;
@@ -1043,6 +1046,7 @@ const POLE_OBRAZOVKA = {
   'onboard.reg.kod.label':'uvod-reg',
   'onboard.reg.kod.pozn':'uvod-reg',
   'onboard.reg.kod.ph':'uvod-reg',
+  'onboard.reg.kod.zqr':'uvod-reg',
   'onboard.reg.btn':'uvod-reg',
   'onboard.reg.souhlas':'uvod-reg',
   'onboard.cekani.nadpis':'uvod-cekani',
@@ -1106,6 +1110,7 @@ const POLE_OBRAZOVKA = {
   'garaz.vozidla.pridat':'vozidla',
   'garaz.pokuty.prazdno':'vozidla',
   'garaz.pokuty.nadpis':'vozidla',
+  'garaz.doklad.pozn':'vozidla',
   'garaz.vozidlo.ulozit':'vozidla',
   'garaz.vozidlo.chyba':'vozidla',
   'garaz.vozidlo.pridano':'vozidla',
@@ -1213,8 +1218,11 @@ const POLE_OBRAZOVKA = {
   'profil.ucet.zaloha':'profil',
   'profil.ucet.odhlasit':'profil',
   'profil.ucet.ph':'profil',
-  'profil.predplatne.stitek':'profil',
   'profil.ucet.btn':'profil',
+  'profil.data.stahnout':'profil',
+  'profil.data.zrusit':'profil',
+  'profil.data.popis':'profil',
+  'profil.predplatne.stitek':'profil',
   'profil.plan.plny':'profil',
   'profil.plan.omezeny':'profil',
   'profil.plan.btn':'profil',
@@ -1252,6 +1260,8 @@ const POLE_OBRAZOVKA = {
   'upozorneni.body.popis':'upozorneni',
   'upozorneni.prah.pozn':'upozorneni',
   'upozorneni.vozidlo.stitek':'upozorneni',
+  'upozorneni.zaloha.nadpis':'upozorneni',
+  'upozorneni.zaloha.popis':'upozorneni',
   'upozorneni.stk.nadpis':'upozorneni',
   'upozorneni.stk.popis':'upozorneni',
   'upozorneni.poj.nadpis':'upozorneni',
@@ -1284,13 +1294,13 @@ const POLE_OBRAZOVKA = {
    poradi u polí, takže se texty a seznamy dají seřadit dohromady — telefony
    se ukážou hned pod štítkem Telefony, ne až pod všemi texty. */
 const SEZNAM_MISTO = {
-  urady:    {obrazovka:'vozidla', poradi:660},
-  nehoda:   {obrazovka:'nehoda', poradi:790},
-  recenze:  {obrazovka:'recenze', poradi:670},
-  postup:   {obrazovka:'postup', poradi:690},
-  tel:      {obrazovka:'kontakt', poradi:720},
-  mail:     {obrazovka:'kontakt', poradi:740},
-  pobocka:  {obrazovka:'kontakt', poradi:760}
+  urady:    {obrazovka:'vozidla', poradi:670},
+  nehoda:   {obrazovka:'nehoda', poradi:800},
+  recenze:  {obrazovka:'recenze', poradi:720},
+  postup:   {obrazovka:'postup', poradi:740},
+  tel:      {obrazovka:'kontakt', poradi:770},
+  mail:     {obrazovka:'kontakt', poradi:790},
+  pobocka:  {obrazovka:'kontakt', poradi:810}
 };
 
 /* Obrazovky každé karty: nejdřív samotná karta, pak podobrazovky v pořadí
@@ -1395,6 +1405,7 @@ const LIMIT_POLE = {
   'onboard.reg.kod.label':120,
   'onboard.reg.kod.pozn':160,
   'onboard.reg.kod.ph':60,
+  'onboard.reg.kod.zqr':400,
   'onboard.reg.btn':30,
   'onboard.reg.souhlas':400,
   'onboard.cekani.nadpis':60,
@@ -1458,6 +1469,7 @@ const LIMIT_POLE = {
   'garaz.vozidla.pridat':30,
   'garaz.pokuty.prazdno':120,
   'garaz.pokuty.nadpis':60,
+  'garaz.doklad.pozn':400,
   'garaz.vozidlo.ulozit':30,
   'garaz.vozidlo.chyba':120,
   'garaz.vozidlo.pridano':120,
@@ -1565,8 +1577,11 @@ const LIMIT_POLE = {
   'profil.ucet.zaloha':120,
   'profil.ucet.odhlasit':30,
   'profil.ucet.ph':60,
-  'profil.predplatne.stitek':30,
   'profil.ucet.btn':40,
+  'profil.data.stahnout':120,
+  'profil.data.zrusit':30,
+  'profil.data.popis':400,
+  'profil.predplatne.stitek':30,
   'profil.plan.plny':120,
   'profil.plan.omezeny':120,
   'profil.plan.btn':30,
@@ -1604,6 +1619,8 @@ const LIMIT_POLE = {
   'upozorneni.body.popis':160,
   'upozorneni.prah.pozn':400,
   'upozorneni.vozidlo.stitek':30,
+  'upozorneni.zaloha.nadpis':60,
+  'upozorneni.zaloha.popis':400,
   'upozorneni.stk.nadpis':60,
   'upozorneni.stk.popis':160,
   'upozorneni.poj.nadpis':60,
@@ -1634,6 +1651,10 @@ const LIMIT_POLE = {
 /* Vlastní bloky a co v tabulce přibylo později: rozumný strop, ať to nikdy
    nespadne na „bez omezení". */
 function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ? 400 : 200); }
+
+
+
+
 
 
 
@@ -3365,8 +3386,9 @@ function vykresliSpravu(){
     </div>
 
     <h2 style="margin-top:26px">Klienti a promo kódy</h2>
-    <p class="napoveda" style="margin:-6px 0 16px">Každý klient má jeden kód. Kód projde jen z povolené domény
-       a jen tolikrát, kolik má klient zaměstnanců.</p>
+    <p class="napoveda" style="margin:-6px 0 16px">Klient dostane tolik kódů, kolik má lidí.
+       <b>Jeden kód = jeden člověk = jedno zařízení.</b> Kód projde jen z povolené domény.
+       Kódy se vydávají a ruší po rozbalení klienta.</p>
     ${klienti.length ? klienti.map(k => vybranyKlient===k.id ? formularKlienta(k) : nahledKlienta(k)).join('')
                      : '<div class="prazdno">Zatím žádní klienti.</div>'}
     <div class="lista"><button class="btn btn-vedl" onclick="novyKlient()">+ Přidat klienta</button></div>`;
@@ -3460,9 +3482,13 @@ async function exportRegistrovanych(kod, nazev){
 }
 
 function nahledKlienta(k){
-  const pouzito = k.pouzito || 0, limit = k.zamestnancu || 0;
-  const procenta = limit ? Math.min(100, Math.round(pouzito/limit*100)) : 0;
-  const vycerpano = limit && pouzito >= limit;
+  const kodu = k.kodu || 0, pouzito = k.pouzito || 0, volnych = k.volnych || 0;
+  const lidi = k.zamestnancu || 0;
+  const procenta = kodu ? Math.min(100, Math.round(pouzito/kodu*100)) : 0;
+  const vycerpano = kodu && volnych === 0;
+  /* Zvlášť se hlídá, jestli firma vůbec dostala tolik kódů, kolik má lidí —
+     tenhle nesoulad se dřív nedal poznat, protože kód byl jeden. */
+  const chybiKodu = lidi > kodu ? lidi - kodu : 0;
   return `
     <div class="blok-nahled" style="${k.aktivni?'':'opacity:.6'}">
       <div class="blok-hlavicka">
@@ -3472,35 +3498,562 @@ function nahledKlienta(k){
         <button class="blok-akce" onclick="upravKlienta('${k.id}')">Upravit</button>
       </div>
       <h3>${esc(k.nazev)}</h3>
-      <div class="kod-radek">
-        ${k.kod
-          ? `<code class="kod">${esc(k.kod)}</code>
-             <button class="blok-akce" onclick="zkopirujKod('${esc(k.kod)}')" title="Zkopíruje samotný kód do schránky">Kopírovat kód</button>`
-          : `<span class="kod-chybi">Bez kódu</span>
-             <button class="blok-akce" onclick="novyKodProKlienta('${k.id}', false)">Vygenerovat kód</button>`}
-      </div>
       <div class="vyuziti">
         <div class="vyuziti-pruh"><i style="width:${procenta}%;background:${vycerpano?'var(--err)':'var(--teal-800)'}"></i></div>
-        <span>${pouzito} z ${limit} ${vycerpano?'· vyčerpáno':'· zbývá '+(k.zbyva ?? (limit-pouzito))}</span>
+        <span>${pouzito} z ${kodu} ${mnozne(kodu,'kódu','kódů','kódů')} uplatněno${
+          vycerpano ? ' · všechny rozebrané' : ' · volných ' + volnych}</span>
       </div>
-      ${k.kod ? `<div class="lista" style="margin-top:10px">
-        <button class="blok-akce" onclick="exportRegistrovanych('${esc(k.kod)}','${esc(k.nazev)}')">Uložit do CSV</button>
+      ${chybiKodu ? `<p class="napoveda" style="margin:8px 0 0;color:var(--err)">
+        Firma má ${lidi} ${mnozne(lidi,'zaměstnance','zaměstnance','zaměstnanců')},
+        ale jen ${kodu} ${mnozne(kodu,'kód','kódy','kódů')} — chybí ${chybiKodu}.</p>` : ''}
+      ${kodu ? `<div class="lista" style="margin-top:10px">
+        <button class="blok-akce" onclick="exportKoduKlienta('${k.id}','${esc(k.nazev)}')">Kódy do CSV</button>
       </div>` : ''}
     </div>`;
+}
+
+/* ===== QR KÓD =====
+   Vlastní generátor, ne knihovna ze sítě. Důvod je věcný: kódy klientů by
+   se jinak posílaly na cizí server, aby se z nich udělal obrázek — a to je
+   předání osobních údajů někomu, s kým nemáme smlouvu.
+
+   Umí jen to, co potřebujeme: bajtový režim, úroveň zabezpečení M, verze
+   1–10 (do ~213 znaků). Adresa aplikace s kódem má kolem šedesáti znaků,
+   takže s rezervou stačí.
+
+   Správnost se neověřuje čtením kódu, ale skutečnou čtečkou — viz
+   nastroje/test-qr-kody.js, kde se hotový obrázek vyfotí a přečte. */
+
+const QR_KAPACITA_M = [0, 14, 26, 42, 62, 84, 106, 122, 152, 180, 213];
+const QR_CELKEM     = [0, 26, 44, 70, 100, 134, 172, 196, 242, 292, 346];
+/* [ec na blok, bloků skupiny 1, dat na blok, bloků skupiny 2, dat na blok] */
+const QR_BLOKY_M = [null,
+  [10, 1, 16, 0, 0], [16, 1, 28, 0, 0], [26, 1, 44, 0, 0], [18, 2, 32, 0, 0],
+  [24, 2, 43, 0, 0], [16, 4, 27, 0, 0], [18, 4, 31, 0, 0], [22, 2, 38, 2, 39],
+  [22, 3, 36, 2, 37], [26, 4, 43, 1, 44]];
+const QR_ZAROVNANI = [null, [], [6,18], [6,22], [6,26], [6,30], [6,34],
+  [6,22,38], [6,24,42], [6,26,46], [6,28,50]];
+/* Předpočítané řetězce s informací o verzi (jen verze 7 a výš). */
+const QR_INFO_VERZE = [null,null,null,null,null,null,null,
+  0x07C94, 0x085BC, 0x09A99, 0x0A4D3];
+
+/* Násobení v tělese GF(256) — základ opravných kódů Reed-Solomon. */
+const QR_EXP = new Uint8Array(512), QR_LOG = new Uint8Array(256);
+(function(){
+  let x = 1;
+  for(let i = 0; i < 255; i++){
+    QR_EXP[i] = x;
+    QR_LOG[x] = i;
+    x <<= 1;
+    if(x & 0x100) x ^= 0x11D;
+  }
+  for(let i = 255; i < 512; i++) QR_EXP[i] = QR_EXP[i - 255];
+})();
+const qrNasob = (a, b) => (a === 0 || b === 0) ? 0 : QR_EXP[QR_LOG[a] + QR_LOG[b]];
+
+/* Generující polynom pro daný počet opravných bajtů. */
+function qrPolynom(pocet){
+  let p = [1];
+  for(let i = 0; i < pocet; i++){
+    const novy = new Array(p.length + 1).fill(0);
+    for(let j = 0; j < p.length; j++){
+      novy[j]     ^= qrNasob(p[j], 1);
+      novy[j + 1] ^= qrNasob(p[j], QR_EXP[i]);
+    }
+    p = novy;
+  }
+  return p;
+}
+
+function qrOpravne(data, pocet){
+  const gen = qrPolynom(pocet);
+  const zbytek = data.concat(new Array(pocet).fill(0));
+  for(let i = 0; i < data.length; i++){
+    const cinitel = zbytek[i];
+    if(cinitel === 0) continue;
+    for(let j = 0; j < gen.length; j++) zbytek[i + j] ^= qrNasob(gen[j], cinitel);
+  }
+  return zbytek.slice(data.length);
+}
+
+/* Text → bajty v UTF-8. QR bajtový režim nic jiného neumí. */
+function qrBajty(text){
+  const out = [];
+  for(const znak of unescape(encodeURIComponent(text))) out.push(znak.charCodeAt(0));
+  return out;
+}
+
+function qrData(text){
+  const bajty = qrBajty(text);
+  let verze = 0;
+  for(let v = 1; v <= 10; v++) if(bajty.length <= QR_KAPACITA_M[v]){ verze = v; break; }
+  if(!verze) throw new Error('text je na QR kód moc dlouhý');
+
+  const bity = [];
+  const pridej = (hodnota, delka) => {
+    for(let i = delka - 1; i >= 0; i--) bity.push((hodnota >> i) & 1);
+  };
+  pridej(4, 4);                                   // bajtový režim
+  pridej(bajty.length, verze < 10 ? 8 : 16);      // délka
+  bajty.forEach(b => pridej(b, 8));
+
+  const [ec, b1, d1, b2, d2] = QR_BLOKY_M[verze];
+  const datovych = b1 * d1 + b2 * d2;
+  const strop = datovych * 8;
+
+  for(let i = 0; i < 4 && bity.length < strop; i++) bity.push(0);   // ukončovač
+  while(bity.length % 8) bity.push(0);
+  const slova = [];
+  for(let i = 0; i < bity.length; i += 8){
+    let b = 0;
+    for(let j = 0; j < 8; j++) b = (b << 1) | bity[i + j];
+    slova.push(b);
+  }
+  /* Zbytek se doplní pevnou dvojicí, kterou norma předepisuje. */
+  const vypln = [0xEC, 0x11];
+  for(let i = 0; slova.length < datovych; i++) slova.push(vypln[i % 2]);
+
+  /* Rozdělení do bloků a proložení — bez něj by shluk poškození zničil
+     celý jeden blok místo aby se rozprostřel. */
+  const bloky = [], opravy = [];
+  let pozice = 0;
+  for(let i = 0; i < b1 + b2; i++){
+    const delka = i < b1 ? d1 : d2;
+    const blok = slova.slice(pozice, pozice + delka);
+    pozice += delka;
+    bloky.push(blok);
+    opravy.push(qrOpravne(blok, ec));
+  }
+  const vysledek = [];
+  const nejdelsi = Math.max(d1, d2);
+  for(let i = 0; i < nejdelsi; i++)
+    for(const blok of bloky) if(i < blok.length) vysledek.push(blok[i]);
+  for(let i = 0; i < ec; i++)
+    for(const o of opravy) vysledek.push(o[i]);
+
+  return { verze, slova: vysledek, celkem: QR_CELKEM[verze] };
+}
+
+/* Mřížka: 0 = světlá, 1 = tmavá, null = zatím prázdná. */
+function qrMrizka(verze){
+  const n = verze * 4 + 17;
+  const m = Array.from({length: n}, () => new Array(n).fill(null));
+  const pevne = Array.from({length: n}, () => new Array(n).fill(false));
+
+  const ctverec = (r, s) => {
+    for(let i = -1; i <= 7; i++) for(let j = -1; j <= 7; j++){
+      const y = r + i, x = s + j;
+      if(y < 0 || y >= n || x < 0 || x >= n) continue;
+      const okraj = i === -1 || i === 7 || j === -1 || j === 7;
+      const vnitrek = i >= 2 && i <= 4 && j >= 2 && j <= 4;
+      const ram = i === 0 || i === 6 || j === 0 || j === 6;
+      m[y][x] = okraj ? 0 : (ram || vnitrek ? 1 : 0);
+      pevne[y][x] = true;
+    }
+  };
+  ctverec(0, 0); ctverec(0, n - 7); ctverec(n - 7, 0);
+
+  /* Časovací řady */
+  for(let i = 8; i < n - 8; i++){
+    m[6][i] = m[i][6] = (i % 2 === 0) ? 1 : 0;
+    pevne[6][i] = pevne[i][6] = true;
+  }
+
+  /* Zarovnávací značky — ne tam, kde jsou hledáčky */
+  const stredy = QR_ZAROVNANI[verze];
+  for(const r of stredy) for(const s of stredy){
+    if((r <= 8 && s <= 8) || (r <= 8 && s >= n - 9) || (r >= n - 9 && s <= 8)) continue;
+    for(let i = -2; i <= 2; i++) for(let j = -2; j <= 2; j++){
+      m[r + i][s + j] = (Math.max(Math.abs(i), Math.abs(j)) !== 1) ? 1 : 0;
+      pevne[r + i][s + j] = true;
+    }
+  }
+
+  /* Vždy tmavý bod */
+  m[n - 8][8] = 1; pevne[n - 8][8] = true;
+
+  /* Místo pro informaci o formátu se jen zamkne, hodnota přijde později. */
+  for(let i = 0; i < 9; i++){
+    if(!pevne[8][i]){ m[8][i] = 0; pevne[8][i] = true; }
+    if(!pevne[i][8]){ m[i][8] = 0; pevne[i][8] = true; }
+  }
+  for(let i = 0; i < 8; i++){
+    if(!pevne[8][n - 1 - i]){ m[8][n - 1 - i] = 0; pevne[8][n - 1 - i] = true; }
+    if(!pevne[n - 1 - i][8]){ m[n - 1 - i][8] = 0; pevne[n - 1 - i][8] = true; }
+  }
+
+  /* Informace o verzi (jen 7 a výš) */
+  if(verze >= 7){
+    const info = QR_INFO_VERZE[verze];
+    for(let i = 0; i < 18; i++){
+      const bit = (info >> i) & 1;
+      const r = Math.floor(i / 3), s = i % 3;
+      m[r][n - 11 + s] = bit; pevne[r][n - 11 + s] = true;
+      m[n - 11 + s][r] = bit; pevne[n - 11 + s][r] = true;
+    }
+  }
+
+  return { m, pevne, n };
+}
+
+function qrVypln(mrizka, slova, celkem){
+  const { m, pevne, n } = mrizka;
+  const bity = [];
+  slova.forEach(b => { for(let i = 7; i >= 0; i--) bity.push((b >> i) & 1); });
+  /* Zbytkové bity: některé verze mají po datech pár volných modulů. */
+  while(bity.length < (celkem * 8)) bity.push(0);
+
+  let i = 0, smerNahoru = true;
+  for(let sloupec = n - 1; sloupec > 0; sloupec -= 2){
+    if(sloupec === 6) sloupec--;              // časovací sloupec se přeskakuje
+    for(let k = 0; k < n; k++){
+      const radek = smerNahoru ? n - 1 - k : k;
+      for(let d = 0; d < 2; d++){
+        const s = sloupec - d;
+        if(pevne[radek][s]) continue;
+        m[radek][s] = i < bity.length ? bity[i] : 0;
+        i++;
+      }
+    }
+    smerNahoru = !smerNahoru;
+  }
+}
+
+const QR_MASKY = [
+  (r, s) => (r + s) % 2 === 0,
+  (r) => r % 2 === 0,
+  (r, s) => s % 3 === 0,
+  (r, s) => (r + s) % 3 === 0,
+  (r, s) => (Math.floor(r / 2) + Math.floor(s / 3)) % 2 === 0,
+  (r, s) => (r * s) % 2 + (r * s) % 3 === 0,
+  (r, s) => ((r * s) % 2 + (r * s) % 3) % 2 === 0,
+  (r, s) => ((r + s) % 2 + (r * s) % 3) % 2 === 0,
+];
+
+/* Trest podle normy — vybírá se maska s nejnižším. Čtečky si s tím poradí
+   i bez optimalizace, ale špatně zvolená maska čtení znatelně zhoršuje. */
+function qrTrest(m, n){
+  let trest = 0;
+  const rada = (dej) => {
+    for(let a = 0; a < n; a++){
+      let stejnych = 1, minuly = dej(a, 0);
+      for(let b = 1; b < n; b++){
+        const ted = dej(a, b);
+        if(ted === minuly) stejnych++;
+        else { if(stejnych >= 5) trest += 3 + (stejnych - 5); stejnych = 1; minuly = ted; }
+      }
+      if(stejnych >= 5) trest += 3 + (stejnych - 5);
+    }
+  };
+  rada((r, s) => m[r][s]);
+  rada((s, r) => m[r][s]);
+
+  for(let r = 0; r < n - 1; r++) for(let s = 0; s < n - 1; s++){
+    const v = m[r][s];
+    if(v === m[r][s+1] && v === m[r+1][s] && v === m[r+1][s+1]) trest += 3;
+  }
+
+  /* Vzor, který vypadá jako hledáček. Norma ho hlídá v **obou** směrech —
+     tmavý blok se světlým pruhem za ním i před ním. Když se hlídá jen jeden,
+     projde maska, která v kódu nadělá falešné hledáčky; obrázek pak vypadá
+     jako správný QR kód, ale čtečka ho nepřečte. (Přesně na tohle se přišlo
+     při zkoušce s čtečkou, ne čtením kódu.) */
+  const vzory = [[1,0,1,1,1,0,1,0,0,0,0], [0,0,0,0,1,0,1,1,1,0,1]];
+  const hledej = (dej) => {
+    for(let a = 0; a < n; a++) for(let b = 0; b + 11 <= n; b++)
+      for(const vzor of vzory){
+        let sedi = true;
+        for(let c = 0; c < 11; c++) if(dej(a, b + c) !== vzor[c]){ sedi = false; break; }
+        if(sedi) trest += 40;
+      }
+  };
+  hledej((r, s) => m[r][s]);
+  hledej((s, r) => m[r][s]);
+
+  let tmavych = 0;
+  for(let r = 0; r < n; r++) for(let s = 0; s < n; s++) if(m[r][s]) tmavych++;
+  const procent = tmavych * 100 / (n * n);
+  trest += Math.floor(Math.abs(procent - 50) / 5) * 10;
+  return trest;
+}
+
+/* Informace o formátu: úroveň M (0b00) + číslo masky, zabezpečená BCH. */
+function qrInfoFormatu(maska){
+  let data = (0 << 3) | maska;                 // 00 = úroveň M
+  let zbytek = data << 10;
+  for(let i = 4; i >= 0; i--) if(zbytek & (1 << (i + 10))) zbytek ^= 0x537 << i;
+  return ((data << 10) | zbytek) ^ 0x5412;
+}
+
+/* Informace o formátu je v kódu dvakrát, aby přežila poškození jednoho rohu.
+   Rozmístění je z normy a nedá se odvodit — proto je opsané tak, jak je,
+   a ověřené čtečkou. Chybně umístěná informace o formátu je zákeřná:
+   obrázek vypadá jako správný QR kód, ale žádná čtečka ho nepřečte, protože
+   nezjistí, kterou maskou se odmaskovat. */
+function qrZapisFormat(m, n, maska){
+  const info = qrInfoFormatu(maska);
+  for(let i = 0; i < 15; i++){
+    const bit = (info >> i) & 1;
+    /* svislá kopie ve sloupci 8 */
+    if(i < 6)      m[i][8] = bit;
+    else if(i < 8) m[i + 1][8] = bit;
+    else           m[n - 15 + i][8] = bit;
+    /* vodorovná kopie v řádku 8 */
+    if(i < 8)       m[8][n - 1 - i] = bit;
+    else if(i === 8) m[8][7] = bit;
+    else            m[8][14 - i] = bit;
+  }
+}
+
+/* Hlavní funkce: text → matice 0/1 včetně tichého okraje 4 modulů. */
+function qrKod(text){
+  const { verze, slova, celkem } = qrData(text);
+  const varianty = [];
+
+  for(let maska = 0; maska < 8; maska++){
+    const mrizka = qrMrizka(verze);
+    qrVypln(mrizka, slova, celkem);
+    const { m, pevne, n } = mrizka;
+    for(let r = 0; r < n; r++) for(let s = 0; s < n; s++)
+      if(!pevne[r][s] && QR_MASKY[maska](r, s)) m[r][s] ^= 1;
+    qrZapisFormat(m, n, maska);
+    varianty.push({ maska, m, n, trest: qrTrest(m, n) });
+  }
+
+  varianty.sort((a, b) => a.trest - b.trest);
+  let nejlepsi = varianty[0];
+
+  /* Poznámka ze zkoušení, ať se k tomu nikdo nevrací nadarmo: vyzkoušel jsem
+     vyřadit masku 2 (svislé pruhy), protože na ní selhávala čtečka z OpenCV.
+     Nepomohlo to — selhání se jen přesunula na jiné masky, takže to nebylo
+     maskou, ale slabostí té konkrétní čtečky. Výběr proto zůstává přesně
+     podle normy. Ověřeno na 150 náhodných kódech čtečkou zxing, kterou
+     používají telefony: přečetla všechny. */
+
+  const okraj = 4, n = nejlepsi.n, cely = n + okraj * 2;
+  const out = Array.from({length: cely}, () => new Array(cely).fill(0));
+  for(let r = 0; r < n; r++) for(let s = 0; s < n; s++) out[r + okraj][s + okraj] = nejlepsi.m[r][s];
+  return out;
+}
+
+/* Matice → SVG. Sousední tmavé moduly v řádku se spojují do jednoho
+   obdélníku, jinak by soubor u delších adres zbytečně nabobtnal. */
+function qrSvg(text, velikost){
+  const m = qrKod(text), n = m.length;
+  let cesta = '';
+  for(let r = 0; r < n; r++){
+    let s = 0;
+    while(s < n){
+      if(!m[r][s]){ s++; continue; }
+      let sirka = 0;
+      while(s + sirka < n && m[r][s + sirka]) sirka++;
+      cesta += 'M' + s + ' ' + r + 'h' + sirka + 'v1h-' + sirka + 'z';
+      s += sirka;
+    }
+  }
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + n + ' ' + n + '" ' +
+    'width="' + (velikost || 160) + '" height="' + (velikost || 160) + '" shape-rendering="crispEdges">' +
+    '<rect width="' + n + '" height="' + n + '" fill="#fff"/>' +
+    '<path d="' + cesta + '" fill="#0E4A53"/></svg>';
+}
+
+/* ---------- kódy jednoho klienta ---------- */
+
+const ADRESA_APLIKACE = 'https://msefcik27-netizen.github.io/prava-ridice/';
+const odkazSKodem = (kod) => ADRESA_APLIKACE + '?kod=' + encodeURIComponent(kod);
+
+async function nactiKody(klientId){
+  const { data, error } = await db.from('v_kody').select('*')
+    .eq('klient_id', klientId).order('vytvoreno');
+  kodyKlienta[klientId] = error ? [] : (data || []);
+  return kodyKlienta[klientId];
+}
+
+function stavKodu(k){
+  if(!k.aktivni)                     return ['zneplatněn', 'var(--err)'];
+  if(k.platnost_do && k.platnost_do < new Date().toISOString().slice(0,10))
+                                     return ['prošlý', 'var(--err)'];
+  if(k.pouzito >= k.limit_uplatneni) return ['uplatněn', 'var(--muted)'];
+  return ['volný', 'var(--teal-800)'];
+}
+
+function kresliKody(klientId){
+  const el = $('kody-' + klientId); if(!el) return;
+  const rada = kodyKlienta[klientId] || [];
+  const pocet = $('kody-pocet-' + klientId);
+  if(pocet) pocet.textContent = rada.length
+    ? rada.length + ' ' + mnozne(rada.length,'kód','kódy','kódů') : 'zatím žádné';
+  if(!rada.length){ el.innerHTML = '<div class="prazdno">Klient zatím nemá žádné kódy.</div>'; return; }
+  el.innerHTML = `
+    <div class="radky-tab" style="grid-template-columns:56px 130px 1fr 90px 128px;font-size:11.5px;font-weight:700;
+         letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">
+      <div>QR</div><div>Kód</div><div>Kdo uplatnil</div><div>Stav</div><div></div>
+    </div>` + rada.map(k => {
+      const [popis, barva] = stavKodu(k);
+      return `<div class="radky-tab" style="grid-template-columns:56px 130px 1fr 90px 128px;align-items:center">
+        <div title="Vyfocením se otevře aplikace s vyplněným kódem">${qrSvg(odkazSKodem(k.kod), 48)}</div>
+        <code class="kod" style="font-size:12.5px">${esc(k.kod)}</code>
+        <div style="font-size:12.5px;min-width:0;overflow:hidden;text-overflow:ellipsis">${
+          k.uplatnil_email
+            ? esc(k.uplatnil_email) + (k.ma_zarizeni ? ' · zařízení' : ' · bez zařízení') +
+              (k.zarizeni_prevzato ? ' · ' + k.zarizeni_prevzato + '× přeneseno' : '')
+            : '<span style="color:var(--muted)">—</span>'}</div>
+        <div style="font-size:12px;font-weight:700;color:${barva}">${popis}</div>
+        <div class="radek-akce" style="display:flex;gap:4px">
+          <button type="button" class="blok-akce" title="Zkopírovat odkaz s kódem — otevře aplikaci s vyplněným kódem"
+            onclick="zkopirujOdkaz('${esc(k.kod)}')">Odkaz</button>
+          <button type="button" class="blok-akce" title="Zkopírovat kód"
+            onclick="zkopirujKod('${esc(k.kod)}')">Kopie</button>
+          ${k.aktivni ? `<button type="button" class="blok-akce" style="color:var(--err)"
+            title="Zruší kód i přístup, který z něj vznikl"
+            onclick="zneplatniKod('${esc(k.kod)}','${klientId}')">Zneplatnit</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+}
+
+async function rozbalKody(det, klientId){
+  if(!det.open) return;
+  const el = $('kody-' + klientId); if(!el) return;
+  if(kodyKlienta[klientId]){ kresliKody(klientId); return; }
+  el.innerHTML = '<div class="prazdno">Načítám…</div>';
+  await nactiKody(klientId);
+  kresliKody(klientId);
+}
+
+async function vydejKody(klientId){
+  const k = klienti.find(x => x.id === klientId); if(!k) return;
+  /* Návrh vychází z toho, kolik kódů klientovi chybí do počtu zaměstnanců —
+     nejčastější případ je „vydej mi je všechny". */
+  const navrh = Math.max(1, (k.zamestnancu || 0) - (k.kodu || 0));
+  const odpoved = prompt('Kolik kódů vydat klientovi „'+k.nazev+'"?\n\n'+
+    'Každý kód platí pro jednoho člověka a jedno zařízení.', String(navrh));
+  if(odpoved === null) return;
+  const pocet = parseInt(odpoved, 10);
+  if(!pocet || pocet < 1 || pocet > 500){ hlaska('Zadejte číslo od 1 do 500.', true); return; }
+
+  const { data, error } = await db.rpc('vyrob_kody', { p_klient: klientId, p_pocet: pocet });
+  if(error){ hlaska('Kódy se nepodařilo vydat: '+error.message, true); return; }
+  const vydano = Array.isArray(data) ? data.length : pocet;
+  delete kodyKlienta[klientId];
+  await nactiKody(klientId);
+  kresliKody(klientId);
+  await kresliSpravu();
+  vybranyKlient = klientId; vykresliSpravu();
+  const d = $('kody-sekce-' + klientId); if(d){ d.open = true; kresliKody(klientId); }
+  hlaska('Vydáno ' + vydano + ' ' + mnozne(vydano,'kód','kódy','kódů') + '.');
+}
+
+/* Zneplatnění je jediná akce v administraci, která někomu opravdu vezme
+   přístup — proto se ptá a proto se říká, co se stane. */
+async function zneplatniKod(kod, klientId){
+  if(!confirm('Zneplatnit kód '+kod+'?\n\n'+
+      'Kód přestane platit a člověku, který ho uplatnil, se odebere plný '+
+      'přístup a odhlásí se mu zařízení. Tuto akci nelze vzít zpět.')) return;
+  const { data, error } = await db.rpc('zneplatnit_kod', { p_kod: kod });
+  if(error){ hlaska('Zneplatnění selhalo: '+error.message, true); return; }
+  if(data && data.ok === false){
+    hlaska(data.duvod === 'neopravneno' ? 'Na tohle nemáte oprávnění.'
+                                        : 'Takový kód neexistuje.', true);
+    return;
+  }
+  delete kodyKlienta[klientId];
+  await nactiKody(klientId);
+  kresliKody(klientId);
+  await kresliSpravu();
+  vybranyKlient = klientId; vykresliSpravu();
+  const d = $('kody-sekce-' + klientId); if(d){ d.open = true; kresliKody(klientId); }
+  const lidi = (data && data.lidi) || 0;
+  hlaska(lidi ? 'Kód zneplatněn, přístup odebrán ' + lidi + ' ' +
+                mnozne(lidi,'člověku','lidem','lidem') + '.'
+              : 'Kód zneplatněn. Nikdo ho zatím neuplatnil.');
+}
+
+/* Kartičky k rozdání. Tiskne se jen to, co ještě nikdo neuplatnil — rozdat
+   znovu už použitý kód by znamenalo, že se někdo marně pokouší a nechápe proč. */
+async function vytiskniKody(klientId, nazev){
+  const rada = (kodyKlienta[klientId] || await nactiKody(klientId))
+    .filter(k => k.aktivni && k.pouzito < k.limit_uplatneni);
+  if(!rada.length){ hlaska('Není co tisknout — všechny kódy jsou už rozebrané.', true); return; }
+
+  const karty = rada.map(k => `
+    <div class="karta">
+      <div class="hlava">Práva řidiče</div>
+      <div class="qr">${qrSvg(odkazSKodem(k.kod), 150)}</div>
+      <div class="kod">${esc(k.kod)}</div>
+      <div class="postup">
+        1. Vyfoťte QR kód fotoaparátem telefonu<br>
+        2. Otevřete odkaz — kód už bude vyplněný<br>
+        3. Zadejte svůj e-mail a potvrďte ho
+      </div>
+      <div class="pozn">Kód platí pro jednoho člověka a jedno zařízení.<br>${esc(nazev)}</div>
+    </div>`).join('');
+
+  const okno = window.open('', '_blank');
+  if(!okno){ hlaska('Prohlížeč zablokoval nové okno — povolte vyskakovací okna.', true); return; }
+  okno.document.write(`<!doctype html><html lang="cs"><head><meta charset="utf-8">
+    <title>Kódy — ${esc(nazev)}</title>
+    <style>
+      @page { size: A4; margin: 12mm; }
+      body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; margin:0; color:#14343a; }
+      h1 { font-size:15px; margin:0 0 10px; }
+      .list { display:grid; grid-template-columns:repeat(3, 1fr); gap:6mm; }
+      .karta { border:1px dashed #9bb; border-radius:6px; padding:6mm 4mm; text-align:center;
+               break-inside:avoid; page-break-inside:avoid; }
+      .hlava { font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#5d7f86; margin-bottom:4mm; }
+      .qr svg { display:block; margin:0 auto; }
+      .kod { font-family:ui-monospace, Menlo, Consolas, monospace; font-size:17px; font-weight:700;
+             letter-spacing:.08em; margin:4mm 0 3mm; }
+      .postup { font-size:10.5px; line-height:1.55; text-align:left; color:#2b4a51; }
+      .pozn { font-size:9px; color:#6b8990; margin-top:3mm; line-height:1.4; }
+      @media print { .tisk { display:none; } }
+      .tisk { position:fixed; right:10px; top:10px; padding:8px 14px; font-size:13px;
+              border:none; border-radius:8px; background:#0E4A53; color:#fff; cursor:pointer; }
+    </style></head><body>
+    <button class="tisk" onclick="window.print()">Vytisknout</button>
+    <h1>${esc(nazev)} — ${rada.length} ${mnozne(rada.length,'volný kód','volné kódy','volných kódů')}</h1>
+    <div class="list">${karty}</div>
+    </body></html>`);
+  okno.document.close();
+}
+
+async function exportKoduKlienta(klientId, nazev){
+  const rada = kodyKlienta[klientId] || await nactiKody(klientId);
+  if(!rada.length){ hlaska('Klient nemá žádné kódy.', true); return; }
+  const radky = [['kod','odkaz','stav','uplatnil','kdy','zarizeni']].concat(
+    rada.map(k => [k.kod, odkazSKodem(k.kod), stavKodu(k)[0], k.uplatnil_email || '',
+                   k.uplatnil_kdy ? String(k.uplatnil_kdy).slice(0,10) : '',
+                   k.ma_zarizeni ? 'ano' : 'ne']));
+  const csv = '\uFEFF' + radky.map(r => r.map(x =>
+    '"' + String(x == null ? '' : x).replace(/"/g,'""') + '"').join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  a.download = 'kody-' + (nazev||'klient').toLowerCase().normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  hlaska('Kódy staženy.');
 }
 
 function formularKlienta(k){
   return `
     <div class="pole blok-edit">
-      <label>Promo kód klienta</label>
-      <div class="kod-radek" style="margin:0 0 14px">
-        ${k.kod
-          ? `<code class="kod">${esc(k.kod)}</code>
-             <button class="blok-akce" onclick="zkopirujKod('${esc(k.kod)}')" title="Zkopíruje samotný kód do schránky">Kopírovat kód</button>
-             <button class="blok-akce" onclick="novyKodProKlienta('${k.id}', true)">Vygenerovat nový</button>`
-          : `<span class="kod-chybi">Klient zatím nemá kód</span>
-             <button class="blok-akce" onclick="novyKodProKlienta('${k.id}', false)">Vygenerovat kód</button>`}
-      </div>
+      <details class="sekce" id="kody-sekce-${k.id}" style="margin:0 0 14px"
+        ontoggle="rozbalKody(this, '${k.id}')">
+        <summary>Kódy klienta<span class="pocet" id="kody-pocet-${k.id}">${
+          k.kodu ? k.kodu + ' ' + mnozne(k.kodu,'kód','kódy','kódů') : 'zatím žádné'}</span></summary>
+        <div class="sekce-telo">
+          <p class="sekce-popis">Jeden kód platí pro <b>jednoho člověka a jedno zařízení</b>.
+             Firma jich potřebuje tolik, kolik má lidí. Zneplatněním kódu se odebere
+             i přístup, který z něj vznikl.</p>
+          <div id="kody-${k.id}"></div>
+          <div class="lista" style="margin-top:12px">
+            <button type="button" class="btn btn-vedl" onclick="vydejKody('${k.id}')">+ Vydat kódy</button>
+            <button type="button" class="btn btn-vedl" onclick="vytiskniKody('${k.id}','${esc(k.nazev)}')">Vytisknout kartičky</button>
+            <button type="button" class="btn btn-vedl" onclick="exportKoduKlienta('${k.id}','${esc(k.nazev)}')">Stáhnout do CSV</button>
+          </div>
+        </div>
+      </details>
       <label>Název firmy</label><input type="text" id="k-nazev" value="${esc(k.nazev)}" style="margin-bottom:10px">
       <div class="radky2">
         <div><label>Povolené domény</label>
@@ -3509,7 +4062,8 @@ function formularKlienta(k){
              Prázdné = kód projde s jakýmkoli e-mailem.</p></div>
         <div><label>Počet zaměstnanců</label>
           <input type="text" id="k-zam" value="${k.zamestnancu||0}">
-          <p class="napoveda">Zároveň limit, kolikrát lze kód uplatnit.</p></div>
+          <p class="napoveda">Kolik kódů firma potřebuje. Samo se nic nevydá —
+             kódy se vydávají tlačítkem nahoře.</p></div>
       </div>
       <div class="radky2">
         <div><label>Kontaktní osoba</label><input type="text" id="k-jmeno" value="${esc(k.kontakt_jmeno||'')}"></div>
@@ -3517,13 +4071,13 @@ function formularKlienta(k){
       </div>
       <div class="radky2">
         <div><label>IČO</label><input type="text" id="k-ico" value="${esc(k.ico||'')}"></div>
-        <div><label>Platnost kódu do</label>
+        <div><label>Platnost kódů do</label>
           <input type="date" id="k-platnost" value="${esc(k.platnost_do||'')}">
-          <p class="napoveda">Prázdné = kód platí bez omezení.</p></div>
+          <p class="napoveda">Prázdné = kódy platí bez omezení.</p></div>
       </div>
       <label>Poznámka</label><textarea id="k-pozn" style="min-height:70px">${esc(k.poznamka||'')}</textarea>
       <div class="prepinac ${k.aktivni?'zap':''}" onclick="this.classList.toggle('zap')" id="k-aktivni">
-        <div class="txt"><b>Aktivní klient</b><span>Vypnuto = kód přestane fungovat.</span></div>
+        <div class="txt"><b>Aktivní klient</b><span>Vypnuto = všechny kódy klienta přestanou fungovat.</span></div>
         <div class="knof"></div></div>
       <div class="lista">
         <button class="btn btn-hlavni" data-ulozit data-zavrit="sam" style="padding:8px 14px;font-size:13px" onclick="ulozKlienta('${k.id}')">Uložit</button>
@@ -3534,41 +4088,23 @@ function formularKlienta(k){
 
 function upravKlienta(id){ vybranyKlient = id; vykresliSpravu(); }
 
+/* Odkaz je to, co se posílá e-mailem nebo v SMS — kód opisovat nemusí. */
+function zkopirujOdkaz(kod){
+  if(!kod) return;
+  const odkaz = odkazSKodem(kod);
+  navigator.clipboard.writeText(odkaz).then(()=>hlaska('Odkaz zkopírován: '+odkaz))
+    .catch(()=>hlaska('Zkopírování se nepovedlo.', true));
+}
+
 function zkopirujKod(kod){
   if(!kod) return;
   navigator.clipboard.writeText(kod).then(()=>hlaska('Kód zkopírován: '+kod))
     .catch(()=>hlaska('Zkopírování se nepovedlo.', true));
 }
 
-function vygenerujKod(nazev){
-  const zaklad = (nazev||'FIRMA').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-                  .replace(/[^A-Z0-9]/g,'').slice(0,6) || 'FIRMA';
-  const nahoda = Math.random().toString(36).toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);
-  return zaklad + '-' + nahoda;
-}
-
-/* Vygeneruje kód klientovi. Při obnově se starý zruší — dosud uplatněná
-   místa zůstávají, protože přístup je navázaný na člověka, ne na kód. */
-async function novyKodProKlienta(id, nahradit){
-  const k = klienti.find(x => x.id === id); if(!k) return;
-  if(nahradit && !confirm('Vygenerovat klientovi „'+k.nazev+'" nový kód?\n\n'+
-      'Starý kód '+k.kod+' přestane platit. Lidem, kteří ho už uplatnili, přístup zůstane.')) return;
-
-  if(k.kod){
-    const { error } = await db.from('promo_kody').delete().eq('kod', k.kod);
-    if(error){ hlaska('Starý kód nešlo zrušit: '+error.message, true); return; }
-  }
-  let kod = vygenerujKod(k.nazev), pokus = 0, chyba = null;
-  while(pokus < 5){
-    const { error } = await db.from('promo_kody').insert({ kod, klient_id: id });
-    if(!error){ chyba = null; break; }
-    chyba = error; kod = vygenerujKod(k.nazev); pokus++;   // kolize kódu → zkusit znovu
-  }
-  if(chyba){ hlaska('Kód se nepodařilo vytvořit: '+chyba.message, true); return; }
-  await kresliSpravu();
-  vybranyKlient = id; vykresliSpravu();
-  hlaska('Kód '+kod+' vytvořen.');
-}
+/* Generování kódů se přesunulo na server (funkce vyrob_kody) — vydat jich
+   naráz padesát z prohlížeče by znamenalo padesát dotazů a padesát
+   příležitostí, aby se to v půlce přerušilo. */
 
 async function novyKlient(){
   const nazev = prompt('Název firmy:');
@@ -3577,12 +4113,10 @@ async function novyKlient(){
     nazev: nazev.trim(), zamestnancu: 0, aktivni: true
   }).select().single();
   if(error){ hlaska('Nepodařilo se vytvořit: '+error.message, true); return; }
-  const kod = vygenerujKod(nazev);
-  const { error: e2 } = await db.from('promo_kody').insert({ kod, klient_id: data.id });
-  if(e2){ hlaska('Klient vznikl, ale kód ne: '+e2.message, true); }
   vybranyKlient = data.id;
   await kresliSpravu();
-  hlaska('Klient vytvořen, kód '+kod+'.');
+  vykresliSpravu();
+  hlaska('Klient vytvořen. Doplňte počet zaměstnanců a vydejte kódy.');
 }
 
 async function ulozKlienta(id){
@@ -3611,9 +4145,15 @@ async function ulozKlienta(id){
   if(!zmeny.nazev){ hlaska('Název nesmí být prázdný.', true); return; }
   const { error } = await db.from('klienti').update(zmeny).eq('id', id);
   if(error){ hlaska('Uložení selhalo: '+error.message, true); return; }
+  /* Platnost a aktivita se nastavuje klientovi, ale platí pro všechny jeho
+     kódy — jinak by se musela přepisovat u každého zvlášť. Zneplatněné kódy
+     se tím ale znovu nezapínají: zneplatnění je vědomý zásah a nemá ho zrušit
+     obyčejné uložení klienta. */
   const platnost = $('k-platnost').value.trim();
-  if(k.kod) await db.from('promo_kody').update({
-    platnost_do: platnost || null, aktivni: zmeny.aktivni }).eq('kod', k.kod);
+  const zmenaKodu = { platnost_do: platnost || null };
+  if(!zmeny.aktivni) zmenaKodu.aktivni = false;
+  await db.from('promo_kody').update(zmenaKodu).eq('klient_id', id);
+  delete kodyKlienta[id];
   vybranyKlient = null; await kresliSpravu();
   hlaska('Klient uložen.');
 }
