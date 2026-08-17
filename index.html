@@ -693,6 +693,33 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
   border:1px solid var(--line);border-radius:11px;background:var(--bg,#fff);color:var(--ink)}
 .okno-lista{display:flex;gap:9px;margin-top:16px}
 .okno-lista .btn{flex:1;justify-content:center}
+/* Potvrzení odeslané poptávky. Není to hlášení o úspěchu operace, je to
+   odpověď kanceláře — proto znak, ne fajfka v proužku, a proto kroky. */
+.okno-odeslano{max-width:352px;text-align:center}
+.okno-odeslano h3{font-size:19px;margin:14px 0 6px}
+.okno-odeslano p{text-align:center}
+.odeslano-znak{width:62px;height:62px;margin:2px auto 0;border-radius:50%;
+  background:var(--rada-bg);color:var(--turq-deep);
+  display:flex;align-items:center;justify-content:center}
+.odeslano-kroky{list-style:none;margin:16px 0 0;padding:0;text-align:left}
+.odeslano-kroky li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;
+  border-top:1px solid var(--line);font-size:13.5px;line-height:1.5}
+.odeslano-kroky li:first-child{border-top:0;padding-top:2px}
+.odeslano-kroky .cislo{flex:0 0 auto;width:21px;height:21px;border-radius:50%;
+  background:var(--teal-900);color:#fff;font-size:11.5px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;margin-top:1px}
+
+/* Seznam příloh. Ubrat přílohu musí jít stejně snadno jako ji přidat —
+   vyfocené doklady bývají rozmazané a člověk to pozná až po focení. */
+.prilohy{display:flex;flex-direction:column;gap:6px;margin-top:9px}
+.priloha{display:flex;align-items:center;gap:9px;padding:8px 10px;
+  background:var(--bg);border:1px solid var(--line);border-radius:11px;font-size:12.5px}
+.priloha .jmeno{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.priloha .velikost{flex:0 0 auto;color:var(--muted);font-size:11.5px}
+.priloha button{flex:0 0 auto;background:none;border:0;padding:4px;cursor:pointer;
+  color:var(--muted);display:flex;line-height:0}
+.priloha button:active{color:var(--err)}
+
 /* Nevratná akce má barvu varování, ne firemní tyrkysovou — ať se nezaklikne omylem. */
 .okno .btn-nebezpecne{background:#C0392B;color:#fff;border:0}
 .okno .btn-nebezpecne:active{background:#A33227}
@@ -968,7 +995,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 117<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 119<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1017,10 +1044,10 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="field">
           <label data-text="formular.prilohy">Přílohy</label>
           <div class="attach-row">
-            <label class="attach"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg> <span data-text="formular.priloha.soubor">Přidat soubor</span><input type="file" hidden onchange="fileAdded(this)"/></label>
+            <label class="attach"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg> <span data-text="formular.priloha.soubor">Přidat soubor</span><input type="file" multiple hidden onchange="fileAdded(this)"/></label>
             <label class="attach"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> <span data-text="formular.priloha.foto">Vyfotit</span><input type="file" accept="image/*" capture="environment" hidden onchange="fileAdded(this)"/></label>
           </div>
-          <div class="hint" id="fFileName" style="display:none;"></div>
+          <div class="prilohy" id="fPrilohy"></div>
         </div>
         <div class="consent">
           <div class="check" id="fConsent" role="checkbox" aria-checked="false" tabindex="0"
@@ -1435,10 +1462,14 @@ function tab(name){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
   document.getElementById('nav').style.display='flex';
 }
-function go(id){ state.history.push(state.screen); state.screen=id; showScreen(id); document.getElementById('nav').style.display='none'; }
+/* Lišta zůstává vidět i tady. Z každé obrazovky vedou ven dvě cesty: Zpět
+   o krok, nebo záložka rovnou tam, kam člověk chce. */
+function go(id){ state.history.push(state.screen); state.screen=id; showScreen(id);
+  document.getElementById('nav').style.display='flex'; }
 function back(to){ state.history=[]; state.screen=to; state.tab=to; showScreen(to); document.getElementById('nav').style.display='flex';
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===to)); }
-function backAuto(){ const prev=state.history.pop()||'prehled'; if(TABS.includes(prev)) back(prev); else { state.screen=prev; showScreen(prev); } }
+function backAuto(){ const prev=state.history.pop()||'prehled'; if(TABS.includes(prev)) back(prev);
+  else { state.screen=prev; showScreen(prev); document.getElementById('nav').style.display='flex'; } }
 function enterApp(){ try{ stavPlochaKarty(); }catch(e){}
   document.getElementById('onboard').style.display='none'; fitScreen(); requestAnimationFrame(fitScreen); updateChromeBg(); }
 
@@ -2115,14 +2146,107 @@ function openKontakt(){
 }
 
 /* ============ KONZULTACE ============ */
-/* Vybraná příloha. Drží se stranou od pole, protože pole jsou dvě (soubor
-   a fotoaparát) a při odesílání se nedá hádat, ze kterého to je. */
-let prilohaSoubor = null;
+/* Vybrané přílohy. Drží se stranou od polí, protože pole jsou dvě (soubor
+   a fotoaparát) a při odesílání se nedá hádat, ze kterého to je. Seznam,
+   ne jedna hodnota: k nehodě patří víc fotek než jedna a dvě tlačítka nad
+   sebou slibují, že jich víc vzít umíme. */
+let prilohy = [];
+const PRILOH_MAX = 5;                 // tolik jich přijme funkce submit-intake
+const PRILOHA_MAX_B = 10*1024*1024;   // a tahle velikost projde do JIRA
+
+function velikostSouboru(b){
+  return b >= 1048576 ? (b/1048576).toFixed(1).replace('.', ',')+' MB'
+                      : Math.max(1, Math.round(b/1024))+' kB';
+}
+
 function fileAdded(inp){
-  if(inp.files&&inp.files[0]){
-    prilohaSoubor = inp.files[0];
-    state.fileName = inp.files[0].name;
-    const el=document.getElementById('fFileName'); el.style.display='block'; el.textContent='Přiloženo: '+state.fileName; }
+  const nove = [...(inp.files||[])];
+  /* Pole se hned vyprázdní, aby šlo vybrat tentýž soubor znovu — jinak by
+     po odebrání omylem nešel přidat zpátky. */
+  inp.value = '';
+  for(const f of nove){
+    if(!f || !f.size) continue;
+    if(f.size > PRILOHA_MAX_B){ toast('Soubor „'+f.name+'" je větší než 10 MB.'); continue; }
+    if(prilohy.length >= PRILOH_MAX){ toast('Víc než '+PRILOH_MAX+' příloh najednou neposíláme.'); break; }
+    /* Fotky z fotoaparátu se často jmenují stejně (image.jpg). Rozhoduje
+       proto i velikost, jinak by druhá fotka vypadala jako duplikát. */
+    if(prilohy.some(p => p.name === f.name && p.size === f.size)) continue;
+    prilohy.push(f);
+  }
+  kresliPrilohy();
+}
+
+function odeberPrilohu(i){ prilohy.splice(i,1); kresliPrilohy(); }
+
+function kresliPrilohy(){
+  const box = document.getElementById('fPrilohy'); if(!box) return;
+  state.fileName = prilohy.map(f => f.name).join(', ');
+  box.innerHTML = prilohy.map((f,i) => {
+    const jmeno = String(f.name).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    return '<div class="priloha">'+
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;color:var(--muted)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>'+
+      '<span class="jmeno">'+jmeno+'</span>'+
+      '<span class="velikost">'+velikostSouboru(f.size)+'</span>'+
+      '<button type="button" aria-label="Odebrat přílohu '+jmeno+'" onclick="odeberPrilohu('+i+')">'+
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>'+
+      '</button></div>';
+  }).join('');
+}
+
+/* Potvrzení po odeslání. Proužek dole zmizí dřív, než ho stačí přečíst
+   někdo, komu se zrovna třesou ruce. */
+function oknoOdeslano(neprosly){
+  /* Nepřipojená příloha není maličkost: právník ji neuvidí a řidič si myslí,
+     že ji poslal. Píše se to proto rovnou do potvrzení, ne do proužku. */
+  const varovani = (neprosly && neprosly.length)
+    ? '<div style="margin-top:14px;padding:11px 12px;border-radius:11px;text-align:left;'+
+        'background:var(--pozor-bg);border:1px solid var(--pozor-line);color:var(--pozor-ink);'+
+        'font-size:12.5px;line-height:1.5">'+
+        '<b style="color:var(--pozor-nadpis)">'+
+        (neprosly.length === 1 ? 'Přílohu se nepodařilo připojit'
+                               : neprosly.length+' přílohy se nepodařilo připojit')+':</b> '+
+        neprosly.map(n => String(n).replace(/&/g,'&amp;').replace(/</g,'&lt;')).join(', ')+
+        '. Poptávku máme, ale tenhle soubor u ní není — pošlete nám ho prosím jinak, '+
+        'nebo se ozvěte telefonicky.</div>'
+    : '';
+  return new Promise(hotovo => {
+    const pozadi = document.createElement('div');
+    pozadi.className = 'okno-pozadi';
+    pozadi.innerHTML =
+      '<div class="okno okno-odeslano" role="dialog" aria-modal="true">'+
+        '<div class="odeslano-znak">'+
+          '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 7"/></svg>'+
+        '</div>'+
+        '<h3>Máme to</h3>'+
+        '<p>Vaše poptávka je u nás v systému. Nikam už nemusíte psát.</p>'+
+        '<ol class="odeslano-kroky">'+
+          '<li><span class="cislo">1</span><span>Právník si projde, co jste popsal.</span></li>'+
+          '<li><span class="cislo">2</span><span>Zavoláme vám <b>do 2 hodin</b> v pracovní době. Mimo ni hned ráno.</span></li>'+
+          '<li><span class="cislo">3</span><span>Řeknete si, co dělat dál — a kolik to bude stát.</span></li>'+
+        '</ol>'+ varovani +
+        '<div class="okno-lista">'+
+          '<button type="button" class="btn btn-outline-dark btn-sm" data-ne>Zavolat hned</button>'+
+          '<button type="button" class="btn btn-dark btn-sm" data-ano>Hotovo</button>'+
+        '</div></div>';
+    document.body.appendChild(pozadi);
+    requestAnimationFrame(() => {
+      pozadi.classList.add('vidno');
+      const t = pozadi.querySelector('[data-ano]'); if(t) t.focus();
+    });
+    const konec = (volat) => {
+      document.removeEventListener('keydown', klavesa, true);
+      pozadi.classList.remove('vidno');
+      setTimeout(() => pozadi.remove(), 170);
+      hotovo(volat);
+    };
+    function klavesa(e){ if(e.key === 'Escape' || e.key === 'Enter'){ e.preventDefault(); konec(false); } }
+    const tlAno = pozadi.querySelector('[data-ano]');
+    const tlNe  = pozadi.querySelector('[data-ne]');
+    if(tlAno) tlAno.addEventListener('click', () => konec(false));
+    if(tlNe)  tlNe.addEventListener('click',  () => konec(true));
+    pozadi.addEventListener('click', e => { if(e.target === pozadi) konec(false); });
+    document.addEventListener('keydown', klavesa, true);
+  });
 }
 /* Poptávka jde do JIRA (funkce submit-intake). Když se to nepovede, zapíše se
    aspoň do tabulky, kde ji kancelář uvidí v administraci — dvě cesty proto,
@@ -2143,7 +2267,7 @@ async function submitForm(){
   if(tlacitko){ tlacitko.disabled = true; }
   toast('Odesílám…');
 
-  let odeslano = false, doJiry = false;
+  let odeslano = false, doJiry = false, neprosloPriloh = [];
 
   /* 1) do JIRA. Funkce si poptávku zapíše i do tabulky, takže když projde,
      je hotovo a nic dalšího se neposílá. */
@@ -2157,7 +2281,11 @@ async function submitForm(){
       data.append('popis', msg || 'Bez zprávy — řidič žádá o zpětné zavolání.');
       data.append('souhlas', '1');
       data.append('zdroj', 'PWA aplikace');
-      if(prilohaSoubor) data.append('soubor', prilohaSoubor);
+      /* Název pole musí sedět s funkcí submit-intake, která čte `prilohy`.
+         Pod dřívějším `soubor` se přílohy tiše zahazovaly — a protože poptávka
+         prošla, nikoho to nenapadlo. Kdyby se název měnil, musí se změnit
+         na obou stranách zároveň; kontrola test-prilohy.js se dívá na obě. */
+      for(const f of prilohy) data.append('prilohy', f, f.name);
       const r = await fetch(PR_CFG.SUPABASE_URL + '/functions/v1/submit-intake', {
         method: 'POST',
         headers: { apikey: PR_CFG.SUPABASE_ANON, Authorization: 'Bearer ' + PR_CFG.SUPABASE_ANON },
@@ -2165,7 +2293,14 @@ async function submitForm(){
       });
       doJiry = r.ok;
       odeslano = r.ok;
-      if(!r.ok) console.warn('submit-intake', r.status, await r.text());
+      /* Odpověď funkce se dřív zahazovala. Je v ní seznam příloh, které se
+         do JIRA nedostaly — bez něj by se tichá ztráta opakovala. */
+      if(r.ok){
+        try{
+          const odpoved = await r.json();
+          if(odpoved && Array.isArray(odpoved.rejected)) neprosloPriloh = odpoved.rejected;
+        }catch(e){}
+      } else console.warn('submit-intake', r.status, await r.text());
     }catch(e){ console.warn('submit-intake', e); }
   }
 
@@ -2193,14 +2328,20 @@ async function submitForm(){
     document.getElementById('fTel').value=''; document.getElementById('fMsg').value='';
     document.getElementById('fName').value=''; document.getElementById('fMail').value='';
     document.getElementById('fConsent').classList.remove('on');
-    prilohaSoubor = null; state.fileName = '';
-    const nazev = document.getElementById('fFileName');
-    if(nazev){ nazev.style.display = 'none'; nazev.textContent = ''; }
+    prilohy = []; state.fileName = ''; kresliPrilohy();
     /* Žádné potvrzení e-mailem nechodí, takže se ani neslibuje. */
-    toast('Máme to. Ozveme se telefonicky do 2 hodin v pracovní době.');
     backAuto();
+    const volat = await oknoOdeslano(neprosloPriloh);
+    if(volat) callUs();
   } else {
-    toast('Odeslání se nepovedlo — zavolejte nám prosím na '+TELTXT+'.');
+    /* Vyplněný formulář zůstává, včetně příloh — po neúspěchu se nemá nic
+       vypisovat znovu. */
+    const zavolat = await okno({
+      nadpis:'Odeslání se nepovedlo',
+      text:'Poptávku se nepodařilo odeslat — nejspíš je slabé připojení. Nic jste '+
+           'nepřišel, formulář zůstal vyplněný. Zkuste to prosím znovu, nebo nám rovnou zavolejte na '+TELTXT+'.',
+      potvrdit:'Zavolat', zrusit:'Zkusit znovu' });
+    if(zavolat) callUs();
   }
 }
 function callUs(){ window.location.href = 'tel:' + odk('kontakt.telefon','+420739662266').replace(/\s/g,''); }
@@ -2370,19 +2511,25 @@ function loadSupabase(){
   });
 }
 async function authInit(){
-  if(!authReady()) return;
+  /* Bez adresy serveru se přihlásit nedá — tam se nic nezjišťuje a nic se
+     neztratilo, tak ať to Profil neukazuje jako výpadek. */
+  if(!authReady()){ authStav = 'neprihlasen'; return; }
   try{
     await loadSupabase();
     sb=window.supabase.createClient(PR_CFG.SUPABASE_URL, PR_CFG.SUPABASE_ANON);
     const {data}=await sb.auth.getSession();
     if(data && data.session){
-      authUser=data.session.user; await afterLogin(); await zjistiPristup();
+      authUser=data.session.user; nastavAuthStav('prihlasen');
+      await afterLogin(); await zjistiPristup();
       await hlidejZarizeni(); await nactiSouhlasy();
       let ceka=null; try{ ceka=JSON.parse(localStorage.getItem('pr-cekam-na-potvrzeni')||'null'); }catch(e){}
       if(ceka) await poPotvrzeni();
+    } else {
+      nastavAuthStav('neprihlasen');
     }
     sb.auth.onAuthStateChange(async (_e,session)=>{
       authUser = session ? session.user : null;
+      nastavAuthStav(authUser ? 'prihlasen' : 'neprihlasen');
       renderAccount();
       if(authUser){
         await afterLogin(); await zjistiPristup();
@@ -2395,14 +2542,26 @@ async function authInit(){
       }
     });
     renderAccount();
-  }catch(e){ console.warn('auth init',e); }
+  }catch(e){
+    /* Knihovna se nenačetla nebo nebylo spojení. To není odhlášení — účet
+       nejspíš platí, jen o něm zatím nevíme. Poslední známý přístup zůstává
+       a v Profilu se to napíše. */
+    console.warn('auth init',e);
+    nastavAuthStav('nedostupne');
+    try{ renderAccount(); }catch(e2){}
+  }
 }
 async function authSignOut(){
+  /* Značka přístupu se maže dřív, než se odhlásíme. Jinak by změnu stavu
+     zachytilo hlídání ztraceného přihlášení a nabízelo návrat zpátky ve
+     chvíli, kdy se člověk právě sám odhlásil. */
+  state.promoOk = false; saveState();
   if(sb){ await sb.auth.signOut(); }
   /* Odhlášením se záloha nemaže — data patří účtu, ne telefonu. Jen se
      přestane synchronizovat, aby se nezapisovalo pod cizí přihlášení. */
   nastavZalohu(false);
   authUser=null; pristupZeServeru=null; state.promoOk=false; saveState();
+  nastavAuthStav('neprihlasen');
   renderAccount(); renderStavPristupu(); renderPlan(); toast('Odhlášeno.');
 }
 function authName(){
@@ -2417,6 +2576,9 @@ async function afterLogin(){
   try{ if(state.screen === 'upozorneni') renderUpozorneni(); }catch(e){}
   try{
     const {data}=await sb.from('profiles').select('points,notif,updated_at').eq('id',authUser.id).maybeSingle();
+    /* Poslední e-mail zůstává v telefonu schválně: po ztrátě přihlášení je
+       návrat jedno klepnutí místo vzpomínání, kterou adresou to bylo. */
+    try{ if(authUser.email) localStorage.setItem('pr-ucet-email', authUser.email); }catch(e){}
     if(data && typeof data.points==='number'){
       state.points=data.points; renderPoints(); saveState();
       if(data.notif){ try{ localStorage.setItem('pr-notif',JSON.stringify(data.notif)); }catch(e){} }
@@ -2435,6 +2597,38 @@ async function pushProfile(){
 /* Viditelný stav přístupu: uživatel má vždy vědět, jestli je na omezeném,
    nebo plném přístupu — a čím ho získal. */
 let pristupZeServeru = null;   // null = zatím nezjištěno
+
+/* Stav přihlášení má čtyři hodnoty, ne dvě. Splynutí „nevíme" s „nepřihlášen"
+   je přesně to, co se projevilo v provozu: prázdný účet a vedle něj hlášení
+   o plném přístupu. */
+let authStav = 'zjistuje';   // zjistuje | prihlasen | neprihlasen | nedostupne
+
+function nastavAuthStav(novy){
+  const zmena = authStav !== novy;
+  authStav = novy;
+  if(!zmena) return;
+  /* Sem se dostane jen ztráta přihlášení. Odhlášení vlastní rukou i převzetí
+     jiným zařízením mažou značku přístupu dřív, než se stav změní. */
+  if(novy === 'neprihlasen' && state.promoOk) prihlaseniZmizelo();
+  try{ renderStavPristupu(); renderPlan(); }catch(e){}
+}
+
+/* Přihlášení zmizelo, aniž by se uživatel odhlásil — vypršelo, telefon
+   vyčistil úložiště, nebo se aplikace otevřela z plochy, která má úložiště
+   vlastní. Mlčet by znamenalo nechat člověka v aplikaci, která mu polovinu
+   obsahu zamkne a nevysvětlí proč. */
+async function prihlaseniZmizelo(){
+  state.promoOk = false; pristupZeServeru = null; saveState();
+  try{ renderAccount(); renderStavPristupu(); renderPlan(); }catch(e){}
+  const chce = await okno({
+    nadpis: 'Přihlaste se prosím znovu',
+    text: 'Přihlášení k účtu v tomhle telefonu vypršelo. Plný přístup je navázaný '+
+          'na účet, ne na telefon — než se přihlásíte, ukazuje se jen část obsahu. '+
+          'Stačí v Profilu zadat e-mail: body, nastavení i přístup se vrátí.',
+    potvrdit: 'Přihlásit se', zrusit: 'Později'
+  });
+  if(chce){ try{ tab('profil'); }catch(e){} }
+}
 
 /* Jednotná značka úrovně přístupu. Používá se všude — u oblastí, témat,
    služeb i ve výsledcích hledání, aby uživatel předem věděl, co se otevře. */
@@ -2648,7 +2842,14 @@ async function zeptejSeNaVahu(){
 }
 
 function maPlnyPristup(){
-  return pristupZeServeru === null ? !!state.promoOk : pristupZeServeru;
+  /* Plný přístup je navázaný na účet — bez přihlášení platit nemůže, ať už
+     si telefon pamatuje cokoli. Dokud se ale přihlášení teprve zjišťuje nebo
+     se nepodařilo ověřit, drží se poslední známý stav: kdo je v tunelu, nemá
+     přijít o obsah, který má zaplacený. */
+  if(authStav === 'neprihlasen') return false;
+  if(authStav === 'prihlasen')
+    return pristupZeServeru === null ? !!state.promoOk : pristupZeServeru;
+  return !!state.promoOk;
 }
 
 /* Zeptá se serveru, jestli má přihlášený uživatel plný přístup.
@@ -2683,9 +2884,12 @@ async function hlidejZarizeni(){
 /* Přístup převzalo jiné zařízení. Odhlásit a hlavně vysvětlit proč — jinak
    to vypadá jako porucha a člověk volá, že mu přestala fungovat aplikace. */
 async function prevzatoJinde(){
+  /* Napřed značka přístupu, pak odhlášení — vysvětlení má být jedno, tohle,
+     ne dvě okna přes sebe. */
+  state.promoOk = false; saveState();
   try{ await sb.auth.signOut(); }catch(e){}
   authUser = null; pristupZeServeru = null;
-  state.promoOk = false; saveState();
+  authStav = 'neprihlasen';
   try{ renderAccount(); renderStavPristupu(); renderPlan(); }catch(e){}
   await okno({
     nadpis: 'Přihlášeno na jiném zařízení',
@@ -2834,9 +3038,10 @@ async function zrusUcet(){
 
   /* Po smazání účtu nemá smysl nechat v telefonu přihlášení a přístup —
      ukazovalo by to stav, který na serveru už neexistuje. */
+  state.promoOk = false; saveState();
   try{ await sb.auth.signOut(); }catch(e){}
   authUser = null; pristupZeServeru = null;
-  state.promoOk = false; saveState();
+  authStav = 'neprihlasen';
   nastavZalohu(false);
   try{ renderAccount(); renderStavPristupu(); renderPlan(); }catch(e){}
   await okno({ nadpis:'Účet zrušen',
@@ -2847,6 +3052,24 @@ async function zrusUcet(){
 function renderAccount(){
   const box=document.getElementById('accountCard'); if(!box) return;
   setTimeout(fitScreen,0);
+  /* Tři stavy, ne dva. Napsat „Nepřihlášeno" někomu, komu se jen nepodařilo
+     ověřit účet, znamená poslat ho zakládat účet, který už má. */
+  if(!authUser && authStav !== 'neprihlasen'){
+    const vypadek = authStav === 'nedostupne';
+    box.innerHTML='<div class="eyebrow" style="margin-bottom:6px;">Účet</div>'+
+      '<div class="title-md" style="font-size:16px;margin-bottom:4px;">'+
+        (vypadek ? 'Přihlášení se nepodařilo ověřit' : 'Ověřuji přihlášení…')+'</div>'+
+      '<div class="small muted">'+
+        (vypadek
+          ? 'Nepodařilo se spojit se serverem. Váš účet tím nezanikl — zkuste to prosím znovu, '+
+            'až budete mít signál.'
+          : 'Chvilku strpení.')+'</div>'+
+      (vypadek
+        ? '<button class="btn btn-outline-dark btn-sm" style="width:auto;padding:9px 13px;margin-top:10px;" '+
+          'onclick="authInit()">Zkusit znovu</button>'
+        : '');
+    return;
+  }
   if(authUser){
     box.innerHTML='<div class="row-between"><div style="min-width:0;">'+
       '<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:4px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
@@ -2866,11 +3089,15 @@ function renderAccount(){
           txt('profil.data.popis','Stažením dostanete soubor se vším, co o vás víme. Zrušením účtu se to smaže — zpátky to nejde.')+'</p>'+
       '</div>';
   } else {
+    let posledni=''; try{ posledni = localStorage.getItem('pr-ucet-email')||''; }catch(e){}
     box.innerHTML='<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:6px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
       '<div data-text="profil.ucet.neprihlasen" class="title-md" style="font-size:16px;margin-bottom:4px;">'+txt('profil.ucet.neprihlasen','Nepřihlášeno')+'</div>'+
       '<div data-text="profil.ucet.nepr" class="small muted" style="margin-bottom:10px;">'+txt('profil.ucet.nepr','Přihlášením se vám vrátí body, nastavení i plný přístup — třeba po přechodu na nový telefon.')+'</div>'+
       '<input data-ph="profil.ucet.ph" class="pole-input" id="uctEmail" aria-label="Váš e-mail" type="email" inputmode="email" autocomplete="email" '+
-        'autocapitalize="off" spellcheck="false" placeholder="'+txt('profil.ucet.ph','vas@email.cz')+'" />'+
+        'autocapitalize="off" spellcheck="false" placeholder="'+txt('profil.ucet.ph','vas@email.cz')+'" '+
+        'value="'+posledni.replace(/"/g,'&quot;')+'" />'+
+      (posledni ? '<div class="small muted" style="margin-top:6px;line-height:1.4;">'+
+        'Naposledy jste byl přihlášen touto adresou. Odkaz vám pošleme znovu.</div>' : '')+
       '<div class="small" id="uctChyba" style="display:none;color:var(--red);margin-top:7px;"></div>'+
       '<button data-text="profil.ucet.btn" class="btn btn-dark btn-sm" style="margin-top:10px;" id="uctTlacitko" onclick="prihlasEmailem()">'+txt('profil.ucet.btn','Poslat přihlašovací odkaz')+'</button>';
   }
@@ -3541,6 +3768,21 @@ function najdiData(text){
     .sort((a, b) => a.iso.localeCompare(b.iso));
 }
 
+/* Částka na příkazu nebo složence. Hledá se číslo u slova „Kč" nebo
+   „korun" — a bere se ta největší, protože na dokladu bývá i poplatek
+   za vedení řízení a variabilní symbol. Odhad, ne jistota. */
+function najdiCastku(text){
+  const vzor = /(\d{1,3}(?:[ \u00a0\.]\d{3})+|\d{2,6})(?:,\d{2})?\s*(?:K.|korun)/gi;
+  let m, nej = 0;
+  while((m = vzor.exec(text))){
+    const n = parseInt(String(m[1]).replace(/[ \u00a0\.]/g, ''), 10);
+    /* Pod stovku ani nad sto tisíc pokuta v příkazu nebývá — čísla mimo
+       tenhle rozsah bývají variabilní symboly a účty. */
+    if(isFinite(n) && n >= 100 && n <= 100000 && n > nej) nej = n;
+  }
+  return nej || null;
+}
+
 /* Podle okolí data se dá odhadnout, čeho se týká. Odhad, ne jistota —
    proto se pořád jen nabízí. */
 function druhTerminu(okoli){
@@ -3733,10 +3975,20 @@ const URADY_VYCHOZI = [
    v seznamu, u pokuty a nehody jejich vlastní id. Prázdné id = nový záznam. */
 let garazForm = null;
 
+/* Co je v garáži rozbalené. Překreslení nesmí zavřít oddíl, který si
+   uživatel otevřel — a hlavně ne ten, ve kterém se právě otevřel formulář.
+   Výchozí stav: jen Vozidla, zbytek sbalený. */
+let garazOtevrene = { vozidlo: true, pokuta: false, doklady: false, nehoda: false };
+function garazZapamatuj(klic, otevreno){ garazOtevrene[klic] = !!otevreno; }
+
 function garazPrepni(druh, id){
   const stejne = garazForm && garazForm.druh === druh &&
                  String(garazForm.id) === String(id === undefined ? '' : id);
   garazForm = stejne ? null : {druh, id: (id === undefined ? null : id)};
+  /* Nová pokuta ještě nemá číslo, ale fotka se k ní musí umět přiložit
+     dřív, než se uloží. Dostane ho tedy hned a při uložení si ho ponechá. */
+  if(garazForm && garazForm.id === null) garazForm.novyId = 'p' + Date.now();
+  if(garazForm) garazOtevrene[druh] = true;
   renderVozidla();
 }
 const garazOtevreno = druh => garazForm && garazForm.druh === druh;
@@ -3763,7 +4015,10 @@ function ulozPokutu(){
   const p = getPokuty();
   const body = parseInt(document.getElementById('pBody').value, 10) || 0;
   const z = {
-    id: 'p' + Date.now(),
+    /* Číslo vzniklo už při otevření formuláře, aby se k pokutě dala přiložit
+       fotka dřív, než se uloží. Kdyby se tu vyrobilo nové, přílohy by zůstaly
+       viset u čísla, které nikde není. */
+    id: (garazForm && garazForm.novyId) || ('p' + Date.now()),
     duvod: (document.getElementById('pDuvod').value||'').trim(),
     spz: (document.getElementById('pSpz').value||'').trim(),
     castka: (document.getElementById('pCastka').value||'').trim(),
@@ -3792,8 +4047,14 @@ function ulozPokutu(){
     }, 60);
   }
 }
-function smazPokutu(id){
+async function smazPokutu(id){
   setPokuty(getPokuty().filter(x => x.id !== id));
+  /* S pokutou mizí i to, co je k ní vyfocené. Nechat v telefonu fotky
+     složenky, kterou uživatel právě smazal, by bylo tiché hromadění. */
+  try{
+    for(const d of (await seznamDokladu()).filter(d => d.spz === klicPokuty(id)))
+      await smazDoklad(d.id);
+  }catch(e){}
   renderVozidla(); renderZpravy(); renderUnread();
 }
 function zmenStavPokuty(id, stav){
@@ -3877,8 +4138,9 @@ function renderVozidla(){
       '<span data-text="garaz.souhrn.pokuty">' + txt('garaz.souhrn.pokuty','Nezaplacené pokuty') + '</span></div>' +
     '</div>' : '';
 
-  const sekce = (ikona, nadpis, popis, obsah, otevrena, klicN, klicP) =>
-    '<details class="gsekce"' + (otevrena ? ' open' : '') + '><summary>' +
+  const sekce = (ikona, nadpis, popis, obsah, klic, klicN, klicP) =>
+    '<details class="gsekce"' + (garazOtevrene[klic] ? ' open' : '') +
+      ' ontoggle="garazZapamatuj(\'' + klic + '\', this.open)"><summary>' +
       '<span class="gi"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + IKONY[ikona] + '</svg></span>' +
       '<span class="gt"><b' + (klicN ? ' data-text="' + klicN + '"' : '') + '>' + nadpis + '</b>' +
         '<span' + (klicP ? ' data-text="' + klicP + '"' : '') + '>' + popis + '</span></span>' +
@@ -3960,13 +4222,13 @@ function renderVozidla(){
 
   el.innerHTML = souhrn +
     sekce('car',   txt('garaz.vozidla.nadpis','Vozidla a termíny'),
-          vs.length + ' ' + plural(vs.length,'vozidlo','vozidla','vozidel'), vozidla, true, 'garaz.vozidla.nadpis') +
+          vs.length + ' ' + plural(vs.length,'vozidlo','vozidla','vozidel'), vozidla, 'vozidlo', 'garaz.vozidla.nadpis') +
     sekce('card',  txt('garaz.pokuty.nadpis','Pokuty'),
-          pk.length ? (nezaplaceno.length + ' nezaplacených z ' + pk.length) : 'zatím žádná', pokuty, false, 'garaz.pokuty.nadpis') +
+          pk.length ? (nezaplaceno.length + ' nezaplacených z ' + pk.length) : 'zatím žádná', pokuty, 'pokuta', 'garaz.pokuty.nadpis') +
     sekce('doc',   txt('garaz.doklady.nadpis','Doklady a úřady'),
-          txt('garaz.doklady.popis','Kde si je ověříte online'), urady, false, 'garaz.doklady.nadpis', 'garaz.doklady.popis') +
+          txt('garaz.doklady.popis','Kde si je ověříte online'), urady, 'doklady', 'garaz.doklady.nadpis', 'garaz.doklady.popis') +
     sekce('crash', txt('garaz.nehody.nadpis','Nehody'),
-          nh.length ? (nh.length + ' ' + plural(nh.length,'záznam','záznamy','záznamů')) : 'postup a záznam', nehody, false, 'garaz.nehody.nadpis') +
+          nh.length ? (nh.length + ' ' + plural(nh.length,'záznam','záznamy','záznamů')) : 'postup a záznam', nehody, 'nehoda', 'garaz.nehody.nadpis') +
     '<div class="disclaimer" style="margin-top:12px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#77837f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span data-text="garaz.pozn">' +
       txt('garaz.pozn','Všechno, co si sem uložíte, zůstává jen ve vašem telefonu — na účet se to nezálohuje. Termíny a splatnosti se objeví jako upozornění na kartě Zprávy.') +
     '</span></div>';
@@ -4063,9 +4325,11 @@ async function nabidniData(nalezene){
 
 /* Seznam dokladů u vozidla. Ukazuje se i to, že jsou jen v telefonu —
    uživatel jinak předpokládá, že je má i na účtu. */
-async function kresliDoklady(spz){
-  const el = document.getElementById('dokladySeznam'); if(!el) return;
-  const rada = spz ? await dokladyVozidla(spz) : [];
+/* Kreslí se tímtéž kódem pro vozidla i pro pokuty — liší se jen klíč, pod
+   kterým soubory v telefonu leží, a místo na obrazovce. */
+async function kresliDoklady(klic, kam){
+  const el = document.getElementById(kam || 'dokladySeznam'); if(!el) return;
+  const rada = klic ? await dokladyVozidla(klic) : [];
   if(!rada.length){ el.innerHTML = ''; return; }
   el.innerHTML = rada.map(d =>
     '<div class="row-between" style="align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);">'+
@@ -4074,7 +4338,7 @@ async function kresliDoklady(spz){
         '<div class="small muted">'+Math.max(1, Math.round(d.velikost/1024))+' kB · jen v telefonu</div>'+
       '</div>'+
       '<button class="btn btn-outline-dark btn-sm" style="width:auto;padding:6px 10px;font-size:12.5px;" onclick="otevriDoklad(\''+d.id+'\')">Otevřít</button>'+
-      '<button class="ob-free" style="width:auto;color:var(--err);padding:6px;font-size:12.5px;" onclick="odeberDoklad(\''+d.id+'\',\''+escT(spz)+'\')">Smazat</button>'+
+      '<button class="ob-free" style="width:auto;color:var(--err);padding:6px;font-size:12.5px;" onclick="odeberDoklad(\''+d.id+'\',\''+escT(klic)+'\',\''+escT(kam||'')+'\')">Smazat</button>'+
     '</div>').join('');
 }
 
@@ -4086,20 +4350,87 @@ async function otevriDoklad(id){
   setTimeout(() => URL.revokeObjectURL(adresa), 30000);
 }
 
-async function odeberDoklad(id, spz){
+async function odeberDoklad(id, klic, kam){
   const chce = await okno({ nadpis:'Smazat doklad?',
     text:'Zmizí z telefonu. Zpátky ho dostanete jen novým vyfocením.',
     potvrdit:'Smazat', zrusit:'Nechat', nebezpecne:true });
   if(!chce) return;
   try{ await smazDoklad(id); }catch(e){}
-  await kresliDoklady(spz);
+  await kresliDoklady(klic, kam);
   toast('Doklad smazán.');
+}
+
+/* Pod jakým klíčem leží v telefonu soubory patřící k pokutě. Dvojtečka
+   v SPZ být nemůže, takže se to nikdy nesrazí s doklady vozidel. */
+const klicPokuty = id => 'POKUTA:' + id;
+
+/* Přidání složenky nebo příkazu k pokutě. Soubor zůstává v telefonu —
+   stejně jako doklady vozidel se nikam neposílá. */
+async function dokladPokutyPridan(vstup){
+  const soubor = vstup.files && vstup.files[0];
+  vstup.value = '';
+  if(!soubor) return;
+  const id = (garazForm && (garazForm.id || garazForm.novyId));
+  if(!id){ toast('Otevřete prosím formulář pokuty znovu.'); return; }
+  if(soubor.size > DOKLAD_MAX){
+    await okno({ nadpis:'Soubor je moc velký',
+      text:'Má '+Math.round(soubor.size/1048576)+' MB, vejde se do šesti — '+
+           'vyfoťte ho prosím znovu s nižším rozlišením.',
+      potvrdit:'Rozumím', zrusit:false });
+    return;
+  }
+  const klic = klicPokuty(id);
+  try{
+    await ulozDoklad({ id: nahodneCislo(), spz: klic, nazev: soubor.name,
+      typ: soubor.type, velikost: soubor.size,
+      pridano: new Date().toISOString(), soubor });
+  }catch(e){ toast('Uložit do telefonu se nepodařilo.'); return; }
+  await kresliDoklady(klic, 'pokutaDoklady');
+  toast('Uloženo v telefonu.');
+
+  /* Z fotky se zatím číst neumí — čtení textu z obrázku by znamenalo
+     stáhnout do telefonu rozpoznávací knihovnu o desítkách megabajtů
+     a na fotce složenky pořízené z ruky bývá výsledek horší než nic.
+     Z PDF, které chodí datovou schránkou nebo e-mailem, se čte. */
+  if(!/pdf/i.test(soubor.type)) return;
+  toast('Čtu…');
+  let text = '';
+  try{ text = await textZPdf(soubor); }
+  catch(e){ toast('Nic se přečíst nepodařilo — vyplňte prosím ručně.'); return; }
+
+  const castka = najdiCastku(text);
+  /* Datum spáchání bývá v minulosti, takže ho najdiData zahodí samo.
+     Ze zbylých se bere to, u kterého se mluví o splatnosti nebo úhradě;
+     jinak nejbližší. */
+  const data = najdiData(text);
+  const splatnost = data.find(x => /splatn|uhra|zapla|do dne/.test(x.okoli)) || data[0];
+
+  if(!castka && !splatnost){ toast('Nic použitelného jsme nenašli — vyplňte prosím ručně.'); return; }
+
+  const popis = [castka ? castka.toLocaleString('cs-CZ')+' Kč' : null,
+                 splatnost ? 'splatnost '+datumNaCesky(splatnost.iso) : null].filter(Boolean).join(' a ');
+  const chce = await okno({
+    nadpis: 'Našli jsme v dokladu údaje',
+    text: 'V dokladu je '+popis+'. Doplnit to do formuláře? Zkontrolujte prosím, jestli to sedí — '+
+          'čteme to z papíru a splést se to může.',
+    potvrdit: 'Doplnit', zrusit: 'Ne' });
+  if(!chce) return;
+
+  if(castka){ const el = document.getElementById('pCastka'); if(el && !el.value) el.value = String(castka); }
+  if(splatnost){
+    const el = document.getElementById('pSplatnost');
+    if(el && !el.dataset.iso){ el.dataset.iso = splatnost.iso; el.value = datumNaCesky(splatnost.iso); }
+  }
 }
 
 function formPokuty(p){
   p = p || {};
   const vs = getVehicles();
   const h = x => x ? ' value="' + escT(x) + '"' : '';
+  /* Seznam příloh se dokresluje, až je formulář na obrazovce — úložiště
+     telefonu odpovídá se zpožděním. */
+  const idProDoklady = (p && p.id) || (garazForm && garazForm.novyId) || '';
+  if(idProDoklady) setTimeout(() => kresliDoklady(klicPokuty(idProDoklady), 'pokutaDoklady'), 0);
   return '<div class="g-form" style="margin-top:10px;border-top:1px solid var(--line);padding-top:13px;">' +
     '<div class="field"><label>Za co</label><input type="text" id="pDuvod"' + h(p.duvod) + ' placeholder="například překročení rychlosti v obci"/></div>' +
     '<div class="field"><label>Vozidlo</label><select id="pSpz"><option value="">Neuvedeno</option>' +
@@ -4118,6 +4449,12 @@ function formPokuty(p){
     '<div class="field"><label>Body</label><input type="text" id="pBody" inputmode="numeric"' + h(p.body) + ' placeholder="0"/></div>' +
     '<div class="field"><label>Stav</label><select id="pStav">' +
       STAVY_POKUT.map(x => '<option value="' + x[0] + '"' + (p.stav === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select></div>' +
+    '<label class="attach" style="margin-bottom:6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> ' +
+      txt('garaz.pokuta.vyfotit','Vyfotit složenku nebo příkaz') +
+      '<input type="file" accept="image/*,application/pdf,.pdf" hidden onchange="dokladPokutyPridan(this)"/></label>' +
+    '<div id="pokutaDoklady"></div>' +
+    '<p class="napoveda" style="margin:2px 0 11px">' +
+      txt('garaz.pokuta.doklad.pozn','Zůstane jen ve vašem telefonu — nikam ji neposíláme. Z PDF přečteme částku a splatnost, z fotky zatím ne.') + '</p>' +
     '<div style="display:flex;gap:8px;"><button data-text="garaz.pokuta.ulozit" class="btn btn-dark btn-sm" style="flex:1;" onclick="ulozPokutu()">' +
       txt('garaz.pokuta.ulozit','Uložit pokutu') + '</button>' +
     '<button data-text="garaz.zrusit" class="btn btn-outline-dark btn-sm" style="flex:0 0 auto;width:auto;padding:0 16px;" onclick="garazForm=null;renderVozidla()">' +

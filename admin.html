@@ -347,7 +347,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 120</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 121</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -3435,8 +3435,9 @@ function sekceTerminu(){
     <div class="alert-line" style="background:rgba(229,72,77,.12);border:1px solid rgba(229,72,77,.35);
          border-radius:11px;padding:11px 13px;margin-bottom:12px;color:var(--err);font-size:13px;line-height:1.5">
       <b>${nedoslo} ${mnozne(nedoslo,'poptávka nedorazila','poptávky nedorazily','poptávek nedorazilo')} do JIRA</b>
-      za posledních 30 dní. Poptávky se neztratily — jsou níž v seznamu — ale do systému
-      kanceláře nejdou. Nejčastější příčina je vypršelý nebo přepsaný token v Secrets.
+      za posledních 30 dní. Neztratily se — najdete je níž pod nadpisem
+      <b>Nedoručené poptávky</b> — ale do systému kanceláře nejdou.
+      Nejčastější příčina je vypršelý nebo přepsaný token v Secrets.
     </div>` : '';
 
   const radky = terminy.length ? terminy.map(t => {
@@ -3481,27 +3482,31 @@ async function ulozTermin(id){
 /* Poptávky z konzultačního formuláře v aplikaci. */
 const STAVY_POPTAVKY = {novy:'Nová', v_reseni:'V řešení', vyrizeno:'Vyřízeno'};
 
+/* Poptávky se řeší v JIRA — seznam tady by byl druhý seznam téhož a jeden
+   z nich by se přestal číst. Zůstává jen to, co v JIRA není: co se tam
+   nepodařilo poslat. Když je všechno v pořádku, není tu vidět nic. */
 function sekcePoptavek(){
-  const novych = poptavky.filter(p => p.stav === 'novy').length;
+  const spadle = poptavky.filter(p => !p.jira_klic);
+  if(!spadle.length) return '';
   return `
-  <h2 style="margin-top:26px">Poptávky z aplikace
-    ${novych ? `<span class="odznak o-plny" style="margin-left:8px">${novych} ${novych===1?"nová":(novych<5?"nové":"nových")}</span>` : ''}</h2>
-  <p class="napoveda" style="margin:-6px 0 14px">Konzultační formulář z aplikace.
-     Zobrazuje se posledních 50.</p>
-  ${poptavky.length ? `<table class="tabulka">
-      <tr><th>Kdy</th><th>Jméno</th><th>Telefon</th><th>E-mail</th><th>Zpráva</th><th>Stav</th></tr>
-      ${poptavky.map(p => `<tr class="${p.stav==='novy'?'nova':''}">
-        <td class="nowrap">${(p.vytvoreno||'').slice(0,16).replace('T',' ')}</td>
-        <td>${esc(p.jmeno||'—')}</td>
-        <td class="nowrap"><a href="tel:${esc(p.telefon)}">${esc(p.telefon)}</a></td>
-        <td>${p.email?`<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`:'—'}</td>
-        <td class="zprava">${esc(p.zprava||'')}</td>
-        <td><select onchange="zmenStavPoptavky('${p.id}', this.value)">
-          ${Object.entries(STAVY_POPTAVKY).map(([k,v])=>
-            `<option value="${k}" ${p.stav===k?'selected':''}>${v}</option>`).join('')}
-        </select></td></tr>`).join('')}
-    </table>`
-   : '<div class="prazdno">Zatím žádné poptávky.</div>'}`;
+  <h2 style="margin-top:26px">Nedoručené poptávky
+    <span class="odznak o-plny" style="margin-left:8px;background:rgba(229,72,77,.14);color:var(--err)">${spadle.length}</span></h2>
+  <p class="napoveda" style="margin:-6px 0 14px">Tyhle se nepodařilo předat do JIRA, takže nejsou nikde jinde
+     než tady. Ozvěte se jim a pak je označte jako vyřízené. Běžné poptávky se v administraci
+     nezobrazují — ty jsou v JIRA.</p>
+  <table class="tabulka">
+    <tr><th>Kdy</th><th>Jméno</th><th>Telefon</th><th>E-mail</th><th>Zpráva</th><th>Stav</th></tr>
+    ${spadle.map(p => `<tr class="${p.stav==='novy'?'nova':''}">
+      <td class="nowrap">${(p.vytvoreno||'').slice(0,16).replace('T',' ')}</td>
+      <td>${esc(p.jmeno||'—')}</td>
+      <td class="nowrap"><a href="tel:${esc(p.telefon)}">${esc(p.telefon)}</a></td>
+      <td>${p.email?`<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`:'—'}</td>
+      <td class="zprava">${esc(p.zprava||'')}</td>
+      <td><select onchange="zmenStavPoptavky('${p.id}', this.value)">
+        ${Object.entries(STAVY_POPTAVKY).map(([k,v])=>
+          `<option value="${k}" ${p.stav===k?'selected':''}>${v}</option>`).join('')}
+      </select></td></tr>`).join('')}
+  </table>`;
 }
 
 async function zmenStavPoptavky(id, stav){

@@ -1,5 +1,5 @@
 /* Práva řidiče — service worker (offline cache + push) */
-const CACHE = 'pravaridice-v67';
+const CACHE = 'pravaridice-v69';
 const ASSETS = [
   './',
   './index.html',
@@ -30,6 +30,17 @@ self.addEventListener('fetch', e => {
      offline — a stará verze v keši vypadá, jako by se úpravy neprojevily. */
   if (url.pathname.endsWith('/admin.html')) {
     e.respondWith(fetch(req, { cache: 'no-store' }));
+    return;
+  }
+
+  /* Knihovna pro přihlášení. Jednou stažená zůstává — bez ní aplikace neví,
+     kdo je přihlášený, a chová se, jako by nebyl nikdo. */
+  if (url.hostname === 'cdn.jsdelivr.net') {
+    e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(r => {
+      const kopie = r.clone();
+      caches.open(CACHE).then(c => c.put(req, kopie)).catch(() => {});
+      return r;
+    })));
     return;
   }
 
