@@ -254,12 +254,26 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 .chipy button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 13px;
   font-size:13px;font-weight:600;cursor:pointer;color:var(--ink);font-family:inherit}
 .chipy button.on{background:var(--petrol);color:#fff;border-color:var(--petrol)}
-.typy{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:4px}
-.typy button{border:1px solid var(--line);background:#fff;border-radius:11px;padding:11px 12px;
-  cursor:pointer;text-align:left;font-family:inherit}
-.typy button b{display:block;font-size:13px;color:var(--ink)}
-.typy button span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+/* Jeden typ na řádek. Osm položek se nemusí třídit do skupin a na řádek se
+   vejde celý popis — v dlaždicích se ořezával. */
+.typy{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.typy button{border:1px solid var(--line);background:#fff;border-radius:11px;padding:10px 13px;
+  cursor:pointer;text-align:left;font-family:inherit;width:100%;
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  white-space:normal;overflow-wrap:anywhere}
+.typy button b{font-size:13.5px;color:var(--ink);flex:0 0 auto;min-width:104px}
+.typy button span{font-size:12px;color:var(--muted);line-height:1.4;flex:1 1 200px;min-width:0}
 .typy button:hover{border-color:var(--turq-deep);background:var(--cream)}
+
+/* Výběr ikony: vidět, jak vypadá, ne jen jak se jmenuje. */
+.ikony{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:7px;margin-top:4px}
+.ikony button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 4px 7px;
+  cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:5px;
+  color:var(--teal-900);transition:background .14s,border-color .14s}
+.ikony button:hover{background:var(--cream);border-color:var(--peach)}
+.ikony button.on{background:var(--petrol);border-color:var(--petrol);color:#fff}
+.ikony button i{font-style:normal;font-size:10.5px;color:var(--muted)}
+.ikony button.on i{color:rgba(255,255,255,.82)}
 .radky-tab{display:grid;grid-template-columns:1fr 1fr 34px;gap:8px;margin-bottom:8px;align-items:start}
 .radky-tab .smaz{border:1px solid var(--line);background:#fff;border-radius:8px;color:var(--err);
   cursor:pointer;height:38px;font-size:16px;line-height:1}
@@ -277,9 +291,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 .pridat > summary::-webkit-details-marker{display:none}
 .pridat[open] > summary{border-bottom:1px solid var(--line)}
 .typy-telo{padding:12px 14px 14px}
-.typy-popis{margin:2px 0 0;font-size:11px;font-weight:700;letter-spacing:.06em;
-  text-transform:uppercase;color:var(--muted)}
-.typy-popis + .typy{margin-bottom:14px}
+
 .osnova{border:1px solid var(--line);border-radius:12px;background:var(--cream);padding:14px 15px;margin-bottom:10px}
 .osnova b{display:block;font-size:14px;margin-bottom:4px}
 .osnova span{display:block;font-size:13px;line-height:1.5;color:var(--ink-soft);margin-bottom:11px}
@@ -323,7 +335,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 101</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 102</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -742,14 +754,8 @@ function editorClanku(){
         <details class="pridat" id="bl-pridat">
       <summary>+ Přidat blok</summary>
       <div class="typy-telo">
-        <p class="typy-popis">Nejčastější</p>
         <div class="typy">
-          ${TYPY_BLOKU.filter(t => TYPY_CASTE.includes(t[0])).map(([t, nazev, popis]) =>
-            `<button type="button" onclick="pridejBlok('${t}')"><b>${nazev}</b><span>${popis}</span></button>`).join('')}
-        </div>
-        <p class="typy-popis">Další</p>
-        <div class="typy">
-          ${TYPY_BLOKU.filter(t => !TYPY_CASTE.includes(t[0])).map(([t, nazev, popis]) =>
+          ${TYPY_BLOKU.map(([t, nazev, popis]) =>
             `<button type="button" onclick="pridejBlok('${t}')"><b>${nazev}</b><span>${popis}</span></button>`).join('')}
         </div>
       </div>
@@ -1911,9 +1917,6 @@ const TYPY_BLOKU = [
   ['rada',       'Rada',          'Tyrkysový tip nebo doporučení']
 ];
 const NAZEV_TYPU = t => (TYPY_BLOKU.find(x => x[0] === t) || [t, t])[1];
-/* Tyhle tři pokryjí většinu článků — ostatní se nabízejí až pod nimi,
-   ať nový článek nezačíná osmi rozhodnutími naráz. */
-const TYPY_CASTE = ['odstavec', 'mezinadpis', 'odkaz'];
 
 const PALETA = [
   ['bila',    'Bílá',        '#FFFFFF'],
@@ -1931,8 +1934,58 @@ const DUVOD_BEZ_PALETY = {
   pozor: 'Oranžová patří k významu upozornění a mění se sama podle světlého či tmavého režimu.',
   rada: 'Tyrkysová patří k významu rady a mění se sama podle světlého či tmavého režimu.'
 };
-const IKONY_BLOKU = ['shield','doc','card','gauge','car','crash','bike','glass','pill',
-                     'ban','warn','clock','lock','bell','phone','mail','chat','globe','user','scale'];
+/* Kresby ikon — stejné jako v aplikaci, aby výběr ukazoval, co uživatel uvidí.
+   Administrace je samostatný soubor, proto je tu vlastní kopie. */
+const IKONY_KRESBY = {
+ "shield": "<path d=\"M12 2.9l7.6 2.8v5.7c0 4.7-3.3 8-7.6 10.4-4.3-2.4-7.6-5.7-7.6-10.4V5.7z\"/><path d=\"M8.9 12.1l2.2 2.2 4-4.2\"/>",
+ "doc": "<path d=\"M14 2.8H7a2 2 0 0 0-2 2v14.4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.8z\"/><path d=\"M14 2.8v5h5\"/><path d=\"M8.6 12.5h6.8M8.6 16h4.5\"/>",
+ "card": "<rect x=\"2.5\" y=\"5\" width=\"19\" height=\"14\" rx=\"2.6\"/><circle cx=\"8.6\" cy=\"11.2\" r=\"2\"/><path d=\"M5.3 16.3c.5-1.4 1.8-2.2 3.3-2.2s2.8.8 3.3 2.2\"/><path d=\"M15 10.2h4M15 13.6h3\"/>",
+ "gauge": "<path d=\"M3.8 17.2a8.2 8.2 0 1 1 16.4 0\"/><path d=\"M12 17.2l4.4-4.8\"/><circle cx=\"12\" cy=\"17.2\" r=\"1.3\"/>",
+ "car": "<path d=\"M4.4 16.4h15.2l-1.6-5.2a2.2 2.2 0 0 0-2.1-1.6H8.1a2.2 2.2 0 0 0-2.1 1.6z\"/><circle cx=\"7.3\" cy=\"17.4\" r=\"1.5\"/><circle cx=\"16.7\" cy=\"17.4\" r=\"1.5\"/><path d=\"M6.6 11.2h10.8\"/>",
+ "crash": "<path d=\"M4.2 16.6h12.4l-1.4-4.7a2 2 0 0 0-1.9-1.4H7.5a2 2 0 0 0-1.9 1.4z\"/><circle cx=\"7\" cy=\"17.4\" r=\"1.4\"/><circle cx=\"14.4\" cy=\"17.4\" r=\"1.4\"/><path d=\"M18.6 3.4l-1.8 3.3 3.5-.5-2.4 3.1\"/>",
+ "bike": "<circle cx=\"5.8\" cy=\"16.4\" r=\"3.4\"/><circle cx=\"18.2\" cy=\"16.4\" r=\"3.4\"/><path d=\"M5.8 16.4l4-8.4h4.6l3.8 8.4\"/><path d=\"M9.8 8h4.4\"/><circle cx=\"15.4\" cy=\"4.6\" r=\"1.2\"/>",
+ "glass": "<path d=\"M7 3.2h10l-.75 6.1A4.4 4.4 0 0 1 12 13.2a4.4 4.4 0 0 1-4.25-3.9z\"/><path d=\"M12 13.2v6.4\"/><path d=\"M8.6 19.6h6.8\"/>",
+ "pill": "<rect x=\"2.7\" y=\"9\" width=\"18.6\" height=\"6\" rx=\"3\" transform=\"rotate(-45 12 12)\"/><path d=\"M9.3 9.3l5.4 5.4\"/>",
+ "ban": "<circle cx=\"12\" cy=\"12\" r=\"8.4\"/><path d=\"M6.1 6.1l11.8 11.8\"/>",
+ "warn": "<path d=\"M10.4 4.1L2.3 17.6a1.9 1.9 0 0 0 1.6 2.9h16.2a1.9 1.9 0 0 0 1.6-2.9L13.6 4.1a1.9 1.9 0 0 0-3.2 0z\"/><path d=\"M12 9.4v4.2M12 17h.01\"/>",
+ "clock": "<circle cx=\"12\" cy=\"12\" r=\"8.6\"/><path d=\"M12 7.2V12l3.2 1.9\"/>",
+ "lock": "<rect x=\"4.4\" y=\"10.4\" width=\"15.2\" height=\"9.6\" rx=\"2.4\"/><path d=\"M8 10.4V7.8a4 4 0 0 1 8 0v2.6\"/><path d=\"M12 14.4v2.2\"/>",
+ "bell": "<path d=\"M18 8.8a6 6 0 1 0-12 0c0 5.4-2 6.6-2 6.6h16s-2-1.2-2-6.6z\"/><path d=\"M13.7 19a2 2 0 0 1-3.4 0\"/>",
+ "phone": "<path d=\"M20.6 16.5v2.6a1.8 1.8 0 0 1-2 1.8 17.6 17.6 0 0 1-7.7-2.7 17.3 17.3 0 0 1-5.3-5.3A17.6 17.6 0 0 1 2.9 5.1a1.8 1.8 0 0 1 1.8-2h2.6a1.8 1.8 0 0 1 1.8 1.6c.1 1 .3 1.9.6 2.8a1.8 1.8 0 0 1-.4 1.9L8.2 10.5a14 14 0 0 0 5.3 5.3l1.1-1.1a1.8 1.8 0 0 1 1.9-.4c.9.3 1.8.5 2.8.6a1.8 1.8 0 0 1 1.3 1.6z\"/>",
+ "mail": "<rect x=\"2.6\" y=\"4.8\" width=\"18.8\" height=\"14.4\" rx=\"2.4\"/><path d=\"M3.4 6.6l8.6 6 8.6-6\"/>",
+ "chat": "<path d=\"M20.6 14.4a2.2 2.2 0 0 1-2.2 2.2H7.6l-4.2 3.8V5.4a2.2 2.2 0 0 1 2.2-2.2h12.8a2.2 2.2 0 0 1 2.2 2.2z\"/>",
+ "globe": "<circle cx=\"12\" cy=\"12\" r=\"8.6\"/><path d=\"M3.4 12h17.2\"/><path d=\"M12 3.4a13 13 0 0 1 0 17.2 13 13 0 0 1 0-17.2z\"/>",
+ "user": "<circle cx=\"12\" cy=\"8.2\" r=\"3.8\"/><path d=\"M4.6 20.4c0-3.8 3.4-5.8 7.4-5.8s7.4 2 7.4 5.8\"/>",
+ "scale": "<path d=\"M12 3.6v16.8\"/><path d=\"M7 20.4h10\"/><path d=\"M12 6.2l-6.4 1.6M12 6.2l6.4 1.6\"/><path d=\"M2.6 13.4a3 3 0 0 0 6 0l-3-5.6z\"/><path d=\"M15.4 13.4a3 3 0 0 0 6 0l-3-5.6z\"/>"
+};
+const POPIS_IKONY = {
+ "shield": "štít",
+ "doc": "dokument",
+ "card": "průkaz",
+ "gauge": "rychloměr",
+ "car": "auto",
+ "crash": "nehoda",
+ "bike": "kolo",
+ "glass": "sklenka",
+ "pill": "lék",
+ "ban": "zákaz",
+ "warn": "výstraha",
+ "clock": "hodiny",
+ "lock": "zámek",
+ "bell": "zvonek",
+ "phone": "telefon",
+ "mail": "obálka",
+ "chat": "zpráva",
+ "globe": "web",
+ "user": "osoba",
+ "scale": "váhy"
+};
+const IKONY_BLOKU = Object.keys(IKONY_KRESBY);
+
+function ikonaSvg(k){
+  return '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (IKONY_KRESBY[k] || '') + '</svg>';
+}
 
 function blokyClanku(id){
   return bloky.filter(b => b.clanek_id === id && !b._smazany)
@@ -1956,6 +2009,14 @@ function pridejBlok(typ){
     velikost: 'normalni', _otevreny: true
   });
   kresliBloky(); nahledClanku();
+}
+
+/* Klepnutí na ikonu ji vybere — a hned je vidět v náhledu. */
+function vyberIkonu(id, ikona){
+  const mrizka = $('ik-' + id);
+  if(mrizka) mrizka.querySelectorAll('button').forEach(x =>
+    x.classList.toggle('on', x.title === ikona));
+  zmenBlok(id, 'ikona', ikona);
 }
 
 function zmenBlok(id, pole, hodnota){
@@ -2031,9 +2092,11 @@ function poleBloku(b){
   switch(b.typ){
     case 'hero':
       return `<div class="pole"><label>Ikona</label>
-          <select onchange="zmenBlok('${b.id}','ikona',this.value)">
-            ${IKONY_BLOKU.map(i => `<option value="${i}" ${b.ikona === i ? 'selected' : ''}>${i}</option>`).join('')}
-          </select></div>
+          <div class="ikony" id="ik-${b.id}">
+            ${IKONY_BLOKU.map(i => `<button type="button" class="${b.ikona === i ? 'on' : ''}"
+              title="${i}" onclick="vyberIkonu('${b.id}','${i}')">${ikonaSvg(i)}<i>${POPIS_IKONY[i] || i}</i></button>`).join('')}
+          </div>
+          <p class="napoveda">Ukáže se nahoře v úvodní kartě, nad nadpisem.</p></div>
         ${vstup('nadpis', 'Nadpis')}
         ${plocha('text', 'Text pod nadpisem')}
         ${vstup('odkaz_text', 'Štítek', 'Malý štítek dole, například název oblasti. Nechte prázdné, když ho nechcete.')}`;
