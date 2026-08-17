@@ -38,7 +38,7 @@ header button:hover{background:rgba(255,255,255,.24)}
 /* Zarovnáno doleva, ať obsah lícuje s hlavičkou a záložkami — vycentrované
    to na širokém monitoru odsazovalo o několik set pixelů. */
 main{max-width:1180px;margin:0;padding:22px 20px 80px}
-.wrap{display:grid;grid-template-columns:330px 1fr;gap:20px;align-items:start}
+.wrap{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start}
 @media(max-width:900px){.wrap{grid-template-columns:1fr}}
 
 .panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
@@ -47,11 +47,18 @@ main{max-width:1180px;margin:0;padding:22px 20px 80px}
 /* ---------- strom ---------- */
 .strom{list-style:none;margin:0;padding:0}
 .uzel{border-radius:10px;margin-bottom:3px}
-.radek{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:9px;cursor:pointer}
+.radek{display:flex;flex-wrap:wrap;align-items:center;gap:8px 8px;padding:8px 9px;border-radius:9px;cursor:pointer}
+/* Ovládání řádku pohromadě: vejde-li se vedle názvu, zůstane vpravo; jinak
+   spadne pod něj a název dostane celou šířku. */
+.radek-akce{display:flex;align-items:center;gap:8px;margin-left:auto;flex:0 0 auto}
+.radek-akce.dole{flex:1 0 100%;margin-left:0;padding-left:26px}
 .radek:hover{background:var(--cream)}
 .radek.on{background:var(--teal-900);color:#fff}
 .radek.on .znak{color:rgba(255,255,255,.7)}
-.radek .nazev{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;font-size:14px}
+/* Název se nezkracuje. Dlouhý se zalomí na druhý řádek — ve struktuře je
+   potřeba poznat, o kterou oblast jde, ne jen její první dvě písmena. */
+.radek .nazev{flex:1 1 150px;min-width:0;overflow-wrap:anywhere;white-space:normal;
+  line-height:1.35;font-weight:600;font-size:14px}
 .radek .znak{font-size:11.5px;color:var(--muted);flex:0 0 auto}
 .deti{list-style:none;margin:0 0 6px 16px;padding:0;border-left:2px solid var(--line)}
 .deti .radek{padding-left:12px}
@@ -316,7 +323,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 100</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 101</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -540,10 +547,12 @@ function vykresliOblast(o){
               return pl ? `<span class="odznak o-plny" title="${pl} z ${cl.length} článků vyžaduje plný přístup">${pl}× plný</span>`
                         : '<span class="odznak o-omezeny" title="Obsah je dostupný i s omezeným přístupem">omezený</span>'; })()}
       ${o.publikovano ? '' : '<span class="odznak o-koncept">skryto</span>'}
-      ${sipky('oblast', o.id)}
-      <span class="pridat" title="Přidat článek do této oblasti"
-        onclick="event.stopPropagation(); vyberOblast('${o.id}'); novyClanek();">+ článek</span>
-      <span class="znak">${podoblasti.length + cl.length}</span>
+      <span class="radek-akce dole">
+        ${sipky('oblast', o.id)}
+        <span class="pridat" title="Přidat článek do této oblasti"
+          onclick="event.stopPropagation(); vyberOblast('${o.id}'); novyClanek();">+ článek</span>
+        <span class="znak">${podoblasti.length + cl.length}</span>
+      </span>
     </div>${deti}</li>`;
 }
 
