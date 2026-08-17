@@ -650,6 +650,19 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
    text jinou šířku a seznam by vypadal rozházeně. */
 .chev-misto{flex:0 0 auto;width:18px;height:18px;}
 
+/* Kalendář ve vlastním okně — česky a stejně na každém telefonu. */
+.kal-hlava{display:flex;align-items:center;gap:8px;margin:4px 0 10px}
+.kal-hlava .mesic{flex:1;text-align:center;font-weight:800;font-size:15px}
+.kal-hlava button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink);font-size:17px;line-height:1;cursor:pointer;font-family:inherit}
+.kal-mrizka{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.kal-mrizka .den-zkr{font-size:11px;font-weight:700;color:var(--muted);text-align:center;padding:3px 0}
+.kal-mrizka button{aspect-ratio:1;border:0;border-radius:10px;background:transparent;color:var(--ink);
+  font-size:14px;cursor:pointer;font-family:inherit}
+.kal-mrizka button:disabled{color:transparent;cursor:default}
+.kal-mrizka button.dnes{box-shadow:inset 0 0 0 1.5px var(--line)}
+.kal-mrizka button.vybrany{background:var(--grad);color:#fff;font-weight:700}
+
 /* Vlastní okno — nahrazuje systémové confirm/prompt, které kreslí prohlížeč
    a jehož tlačítka jsou v jazyce telefonu. */
 .okno-pozadi{position:fixed;inset:0;background:rgba(13,20,36,.52);z-index:400;
@@ -929,7 +942,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 104<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 105<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -2322,6 +2335,121 @@ function znackaPristupu(zamceno, castecne){
     : '<span class="zamek-znacka">plný</span>';
 }
 
+/* ---------- datum ----------
+   V databázi i ve výpočtech je datum vždy ve tvaru rok-měsíc-den; uživateli se
+   ukazuje česky. Obojí si překládají tyhle dvě funkce, nikde jinde se s tvarem
+   data nepracuje. */
+const MESICE_CZ = ['leden','únor','březen','duben','květen','červen',
+                   'červenec','srpen','září','říjen','listopad','prosinec'];
+const DNY_CZ = ['po','út','st','čt','pá','so','ne'];
+
+function datumNaCesky(iso){
+  if(!iso) return '';
+  const [r, m, d] = String(iso).split('-').map(Number);
+  if(!r || !m || !d) return '';
+  return d + '. ' + m + '. ' + r;
+}
+/* Přijme 30.6.2027, 30. 6. 2027 i 2027-06-30. Cokoli jiného vrátí prázdné. */
+function ceskyNaDatum(text){
+  const s = String(text || '').trim();
+  if(!s) return '';
+  const iso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  const cz  = s.match(/^(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})$/);
+  let r, m, d;
+  if(iso){ [, r, m, d] = iso; } else if(cz){ [, d, m, r] = cz; } else return '';
+  const dt = new Date(+r, +m - 1, +d);
+  if(dt.getFullYear() !== +r || dt.getMonth() !== +m - 1 || dt.getDate() !== +d) return '';
+  return r + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+}
+
+/* Kalendář v okně aplikace. Vrací datum ve tvaru rok-měsíc-den, nebo null. */
+function vyberDatum(vychozi, nadpis){
+  return new Promise(hotovo => {
+    const dnes = new Date();
+    const zac = ceskyNaDatum(vychozi);
+    let rok = zac ? +zac.slice(0, 4) : dnes.getFullYear();
+    let mes = zac ? +zac.slice(5, 7) - 1 : dnes.getMonth();
+    let vybrane = zac || '';
+
+    const pozadi = document.createElement('div');
+    pozadi.className = 'okno-pozadi';
+    pozadi.innerHTML =
+      '<div class="okno" role="dialog" aria-modal="true">' +
+        '<h3>' + (nadpis || 'Vyberte datum') + '</h3>' +
+        '<div class="kal-hlava"><button type="button" data-zpet aria-label="Předchozí měsíc">‹</button>' +
+          '<div class="mesic"></div>' +
+          '<button type="button" data-vpred aria-label="Další měsíc">›</button></div>' +
+        '<div class="kal-mrizka"></div>' +
+        '<div class="okno-lista">' +
+          '<button type="button" class="btn btn-outline-dark btn-sm" data-ne>Zrušit</button>' +
+          '<button type="button" class="btn btn-outline-dark btn-sm" data-smaz>Vymazat</button>' +
+        '</div></div>';
+    document.body.appendChild(pozadi);
+
+    const mrizka = pozadi.querySelector('.kal-mrizka');
+    const popisek = pozadi.querySelector('.mesic');
+    const dnesIso = dnes.getFullYear() + '-' + String(dnes.getMonth() + 1).padStart(2, '0') +
+                    '-' + String(dnes.getDate()).padStart(2, '0');
+
+    function kresli(){
+      popisek.textContent = MESICE_CZ[mes] + ' ' + rok;
+      const prvni = new Date(rok, mes, 1);
+      /* Týden začíná pondělkem — getDay() vrací 0 pro neděli. */
+      const posun = (prvni.getDay() + 6) % 7;
+      const dni = new Date(rok, mes + 1, 0).getDate();
+      let html = DNY_CZ.map(d => '<div class="den-zkr">' + d + '</div>').join('');
+      for(let i = 0; i < posun; i++) html += '<button type="button" disabled></button>';
+      for(let d = 1; d <= dni; d++){
+        const iso = rok + '-' + String(mes + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+        html += '<button type="button" data-den="' + iso + '" class="' +
+                (iso === vybrane ? 'vybrany' : (iso === dnesIso ? 'dnes' : '')) + '">' + d + '</button>';
+      }
+      mrizka.innerHTML = html;
+    }
+    kresli();
+    requestAnimationFrame(() => pozadi.classList.add('vidno'));
+
+    const konec = (v) => {
+      document.removeEventListener('keydown', klavesa, true);
+      pozadi.classList.remove('vidno');
+      setTimeout(() => pozadi.remove(), 170);
+      hotovo(v);
+    };
+    function klavesa(e){ if(e.key === 'Escape'){ e.preventDefault(); konec(null); } }
+    pozadi.querySelector('[data-zpet]').onclick = () => { mes--; if(mes < 0){ mes = 11; rok--; } kresli(); };
+    pozadi.querySelector('[data-vpred]').onclick = () => { mes++; if(mes > 11){ mes = 0; rok++; } kresli(); };
+    pozadi.querySelector('[data-ne]').onclick = () => konec(null);
+    pozadi.querySelector('[data-smaz]').onclick = () => konec('');
+    mrizka.addEventListener('click', e => {
+      const b = e.target.closest('[data-den]');
+      if(b) konec(b.dataset.den);
+    });
+    pozadi.addEventListener('click', e => { if(e.target === pozadi) konec(null); });
+    document.addEventListener('keydown', klavesa, true);
+  });
+}
+
+/* Pole s datem: ukazuje české datum, hodnotu drží ve tvaru rok-měsíc-den. */
+async function otevriKalendar(id, nadpis){
+  const pole = document.getElementById(id); if(!pole) return;
+  const v = await vyberDatum(pole.dataset.iso || ceskyNaDatum(pole.value), nadpis);
+  if(v === null) return;                      // zrušeno — nic se nemění
+  pole.dataset.iso = v;
+  pole.value = datumNaCesky(v);
+}
+/* Když někdo datum napíše ručně, srovná se do stejného tvaru. */
+function srovnejDatum(pole){
+  const iso = ceskyNaDatum(pole.value);
+  pole.dataset.iso = iso;
+  pole.value = iso ? datumNaCesky(iso) : '';
+}
+/* Hodnota pole s datem pro uložení. */
+function hodnotaData(id){
+  const pole = document.getElementById(id);
+  if(!pole) return '';
+  return pole.dataset.iso || ceskyNaDatum(pole.value);
+}
+
 /* Okno v duchu aplikace. Vrací slib: potvrzení true/false, vstup text nebo null.
    Zavře se Escapem i klepnutím mimo — obojí znamená zrušit. */
 function okno({nadpis, text, potvrdit, zrusit, vstup, nebezpecne}){
@@ -2914,8 +3042,8 @@ function ulozPokutu(){
     duvod: (document.getElementById('pDuvod').value||'').trim(),
     spz: (document.getElementById('pSpz').value||'').trim(),
     castka: (document.getElementById('pCastka').value||'').trim(),
-    datum: document.getElementById('pDatum').value,
-    splatnost: document.getElementById('pSplatnost').value,
+    datum: hodnotaData('pDatum'),
+    splatnost: hodnotaData('pSplatnost'),
     body,
     stav: document.getElementById('pStav').value
   };
@@ -3142,8 +3270,16 @@ function formPokuty(p){
     '<div class="field"><label>Vozidlo</label><select id="pSpz"><option value="">Neuvedeno</option>' +
       vs.map(v => '<option' + (p.spz === v.spz ? ' selected' : '') + '>' + escT(v.spz) + '</option>').join('') + '</select></div>' +
     '<div class="field"><label>Částka (Kč)</label><input type="text" id="pCastka" inputmode="numeric"' + h(p.castka) + ' placeholder="2500"/></div>' +
-    '<div class="field"><label>Datum</label><input type="date" id="pDatum"' + h(p.datum) + '/></div>' +
-    '<div class="field"><label>Splatnost</label><input type="date" id="pSplatnost"' + h(p.splatnost) + '/></div>' +
+    /* Vlastní kalendář místo systémového: ten se na cizojazyčném telefonu
+       otevře v jazyce telefonu a vypadá na každém přístroji jinak. */
+    '<div class="field"><label>Datum</label><input type="text" id="pDatum" inputmode="numeric" ' +
+      'placeholder="dd. mm. rrrr" data-iso="' + escT(p.datum || '') + '"' +
+      (p.datum ? ' value="' + escT(datumNaCesky(p.datum)) + '"' : '') +
+      ' onclick="otevriKalendar(\'pDatum\',\'Datum pokuty\')" onchange="srovnejDatum(this)"/></div>' +
+    '<div class="field"><label>Splatnost</label><input type="text" id="pSplatnost" inputmode="numeric" ' +
+      'placeholder="dd. mm. rrrr" data-iso="' + escT(p.splatnost || '') + '"' +
+      (p.splatnost ? ' value="' + escT(datumNaCesky(p.splatnost)) + '"' : '') +
+      ' onclick="otevriKalendar(\'pSplatnost\',\'Splatnost\')" onchange="srovnejDatum(this)"/></div>' +
     '<div class="field"><label>Body</label><input type="text" id="pBody" inputmode="numeric"' + h(p.body) + ' placeholder="0"/></div>' +
     '<div class="field"><label>Stav</label><select id="pStav">' +
       STAVY_POKUT.map(x => '<option value="' + x[0] + '"' + (p.stav === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select></div>' +
