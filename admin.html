@@ -335,7 +335,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 102</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 103</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -651,7 +651,7 @@ function editorOblasti(){
       <button class="btn btn-vedl" onclick="vyberOblast('${o.id}'); novyClanek()">+ Článek do této oblasti</button>
       <button class="btn btn-smaz vpravo" onclick="smazOblast('${o.id}')">Smazat oblast</button>
     </div>`;
-  hlidejFormular($('editor'));
+  hlidejVse($('editor'));
 }
 
 async function novaOblast(){
@@ -681,7 +681,7 @@ async function ulozOblast(){
   const { error } = await db.from('oblasti').update(zmeny).eq('id', vybrano.id);
   if(error){ hlaska('Uložení selhalo: '+error.message, true); return; }
   Object.assign(oblasti.find(o => o.id === vybrano.id), zmeny);
-  kresliStrom(); hlaska('Uloženo.');
+  kresliStrom(); formularUlozen($('editor')); hlaska('Uloženo.');
 }
 
 async function smazOblast(id){
@@ -811,7 +811,7 @@ function editorClanku(){
   nahledObrazovkaAkt = 'clanek';
   nahledClanku();
   kresliOvladaceNahledu();
-  hlidejFormular($('editor'));
+  hlidejVse($('editor'));
 }
 
 function nahledZamku(){
@@ -860,7 +860,7 @@ async function ulozClanek(){
   if(error){ hlaska('Uložení selhalo: '+error.message, true); return; }
   if(!await ulozBlokyClanku(vybrano.id)) return;
   Object.assign(clanky.find(c => c.id === vybrano.id), zmeny);
-  kresliStrom(); kresliBloky();
+  kresliStrom(); kresliBloky(); formularUlozen($('editor'));
   hlaska(zmeny.publikovano ? 'Uloženo a publikováno.' : 'Uloženo jako koncept.');
 }
 
@@ -940,7 +940,7 @@ function editorSluzby(){
       <button class="btn btn-hlavni" data-ulozit onclick="ulozSluzbu()">Uložit</button>
       <button class="btn btn-smaz vpravo" onclick="smazSluzbu('${s.id}')">Smazat službu</button>
     </div>`;
-  hlidejFormular($('editorSluzby'));
+  hlidejVse($('editorSluzby'));
 }
 
 async function novaSluzba(){
@@ -969,7 +969,7 @@ async function ulozSluzbu(){
   const { error } = await db.from('sluzby').update(zmeny).eq('id', vybranaSluzba);
   if(error){ hlaska('Uložení selhalo: '+error.message, true); return; }
   Object.assign(sluzby.find(s => s.id === vybranaSluzba), zmeny);
-  kresliSluzby(); hlaska('Uloženo.');
+  kresliSluzby(); formularUlozen($('editorSluzby')); hlaska('Uloženo.');
 }
 
 async function smazSluzbu(id){
@@ -2425,7 +2425,7 @@ function kresliKalkulacky(){
 
   kresliNapoje();
   kresliTexty('kalk');
-  hlidejFormular(sek);
+  hlidejVse(sek);
 }
 
 function hlidejSazbu(el, cislo){
@@ -2482,7 +2482,7 @@ async function ulozSazby(){
     if(error){ hlaska('Uložení selhalo: ' + error.message, true); return; }
     Object.assign(sazby.find(x => x.klic === s.klic), {hodnota: s.hodnota});
   }
-  kresliKalkulacky();
+  kresliKalkulacky(); formularUlozen($('sek-kalk'));
   hlaska('Uloženo — změněno ' + zmenene.length + ' ' + mnozne(zmenene.length,'sazba','sazby','sazeb') + '.');
 }
 
@@ -2509,7 +2509,7 @@ async function ulozNapoje(){
   }
   napoje = napoje.filter(n => !n._smazany);
   napojeZmenene.clear();
-  kresliNapoje();
+  kresliNapoje(); formularUlozen($('sek-kalk'));
   hlaska(spatne.length ? ('Uloženo, ale přeskočeno: ' + spatne.join(', ')) : 'Uloženo.');
 }
 
@@ -2733,6 +2733,9 @@ async function ulozSeznam(druh){
   }
   seznamy = seznamy.filter(x => !x._smazany);
   kresliSeznam(druh);
+  /* Seznam sedí uvnitř karty s texty — posune se základ té karty. */
+  const sekS = document.querySelector('#sek-' + (DRUHY_SEZNAMU[druh] || {}).karta);
+  if(sekS) formularUlozen(sekS);
   hlaska(ulozeno ? ('Uloženo — ' + ulozeno + ' ' + mnozne(ulozeno,'položka','položky','položek') + '.') : 'Nic se nezměnilo.');
 }
 
@@ -2848,7 +2851,7 @@ function kresliTexty(karta){
     ${karta === 'zpravy' ? '<div class="panel" style="margin-top:16px">' + sekceZprav() + '</div>' : ''}`;
   skupiny.forEach(s => s.seznamy.forEach(kresliSeznam));
   rostouVse(sek);
-  hlidejFormular(sek);
+  hlidejVse(sek);
   nahledTexty();
 }
 function mnozne(n, jeden, few, mnoho){ return n === 1 ? jeden : (n >= 2 && n <= 4 ? few : mnoho); }
@@ -3002,8 +3005,13 @@ async function ulozTexty(karta, potichu, btn){
     const novyOdkaz = poleOdkaz ? poleOdkaz.value.trim() : t.odkaz;
     const novyOdkazText = poleOdkazText ? poleOdkazText.value.trim() : t.odkaz_text;
     const noveOkno = poleOkno ? poleOkno.classList.contains('zap') : t.nove_okno;
-    if(nova !== t.hodnota || novyPopis !== t.popis || novyOdkaz !== (t.odkaz||'')
-       || novyOdkazText !== (t.odkaz_text||'') || noveOkno !== t.nove_okno)
+    /* Prázdno se v databázi ukládá jako NULL, ve formuláři je to prázdný řetězec.
+       Porovnávat se proto musí po stejné normalizaci — bez ní vycházel jako
+       změněný každý text bez odkazu, takže uložení jedné věty přepsalo celou
+       kartu včetně údaje „kdo naposledy upravil". */
+    const stejne = (x, y) => (x || '') === (y || '');
+    if(!stejne(nova, t.hodnota) || !stejne(novyPopis, t.popis) || !stejne(novyOdkaz, t.odkaz)
+       || !stejne(novyOdkazText, t.odkaz_text) || noveOkno !== t.nove_okno)
       zmenene.push({...t, hodnota:nova, popis:novyPopis, odkaz:novyOdkaz, odkaz_text:novyOdkazText, nove_okno:noveOkno});
   });
   if(!zmenene.length){ if(!potichu) hlaska('Nic se nezměnilo.'); return; }
@@ -3052,7 +3060,7 @@ function upravBlok(klic){
 
 async function ulozBlok(klic){
   const t = texty.find(x => x.klic === klic); if(!t) return;
-  if(bezeZmeny($('sek-'+t.karta))){ upravovane.delete(klic); kresliTexty(t.karta); return; }
+  if(bezeZmeny(formularPole($('tx-'+klic)))){ upravovane.delete(klic); kresliTexty(t.karta); return; }
   await ulozTexty(t.karta, true);
   upravovane.delete(klic);
   kresliTexty(t.karta);
@@ -3109,12 +3117,24 @@ function zavriSekce(btn){
   koren.scrollIntoView({ block: 'start', behavior: 'smooth' });
 }
 
+/* Základ, proti kterému se pozná změna. Po uložení se musí posunout — jinak by
+   vrácení změny zpátky vypadalo jako „nic k uložení", i když v databázi je
+   mezitím něco jiného. */
+const ZAKLADY = new WeakMap();
+
+/* Volá se po úspěšném uložení: co je teď ve formuláři, je nový výchozí stav. */
+function formularUlozen(el){
+  const z = ZAKLADY.get(el);
+  if(!z) return;
+  z.posun();
+}
+
 function hlidejFormular(el){
   if(!el) return;
   const btn = el.querySelector('[data-ulozit="hlavni"]') || el.querySelector('[data-ulozit]');
   if(!btn) return;
   const jenSve = btn.dataset.ulozit === 'hlavni';
-  const puvodni = stavFormulare(el, jenSve);
+  let puvodni = stavFormulare(el, jenSve);
   const prekresli = () => {
     const zmeneno = stavFormulare(el, jenSve) !== puvodni;
     btn.dataset.zmeneno = zmeneno ? '1' : '';
@@ -3133,7 +3153,35 @@ function hlidejFormular(el){
     ev.stopImmediatePropagation();
     zavriSekce(btn);
   }, true);
+  ZAKLADY.set(el, { posun: () => { puvodni = stavFormulare(el, jenSve); prekresli(); } });
+  el.dataset.formular = '1';        // kořen formuláře — viz formularPole()
   prekresli();
+}
+
+/* Na kartě bývá formulářů víc a každý má vlastní tlačítko Uložit. Kořen
+   každého z nich se najde od tlačítka nahoru: je to poslední předek, ve kterém
+   je pořád jen tohle jedno tlačítko. Díky tomu se nemusí vyjmenovávat třídy
+   a nový formulář se začne hlídat sám. */
+function hlidejVse(koren){
+  if(!koren) return;
+  const hlavni = koren.querySelector('[data-ulozit="hlavni"]') || koren.querySelector('[data-ulozit]');
+  koren.querySelectorAll('[data-ulozit]').forEach(btn => {
+    if(btn === hlavni) return;
+    let el = btn.parentElement, cil = null;
+    while(el && el !== koren){
+      if(el.querySelectorAll('[data-ulozit]').length !== 1) break;
+      cil = el; el = el.parentElement;
+    }
+    if(cil) hlidejFormular(cil);
+  });
+  hlidejFormular(koren);
+}
+
+/* Formulář, do kterého patří dané pole. Hledá se mezi kořeny, které si
+   hlidejFormular() označil — hádat podle nejbližšího tlačítka nestačí:
+   textové pole v sekci se seznamem by trefilo tlačítko toho seznamu. */
+function formularPole(el){
+  return el ? el.closest('[data-formular]') : null;
 }
 
 /* Vrátí true, když se ve formuláři nic nezměnilo — volající pak jen zavře. */
@@ -3214,7 +3262,7 @@ function vykresliSpravu(){
     ${klienti.length ? klienti.map(k => vybranyKlient===k.id ? formularKlienta(k) : nahledKlienta(k)).join('')
                      : '<div class="prazdno">Zatím žádní klienti.</div>'}
     <div class="lista"><button class="btn btn-vedl" onclick="novyKlient()">+ Přidat klienta</button></div>`;
-  hlidejFormular($('sek-sprava'));
+  hlidejVse($('sek-sprava'));
 }
 
 /* Poptávky z konzultačního formuláře v aplikaci. */
@@ -3539,7 +3587,9 @@ async function novaZprava(){
 }
 
 async function ulozZpravu(id){
-  if(bezeZmeny($('sek-zpravy'))){ vybranaZprava = null; kresliTexty('zpravy'); return; }
+  /* Ptát se celé karty by odpovědělo za texty karty, ne za rozepsanou zprávu —
+     a úprava zprávy by se zahodila. */
+  if(bezeZmeny(formularPole($('z-nadpis')))){ vybranaZprava = null; kresliTexty('zpravy'); return; }
   const zmeny = {
     nadpis: $('z-nadpis').value.trim(),
     telo:   $('z-telo').value,
