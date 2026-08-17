@@ -335,7 +335,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 105</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 107</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -3567,6 +3567,8 @@ function formularZpravy(z){
         <div class="knof"></div></div>
       <div class="lista">
         <button class="btn btn-hlavni" data-ulozit style="padding:8px 14px;font-size:13px" onclick="ulozZpravu('${z.id}')">Uložit</button>
+        ${z.publikovano ? `<button class="btn btn-vedl" style="padding:8px 14px;font-size:13px"
+          onclick="posliUpozorneni('${z.id}', this)">Poslat upozornění do telefonů</button>` : ''}
         <button class="btn btn-smaz vpravo" style="padding:8px 12px;font-size:13px" onclick="smazZpravu('${z.id}')">Smazat zprávu</button>
       </div>
     </div>`;
@@ -3584,6 +3586,43 @@ async function novaZprava(){
   if(error){ hlaska('Nepodařilo se vytvořit: '+error.message, true); return; }
   zpravy.unshift(data); vybranaZprava = data.id; kresliTexty('zpravy');
   hlaska('Zpráva vytvořena jako koncept.');
+}
+
+/* Rozeslání upozornění. Nejdřív se zeptáme, kolik telefonů odběr má — bez toho
+   by obsluha posílala naslepo. Potvrzení je záměrné: zpátky to vzít nejde. */
+async function posliUpozorneni(id, btn){
+  const z = zpravy.find(x => x.id === id); if(!z) return;
+  if(!z.publikovano){ hlaska('Zpráva není publikovaná — nejdřív ji publikujte a uložte.', true); return; }
+
+  let pocet = null;
+  try {
+    const { data } = await db.rpc('pocet_odberu');
+    if(typeof data === 'number') pocet = data;
+  } catch(e) {}
+
+  if(pocet === 0){ hlaska('Zatím nikdo nemá upozornění zapnutá — není komu poslat.', true); return; }
+  const komu = pocet === null ? 'přihlášeným telefonům'
+             : pocet + ' ' + mnozne(pocet, 'telefonu', 'telefonům', 'telefonům');
+  if(!confirm('Poslat upozornění „' + z.nadpis + '" ' + komu + '?\n\nOdeslané upozornění nejde vzít zpět.')) return;
+
+  const puvodni = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Odesílám…'; }
+  try {
+    const { data: sezeni } = await db.auth.getSession();
+    const token = sezeni && sezeni.session ? sezeni.session.access_token : '';
+    const odpoved = await fetch(CFG.URL + '/functions/v1/posli-push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ zprava_id: id })
+    });
+    const v = await odpoved.json();
+    if(!odpoved.ok || !v.ok){ hlaska('Rozeslání selhalo: ' + (v.chyba || odpoved.status), true); }
+    else hlaska('Odesláno na ' + v.poslano + ' ' + mnozne(v.poslano, 'telefon', 'telefony', 'telefonů') +
+                (v.selhalo ? ' · nedoručeno ' + v.selhalo : '') + '.');
+  } catch(e) {
+    hlaska('Rozeslání selhalo: ' + e.message, true);
+  }
+  if(btn){ btn.disabled = false; btn.textContent = puvodni; }
 }
 
 async function ulozZpravu(id){

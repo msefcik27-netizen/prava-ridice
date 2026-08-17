@@ -166,7 +166,9 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .small{font-size:13px;}
 
 /* Buttons */
-.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+/* Dotykový cíl aspoň 44 px na výšku (WCAG 2.5.5) — menší tlačítko se na telefonu
+   trefuje špatně, zvlášť za jízdy nebo ve stresu po nehodě. */
+.btn{min-height:44px;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
   border:none;border-radius:16px;padding:17px 18px;font-size:16px;font-weight:700;
   font-family:inherit;cursor:pointer;transition:transform .06s ease,opacity .2s;}
 .btn:active{transform:scale(.985);}
@@ -213,7 +215,7 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .progress > i{display:block;height:100%;border-radius:999px;background:var(--orange);transition:width .3s ease,background .3s;}
 .status-note{font-size:12.5px;color:rgba(255,255,255,.82);margin-bottom:10px;}
 .status-actions{display:flex;gap:8px;}
-.chip-btn{display:flex;align-items:center;justify-content:center;gap:8px;flex:1;border:none;cursor:pointer;font-family:inherit;
+.chip-btn{min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;flex:1;border:none;cursor:pointer;font-family:inherit;
   padding:11px 8px;border-radius:13px;font-size:13px;font-weight:600;}
 .chip-btn.light{background:var(--peach);color:var(--on-peach);}
 .chip-btn.outline{background:transparent;border:1.5px solid rgba(255,255,255,.28);color:#fff;}
@@ -221,6 +223,9 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 
 /* Notification card */
 .toggle{position:relative;width:52px;height:30px;border-radius:999px;background:var(--line);flex:0 0 auto;cursor:pointer;transition:.2s;}
+/* Plocha k trefení je 44 px vysoká, kolečko zůstává 30 px — vzhled se nemění. */
+.toggle::before{content:"";position:absolute;left:0;right:0;top:-7px;bottom:-7px;}
+.toggle:focus-visible{outline:2px solid var(--turq-deep);outline-offset:3px;}
 .toggle::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--card);transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
 .toggle.on{background:var(--turq-deep);}
 .toggle.on::after{left:25px;}
@@ -272,7 +277,7 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .oblast-temata{background:var(--bg);border-bottom:1px solid var(--line);}
 .search-box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 13px;margin-top:9px;box-shadow:var(--shadow);}
 .search-input{display:flex;align-items:center;gap:10px;}
-.search-input input{border:none;outline:none;font-family:inherit;font-size:15px;width:100%;color:var(--ink);background:transparent;}
+.search-input input{min-height:44px;border:none;outline:none;font-family:inherit;font-size:15px;width:100%;color:var(--ink);background:transparent;}
 .chips{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap;}
 .chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 11px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;}
 .chip.active{background:var(--teal-800);color:#fff;border-color:var(--teal-800);}
@@ -313,7 +318,7 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 
 /* ============ SUB-SCREEN (konzultace, kalkulacka) ============ */
 .subhead{display:flex;align-items:center;gap:6px;padding:calc(env(safe-area-inset-top) + 12px) 12px 12px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;}
-.back-btn{display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px 8px 10px;font-family:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;}
+.back-btn{min-height:44px;display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px 8px 10px;font-family:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;}
 .subhead .sh-title{font-weight:700;font-size:16px;flex:1;text-align:center;padding-right:70px;}
 
 /* Form */
@@ -330,7 +335,9 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .attach-row{display:flex;gap:10px;}
 .attach-row .attach{flex:1;justify-content:center;font-size:14px;}
 .consent{display:flex;gap:11px;align-items:flex-start;flex-wrap:wrap;font-size:13px;color:var(--ink-soft);margin:6px 0 18px;line-height:1.45;}
-.check{width:22px;height:22px;border-radius:7px;border:1.5px solid #c7c6c0;flex:0 0 auto;cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--card);margin-top:1px;}
+.check::before{content:"";position:absolute;left:-11px;right:-11px;top:-11px;bottom:-11px;}
+.check:focus-visible{outline:2px solid var(--turq-deep);outline-offset:3px;}
+.check{position:relative;width:22px;height:22px;border-radius:7px;border:1.5px solid #c7c6c0;flex:0 0 auto;cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--card);margin-top:1px;}
 .check.on{background:var(--teal-800);border-color:var(--teal-800);}
 .check svg{opacity:0;}.check.on svg{opacity:1;}
 .link{color:var(--teal-700);font-weight:600;text-decoration:underline;}
@@ -525,7 +532,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 .step-row .tx svg{vertical-align:-3px;margin:0 2px;}
 .sheet-close{margin-top:16px;}
 .tema-volby{display:flex;gap:6px;background:var(--bg);border-radius:12px;padding:4px;}
-.tema-volby button{flex:1;border:0;background:transparent;color:var(--muted);font-family:inherit;
+.tema-volby button{min-height:44px;flex:1;border:0;background:transparent;color:var(--muted);font-family:inherit;
   font-size:13px;font-weight:700;padding:9px 6px;border-radius:9px;cursor:pointer;transition:.16s;}
 .tema-volby button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12);}
 .zamek-znacka{display:inline-block;vertical-align:middle;background:rgba(242,169,59,.2);color:var(--orange);
@@ -662,6 +669,10 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 .kal-mrizka button:disabled{color:transparent;cursor:default}
 .kal-mrizka button.dnes{box-shadow:inset 0 0 0 1.5px var(--line)}
 .kal-mrizka button.vybrany{background:var(--grad);color:#fff;font-weight:700}
+.kal-cas{display:flex;align-items:center;gap:8px;margin-top:12px}
+.kal-cas label{font-size:13px;font-weight:700;color:var(--muted);flex:0 0 auto}
+.kal-cas select{flex:1;padding:9px 10px;font-size:15px;font-family:inherit;
+  border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
 
 /* Vlastní okno — nahrazuje systémové confirm/prompt, které kreslí prohlížeč
    a jehož tlačítka jsou v jazyce telefonu. */
@@ -768,7 +779,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
               <div class="eyebrow" style="margin-bottom:4px;" data-text="prehled.notif.stitek">Notifikace podle bodů</div>
               <div class="title-md" style="font-size:17px;" data-text="prehled.notif.nadpis">Včasná výstraha před 12 body</div>
             </div>
-            <div class="toggle on" id="notifToggle" onclick="toggleNotif()"></div>
+            <div class="toggle on" role="switch" tabindex="0" aria-checked="true" id="notifToggle" onclick="toggleNotif()" onkeydown="klavesaPrepinac(event, this)"></div>
           </div>
           <div class="alert-line" id="notifInfo">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b5a3f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>
@@ -852,7 +863,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="search-box">
           <div class="search-input">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9aa3a0" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
-            <input id="guideSearch" data-ph="pruvodce.hledat.ph" placeholder="Hledat přestupek, sankci nebo téma…" oninput="renderGuide()" />
+            <input id="guideSearch" aria-label="Hledat v průvodci" data-ph="pruvodce.hledat.ph" placeholder="Hledat přestupek, sankci nebo téma…" oninput="renderGuide()" />
           </div>
         </div>
         <div class="results-label" id="guideResultsLabel" style="display:none;" data-text="pruvodce.vysledky">Výsledky</div>
@@ -942,13 +953,13 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 105<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 107<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
     <!-- SUB: JAK ZJISTIT BODY -->
     <div class="screen" id="s-points-help">
-      <div class="subhead"><button class="back-btn" onclick="back('prehled')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" data-text="pomoc.body.nadpis">Jak zjistit body</div></div>
+      <div class="subhead"><button class="back-btn" onclick="back('prehled')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" data-text="pomoc.body.nadpis">Jak zjistit body</div></div>
       <div class="pad">
         <p class="muted" style="line-height:1.6;margin-top:0;" data-text="pomoc.body.uvod">Přesný počet bodů zjistíte třemi způsoby:</p>
         <div class="list-card">
@@ -961,13 +972,13 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 
     <!-- SUB: SLUŽBA DETAIL -->
     <div class="screen" id="s-service-detail">
-      <div class="subhead"><button class="back-btn" onclick="back('sluzby')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" id="svcTitle">Služba</div></div>
+      <div class="subhead"><button class="back-btn" onclick="back('sluzby')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" id="svcTitle">Služba</div></div>
       <div class="pad" id="svcBody"></div>
     </div>
 
     <!-- SUB: KONZULTACE FORM -->
     <div class="screen" id="s-konzultace">
-      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title"></div></div>
+      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1"></div></div>
       <div class="pad">
         <h1 class="title-lg" style="margin-bottom:4px;" data-text="formular.nadpis">Napište nám</h1>
         <p class="muted" style="margin:0 0 14px;font-size:13.5px;line-height:1.5;" data-text="formular.podnadpis">Ozveme se vám neprodleně. Posouzení je zdarma a nezávazné.</p>
@@ -997,7 +1008,9 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           <div class="hint" id="fFileName" style="display:none;"></div>
         </div>
         <div class="consent">
-          <div class="check" id="fConsent" onclick="this.classList.toggle('on')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div class="check" id="fConsent" role="checkbox" aria-checked="false" tabindex="0"
+               aria-label="Souhlasím se zpracováním osobních údajů"
+               onclick="prepniZaskrtnuti(this)" onkeydown="klavesaPrepinac(event, this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
           <div style="flex:1 1 0;min-width:0;"><span data-text="formular.souhlas">Odesláním souhlasíte se zpracováním osobních údajů.</span> <span class="link" onclick="openExt(odk('odkaz.zasady','https://www.pravaridice.cz/'))" data-text="formular.odkaz">Zásady zpracování osobních údajů</span></div>
         </div>
         <button class="btn btn-dark" id="fSend" onclick="submitForm()">
@@ -1009,67 +1022,67 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 
     <!-- SUB: KALKULAČKA -->
     <div class="screen" id="s-calc">
-      <div class="subhead"><button class="back-btn" onclick="calcBack()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" data-text="nadpis.kalkulacka">Alkohol za volantem</div></div>
+      <div class="subhead"><button class="back-btn" onclick="calcBack()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" data-text="nadpis.kalkulacka">Alkohol za volantem</div></div>
       <div class="pad" id="calcBody"></div>
     </div>
 
     <!-- SUB: OBLASTI -->
     <div class="screen" id="s-oblasti">
-      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" data-text="nadpis.oblasti">Právní témata</div></div>
+      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" data-text="nadpis.oblasti">Právní témata</div></div>
       <div class="pad" id="oblastiBody"></div>
     </div>
 
     <!-- SUB: OBLAST -->
     <div class="screen" id="s-oblast">
-      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" id="oblastTitle">Oblast</div></div>
+      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" id="oblastTitle">Oblast</div></div>
       <div class="pad" id="oblastBody"></div>
     </div>
 
     <!-- SUB: ČLÁNEK -->
     <div class="screen" id="s-topic">
-      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title">Průvodce</div></div>
+      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1">Průvodce</div></div>
       <div class="pad" id="topicBody"></div>
     </div>
 
     <!-- SUB: RECENZE -->
     <div class="screen" id="s-recenze">
-      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" data-text="nadpis.recenze">Recenze klientů</div></div>
+      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" data-text="nadpis.recenze">Recenze klientů</div></div>
       <div class="pad" id="recenzeBody"></div>
     </div>
 
     <!-- SUB: JAK TO PROBÍHÁ -->
     <div class="screen" id="s-postup">
-      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" data-text="nadpis.postup">Jak to probíhá</div></div>
+      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" data-text="nadpis.postup">Jak to probíhá</div></div>
       <div class="pad" id="postupBody"></div>
     </div>
 
     <!-- SUB: KONTAKT -->
     <div class="screen" id="s-kontakt">
-      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" data-text="nadpis.kontakt">Kontakt</div></div>
+      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" data-text="nadpis.kontakt">Kontakt</div></div>
       <div class="pad" id="kontaktBody"></div>
     </div>
 
     <!-- SUB: UPOZORNĚNÍ -->
     <div class="screen" id="s-upozorneni">
-      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" data-text="nadpis.upozorneni">Upozornění</div></div>
+      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" data-text="nadpis.upozorneni">Upozornění</div></div>
       <div class="pad" id="upozorneniBody"></div>
     </div>
 
     <!-- SUB: NEHODA -->
     <div class="screen" id="s-nehoda">
-      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" data-text="nadpis.nehoda">Co dělat po nehodě</div></div>
+      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" data-text="nadpis.nehoda">Co dělat po nehodě</div></div>
       <div class="pad" id="nehodaBody"></div>
     </div>
 
     <!-- SUB: VOZIDLA -->
     <div class="screen" id="s-vozidla">
-      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" data-text="nadpis.vozidla">Vozidla a STK</div></div>
+      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" data-text="nadpis.vozidla">Vozidla a STK</div></div>
       <div class="pad" id="vozidlaBody"></div>
     </div>
 
     <!-- SUB: PŘEDPLATNÉ -->
     <div class="screen" id="s-predplatne">
-      <div class="subhead"><button class="back-btn" onclick="back('profil')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" data-text="nadpis.predplatne">Předplatné</div></div>
+      <div class="subhead"><button class="back-btn" onclick="back('profil')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1" data-text="nadpis.predplatne">Předplatné</div></div>
       <div class="pad">
         <div class="card" style="background:var(--teal-800);color:#fff;">
           <div class="eyebrow" style="color:rgba(255,255,255,.6);" data-text="predplatne.stitek">Práva řidiče Premium</div>
@@ -2196,7 +2209,7 @@ function renderCalcG(){
       '<div class="field-label-sm">Pohlaví</div><div class="seg"><button class="'+(cg.gender==='m'?'on':'')+'" onclick="cg.gender=\'m\';renderCalcG()">Muž</button><button class="'+(cg.gender==='z'?'on':'')+'" onclick="cg.gender=\'z\';renderCalcG()">Žena</button></div>'+
       '<div class="field-label-sm">Hmotnost</div><div class="stepper"><button class="step-min" onclick="cg.weight=Math.max(40,cg.weight-5);renderCalcG()">−</button><div class="val" onclick="zeptejSeNaVahu()">'+cg.weight+'<small>kg</small></div><button class="step-min" onclick="cg.weight=Math.min(200,cg.weight+5);renderCalcG()">+</button></div>'+
       '<div class="field-label-sm">Hodin od posledního napití</div><div class="stepper"><button class="step-min" onclick="cg.hours=Math.max(0,+(cg.hours-0.5).toFixed(1));renderCalcG()">−</button><div class="val">'+cg.hours.toFixed(1)+'<small>h</small></div><button class="step-min" onclick="cg.hours=Math.min(24,+(cg.hours+0.5).toFixed(1));renderCalcG()">+</button></div>'+
-      '<div class="field-label-sm">Nápoje</div><div class="search-box" style="margin-top:0;"><div class="search-input"><input id="drinkQ" placeholder="Hledat (pivo, panák, mojito…)" oninput="drawDrinkOpts()"/></div><div id="drinkOpts"></div></div>'+
+      '<div class="field-label-sm">Nápoje</div><div class="search-box" style="margin-top:0;"><div class="search-input"><input id="drinkQ" aria-label="Hledat nápoj" placeholder="Hledat (pivo, panák, mojito…)" oninput="drawDrinkOpts()"/></div><div id="drinkOpts"></div></div>'+
       '<div style="margin-top:10px;">'+cg.drinks.map((d,i)=>'<div class="added"><div class="info"><h5>'+d.n+'</h5><small>'+d.ml+' ml · '+d.abv+'%</small></div><button class="qbtn" onclick="cg.drinks['+i+'].q--;if(cg.drinks['+i+'].q<1)cg.drinks.splice('+i+',1);renderCalcG()">−</button><span class="qty">'+d.q+'</span><button class="qbtn" onclick="cg.drinks['+i+'].q++;renderCalcG()">+</button></div>').join('')+'</div>'+
       (bac!==null?'<div class="prefill"><span>Odhad: <b>'+bac.toFixed(2)+' ‰</b> · '+sanA(bac)[1]+'</span></div>':'')+
       '<button class="btn btn-dark" style="margin-top:10px;" data-text="'+(bac!==null?'kalk.btn.sodhadem':'kalk.btn.bezodhadu')+'" onclick="cg.bac=widmark();cg.node=\'A1\';renderCalcG()">'+(bac!==null?txt('kalk.btn.sodhadem','Pokračovat s odhadem'):txt('kalk.btn.bezodhadu','Přejít na průvodce'))+'</button>'+
@@ -2251,12 +2264,32 @@ function addDrinkG(n){ const d=DRINKS.find(x=>x.n===n); const ex=cg.drinks.find(
 
 /* ============ HELPERS ============ */
 function openExt(u, noveOkno){ toast('Otevírám: '+u.replace('https://','').replace(/\/$/,'')); try{ if(noveOkno===false) location.href=u; else window.open(u,'_blank'); }catch(e){} }
+/* Přepínač a zaškrtnutí jsou kreslené div, ne systémové prvky. Aby je čtečka
+   ohlásila správně a daly se ovládat klávesnicí, nesou roli i stav. */
+function prepniZaskrtnuti(el){
+  const zap = el.classList.toggle('on');
+  el.setAttribute('aria-checked', zap ? 'true' : 'false');
+}
+function prepniPrepinac(el){
+  const zap = el.classList.toggle('on');
+  el.setAttribute('aria-checked', zap ? 'true' : 'false');
+  return zap;
+}
+function klavesaPrepinac(ev, el){
+  if(ev.key !== ' ' && ev.key !== 'Enter') return;
+  ev.preventDefault();
+  el.click();
+}
+
 function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),2200); }
 
 /* ============ PŘIHLÁŠENÍ (Supabase Auth — odkazem na e-mail) ============
    Po založení projektu doplňte URL a anon klíč. Dokud jsou prázdné,
    tlačítka zdvořile hlásí, že přihlášení ještě není nastavené.        */
-const PR_CFG={ SUPABASE_URL:'https://fmwliouywqklxafttfjm.supabase.co', SUPABASE_ANON:'sb_publishable_3Af5Q_9OqQ6O9T28fiNgCA_asCxtS75' };
+const PR_CFG={ SUPABASE_URL:'https://fmwliouywqklxafttfjm.supabase.co', SUPABASE_ANON:'sb_publishable_3Af5Q_9OqQ6O9T28fiNgCA_asCxtS75',
+  /* Veřejná část klíče VAPID. Je veřejná z podstaty — telefon si ji vyžádá při
+     přihlášení k odběru. Soukromá část patří jen do Supabase secrets. */
+  VAPID_PUBLIC:'BESLrdckhQfVaoC3GcchqDdG9m20KrqE0VtRKaQWQMLpSxN4MdxGTEAKTCEgNvL38H2EiXq9XzGU_gq8zUjnG6s' };
 let sb=null, authUser=null;
 const authReady = ()=> !!(PR_CFG.SUPABASE_URL && PR_CFG.SUPABASE_ANON);
 function loadSupabase(){
@@ -2345,31 +2378,40 @@ const DNY_CZ = ['po','út','st','čt','pá','so','ne'];
 
 function datumNaCesky(iso){
   if(!iso) return '';
-  const [r, m, d] = String(iso).split('-').map(Number);
+  const [den, cas] = String(iso).split('T');
+  const [r, m, d] = den.split('-').map(Number);
   if(!r || !m || !d) return '';
-  return d + '. ' + m + '. ' + r;
+  return d + '. ' + m + '. ' + r + (cas ? ', ' + cas.slice(0, 5) : '');
 }
 /* Přijme 30.6.2027, 30. 6. 2027 i 2027-06-30. Cokoli jiného vrátí prázdné. */
 function ceskyNaDatum(text){
-  const s = String(text || '').trim();
+  let s = String(text || '').trim();
   if(!s) return '';
+  /* Čas se odloupne, zpracuje se zvlášť a na konci zase přilepí. */
+  let cas = '';
+  const sCasem = s.match(/^(.*?)[\sT,]+(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if(sCasem){
+    s = sCasem[1].trim().replace(/,$/, '');
+    cas = 'T' + String(sCasem[2]).padStart(2, '0') + ':' + sCasem[3];
+  }
   const iso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   const cz  = s.match(/^(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})$/);
   let r, m, d;
   if(iso){ [, r, m, d] = iso; } else if(cz){ [, d, m, r] = cz; } else return '';
   const dt = new Date(+r, +m - 1, +d);
   if(dt.getFullYear() !== +r || dt.getMonth() !== +m - 1 || dt.getDate() !== +d) return '';
-  return r + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+  return r + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0') + cas;
 }
 
 /* Kalendář v okně aplikace. Vrací datum ve tvaru rok-měsíc-den, nebo null. */
-function vyberDatum(vychozi, nadpis){
+function vyberDatum(vychozi, nadpis, sCasem){
   return new Promise(hotovo => {
     const dnes = new Date();
     const zac = ceskyNaDatum(vychozi);
     let rok = zac ? +zac.slice(0, 4) : dnes.getFullYear();
     let mes = zac ? +zac.slice(5, 7) - 1 : dnes.getMonth();
-    let vybrane = zac || '';
+    let vybrane = (zac || '').slice(0, 10);
+    const casZac = (zac && zac.length > 10) ? zac.slice(11, 16) : '';
 
     const pozadi = document.createElement('div');
     pozadi.className = 'okno-pozadi';
@@ -2380,9 +2422,17 @@ function vyberDatum(vychozi, nadpis){
           '<div class="mesic"></div>' +
           '<button type="button" data-vpred aria-label="Další měsíc">›</button></div>' +
         '<div class="kal-mrizka"></div>' +
+        (sCasem ? '<div class="kal-cas"><label for="kal-h">Čas</label>' +
+          '<select id="kal-h">' + Array.from({length: 24}, (_, i) =>
+            '<option' + (String(i).padStart(2,'0') === (casZac.slice(0,2) || String(dnes.getHours()).padStart(2,'0')) ? ' selected' : '') +
+            '>' + String(i).padStart(2, '0') + '</option>').join('') + '</select>' +
+          '<select id="kal-m">' + Array.from({length: 12}, (_, i) => String(i * 5).padStart(2, '0')).map(mm =>
+            '<option' + (mm === (casZac.slice(3,5) || '00') ? ' selected' : '') + '>' + mm + '</option>').join('') +
+          '</select></div>' : '') +
         '<div class="okno-lista">' +
           '<button type="button" class="btn btn-outline-dark btn-sm" data-ne>Zrušit</button>' +
           '<button type="button" class="btn btn-outline-dark btn-sm" data-smaz>Vymazat</button>' +
+          (sCasem ? '<button type="button" class="btn btn-dark btn-sm" data-ano>Použít</button>' : '') +
         '</div></div>';
     document.body.appendChild(pozadi);
 
@@ -2422,17 +2472,26 @@ function vyberDatum(vychozi, nadpis){
     pozadi.querySelector('[data-smaz]').onclick = () => konec('');
     mrizka.addEventListener('click', e => {
       const b = e.target.closest('[data-den]');
-      if(b) konec(b.dataset.den);
+      if(!b) return;
+      /* S časem se den jen označí — potvrzuje se tlačítkem, jinak by čas
+         nešel nastavit. Bez času je klepnutí na den rovnou volba. */
+      if(!sCasem){ konec(b.dataset.den); return; }
+      vybrane = b.dataset.den;
+      kresli();
     });
+    if(sCasem) pozadi.querySelector('[data-ano]').onclick = () => {
+      if(!vybrane){ konec(null); return; }
+      konec(vybrane + 'T' + pozadi.querySelector('#kal-h').value + ':' + pozadi.querySelector('#kal-m').value);
+    };
     pozadi.addEventListener('click', e => { if(e.target === pozadi) konec(null); });
     document.addEventListener('keydown', klavesa, true);
   });
 }
 
 /* Pole s datem: ukazuje české datum, hodnotu drží ve tvaru rok-měsíc-den. */
-async function otevriKalendar(id, nadpis){
+async function otevriKalendar(id, nadpis, sCasem){
   const pole = document.getElementById(id); if(!pole) return;
-  const v = await vyberDatum(pole.dataset.iso || ceskyNaDatum(pole.value), nadpis);
+  const v = await vyberDatum(pole.dataset.iso || ceskyNaDatum(pole.value), nadpis, sCasem);
   if(v === null) return;                      // zrušeno — nic se nemění
   pole.dataset.iso = v;
   pole.value = datumNaCesky(v);
@@ -2571,7 +2630,7 @@ function renderAccount(){
     box.innerHTML='<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:6px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
       '<div data-text="profil.ucet.neprihlasen" class="title-md" style="font-size:16px;margin-bottom:4px;">'+txt('profil.ucet.neprihlasen','Nepřihlášeno')+'</div>'+
       '<div data-text="profil.ucet.nepr" class="small muted" style="margin-bottom:10px;">'+txt('profil.ucet.nepr','Přihlášením se vám vrátí body, nastavení i plný přístup — třeba po přechodu na nový telefon.')+'</div>'+
-      '<input data-ph="profil.ucet.ph" class="pole-input" id="uctEmail" type="email" inputmode="email" autocomplete="email" '+
+      '<input data-ph="profil.ucet.ph" class="pole-input" id="uctEmail" aria-label="Váš e-mail" type="email" inputmode="email" autocomplete="email" '+
         'autocapitalize="off" spellcheck="false" placeholder="'+txt('profil.ucet.ph','vas@email.cz')+'" />'+
       '<div class="small" id="uctChyba" style="display:none;color:var(--red);margin-top:7px;"></div>'+
       '<button data-text="profil.ucet.btn" class="btn btn-dark btn-sm" style="margin-top:10px;" id="uctTlacitko" onclick="prihlasEmailem()">'+txt('profil.ucet.btn','Poslat přihlašovací odkaz')+'</button>';
@@ -2787,7 +2846,7 @@ function renderOb(){
       '<div class="ob-fill"></div>'+
       '<div class="ob-count"><button class="round-btn" onclick="obPoints(-1)">−</button><div class="num">'+ob.points+'</div><button class="round-btn" onclick="obPoints(1)">+</button></div>'+
       '<div data-text="onboard.stav.jednotka" style="text-align:center;font-size:13px;color:rgba(255,255,255,.7);margin-bottom:14px;">'+txt('onboard.stav.jednotka','z 12 bodů')+'</div>'+
-      '<div class="ob-note" onclick="ob.notif=!ob.notif;renderOb()"><div class="toggle '+(ob.notif?'on':'')+'" style="pointer-events:none;"></div><div class="tx" data-text="onboard.stav.notif">'+txt('onboard.stav.notif','Chci dostávat upozornění, když se přiblížím k 12 bodům.')+'</div></div>'+
+      '<div class="ob-note" onclick="ob.notif=!ob.notif;renderOb()"><div class="toggle '+(ob.notif?'on':'')+'" role="switch" tabindex="0" aria-checked="true" style="pointer-events:none;" onkeydown="klavesaPrepinac(event, this)"></div><div class="tx" data-text="onboard.stav.notif">'+txt('onboard.stav.notif','Chci dostávat upozornění, když se přiblížím k 12 bodům.')+'</div></div>'+
       '<div class="ob-fill"></div>'+
       '<div class="ob-actions"><button class="btn btn-peach" data-text="onboard.stav.btn" onclick="obFinish(true)">'+txt('onboard.stav.btn','Dokončit')+'</button>'+
       '<button class="btn btn-outline" data-text="onboard.stav.pozdeji" onclick="obFinish(false)">'+txt('onboard.stav.pozdeji','Vyplním později')+'</button></div></div>';
@@ -2839,6 +2898,86 @@ function getNotifCfg(){
   try{ return Object.assign({},NOTIF_DEF, JSON.parse(localStorage.getItem('pr-notif')||'{}')); }catch(e){ return Object.assign({},NOTIF_DEF); }
 }
 function setNotifCfg(c){ try{ localStorage.setItem('pr-notif',JSON.stringify(c)); }catch(e){} }
+/* ===== UPOZORNĚNÍ DO TELEFONU (Web Push) =====
+   Odběr je trojice: adresa u služby výrobce telefonu a dva klíče k zašifrování.
+   Aplikace ji uloží na server, server podle ní posílá. Bez přihlášení to nedává
+   smysl — nebylo by komu upozornění adresovat. */
+
+/* Klíč se přenáší jako text, prohlížeč ho chce jako pole bajtů. */
+function klicNaBajty(zaklad){
+  const doplneno = (zaklad + '='.repeat((4 - zaklad.length % 4) % 4))
+    .replace(/-/g, '+').replace(/_/g, '/');
+  const syrove = atob(doplneno);
+  return Uint8Array.from([...syrove].map(c => c.charCodeAt(0)));
+}
+
+/* Stav odběru — z něj se skládá text na obrazovce Upozornění. */
+async function stavPush(){
+  if(!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window))
+    return { lze: false, duvod: 'neumi' };
+  if(!PR_CFG.VAPID_PUBLIC) return { lze: false, duvod: 'nenastaveno' };
+  if(Notification.permission === 'denied') return { lze: false, duvod: 'odmitnuto' };
+  if(!authUser) return { lze: false, duvod: 'neprihlasen' };
+  try{
+    /* Na service worker se čeká omezeně. Když se z nějakého důvodu nespustí,
+       karta by jinak zůstala prázdná a uživatel by nevěděl, na čem je. */
+    const reg = await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((_, ne) => setTimeout(() => ne(new Error('sw')), 3000))
+    ]);
+    const odber = await reg.pushManager.getSubscription();
+    return { lze: true, zapnuto: !!odber };
+  }catch(e){ return { lze: false, duvod: 'neumi' }; }
+}
+
+async function zapniPush(){
+  const stav = await stavPush();
+  if(!stav.lze){ toast(POPIS_PUSH[stav.duvod] || 'Upozornění zatím nejdou zapnout.'); return; }
+  try{
+    const svoleni = await Notification.requestPermission();
+    if(svoleni !== 'granted'){ toast('Bez svolení telefonu upozornění posílat nejde.'); renderUpozorneni(); return; }
+    const reg = await navigator.serviceWorker.ready;
+    const odber = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: klicNaBajty(PR_CFG.VAPID_PUBLIC)
+    });
+    const k = odber.toJSON().keys || {};
+    await pripravSb();
+    if(!sb) throw new Error('spojení se serverem');
+    const { error } = await sb.from('push_odbery').upsert({
+      user_id: authUser.id, endpoint: odber.endpoint,
+      p256dh: k.p256dh, auth: k.auth, ua: navigator.userAgent.slice(0, 200), chyb: 0
+    }, { onConflict: 'endpoint' });
+    if(error) throw error;
+    toast('Upozornění zapnuta.');
+  }catch(e){
+    console.warn('push', e);
+    toast('Upozornění se nepodařilo zapnout.');
+  }
+  renderUpozorneni();
+}
+
+async function vypniPush(){
+  try{
+    const reg = await navigator.serviceWorker.ready;
+    const odber = await reg.pushManager.getSubscription();
+    if(odber){
+      await pripravSb();
+      if(sb) await sb.from('push_odbery').delete().eq('endpoint', odber.endpoint);
+      await odber.unsubscribe();
+    }
+    toast('Upozornění vypnuta.');
+  }catch(e){ console.warn('push off', e); }
+  renderUpozorneni();
+}
+
+const POPIS_PUSH = {
+  neumi:       'Tenhle telefon nebo prohlížeč upozornění neumí. Na iPhonu je potřeba mít aplikaci přidanou na ploše.',
+  nenastaveno: 'Upozornění se teprve připravují — kancelář je ještě nespustila.',
+  odmitnuto:   'Upozornění jste pro tuhle aplikaci odmítli. Povolit je jde v nastavení telefonu u oznámení.',
+  neprihlasen: 'Nejdřív se přihlaste e-mailem — jinak nevíme, komu upozornění poslat.'
+};
+
 /* ===== VZHLED (světlý / tmavý / podle telefonu) ===== */
 /* V náhledu se aplikace neřídí tmavým režimem počítače — vzhled určuje
    administrace. Bez toho vypadal náhled tmavě jen proto, že tmavé Windows má
@@ -2866,11 +3005,44 @@ function nastavTema(t){
 }
 function openUpozorneni(){ renderUpozorneni(); go('upozorneni'); }
 function toggleNotifCfg(k){ const c=getNotifCfg(); c[k]=!c[k]; setNotifCfg(c); renderUpozorneni(); }
+/* Po vykreslení obrazovky se doplní stav odběru. */
+const puvodniRenderUpozorneni = renderUpozorneni;
+renderUpozorneni = function(){
+  puvodniRenderUpozorneni.apply(this, arguments);
+  try { kresliPushKartu(); } catch(e) {}
+};
+
 function setPrah(v){ const c=getNotifCfg(); c.prah=+v; setNotifCfg(c); renderUpozorneni(); if(authUser)pushProfile(); }
 function saveNotifMail(){ const c=getNotifCfg(); c.email=(document.getElementById('nEmail').value||'').trim(); setNotifCfg(c); toast(c.email?'E-mail uložen.':'E-mail smazán.'); }
 function setPredstih(v){ const c=getNotifCfg(); c.predstih=+v; setNotifCfg(c); renderUpozorneni(); if(authUser)pushProfile(); }
 function sw(k,t,d,on,kt,kd){ const zn = x => x ? ' data-text="'+x+'"' : '';
-  return '<div class="card"><div class="row-between"><div style="min-width:0;padding-right:10px;"><div class="title-md"'+zn(kt)+' style="font-size:15.5px;">'+t+'</div><div class="small muted"'+zn(kd)+' style="margin-top:3px;line-height:1.4;">'+d+'</div></div><div class="toggle '+(on?'on':'')+'" onclick="toggleNotifCfg(\''+k+'\')"></div></div></div>'; }
+  return '<div class="card"><div class="row-between"><div style="min-width:0;padding-right:10px;"><div class="title-md"'+zn(kt)+' style="font-size:15.5px;">'+t+'</div><div class="small muted"'+zn(kd)+' style="margin-top:3px;line-height:1.4;">'+d+'</div></div><div class="toggle '+(on?'on':'')+'" role="switch" tabindex="0" aria-checked="true" onclick="toggleNotifCfg(\''+k+'\')" onkeydown="klavesaPrepinac(event, this)"></div></div></div>'; }
+/* Karta se dokresluje zvlášť: stav odběru se zjišťuje ze service workeru,
+   což trvá, a obrazovka nemá čekat. */
+async function kresliPushKartu(){
+  const el = document.getElementById('pushKarta'); if(!el) return;
+  const stav = await stavPush();
+  const zapnuto = !!stav.zapnuto;
+  const nedostupne = !stav.lze;
+  el.innerHTML =
+    '<div class="section-label" style="margin-top:14px;">Upozornění do telefonu</div>' +
+    '<div class="card"><div class="row-between" style="align-items:flex-start;gap:12px;">' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div class="title-md" style="font-size:16px;">Zprávy z kanceláře i do zamčeného telefonu</div>' +
+        '<p class="small muted" style="margin:4px 0 0;line-height:1.45;">' +
+          (nedostupne ? POPIS_PUSH[stav.duvod] || 'Zatím nedostupné.'
+                      : 'Když advokátní kancelář vydá zprávu, telefon ji ohlásí, i když aplikaci zrovna nemáte otevřenou.') +
+        '</p></div>' +
+      (nedostupne ? '' :
+        '<div class="toggle ' + (zapnuto ? 'on' : '') + '" role="switch" tabindex="0" aria-checked="' +
+        (zapnuto ? 'true' : 'false') + '" aria-label="Upozornění do telefonu" ' +
+        'onclick="' + (zapnuto ? 'vypniPush()' : 'zapniPush()') + '" onkeydown="klavesaPrepinac(event, this)"></div>') +
+    '</div>' +
+    (nedostupne && stav.duvod === 'neprihlasen'
+      ? '<button class="btn btn-outline-dark btn-sm" style="margin-top:10px" onclick="go(\'profil\')">Přihlásit se</button>' : '') +
+    '</div>';
+}
+
 function renderUpozorneni(){
   const c=getNotifCfg();
   const vs=getVehicles();
@@ -2889,7 +3061,8 @@ function renderUpozorneni(){
     sw('znamka',txt('upozorneni.znamka.nadpis','Dálniční známka'),txt('upozorneni.znamka.popis','Konec platnosti dálniční známky'),c.znamka,'upozorneni.znamka.nadpis','upozorneni.znamka.popis')+
     '<div class="card" style="margin-top:8px;"><div class="eyebrow" style="margin-bottom:8px;">S jakým předstihem</div>'+
       '<div class="chips">'+[7,14,30,60].map(v=>'<div class="chip '+(c.predstih===v?'active':'')+'" onclick="setPredstih('+v+')">'+(v===7?'týden':(v===14?'2 týdny':(v===30?'měsíc':'2 měsíce')))+'</div>').join('')+'</div>'+
-      '<div class="small muted" style="margin-top:8px;line-height:1.4;">Upozornění se objeví ve Zprávách '+(c.predstih===7?'týden':(c.predstih===14?'dva týdny':(c.predstih===30?'měsíc':'dva měsíce')))+' předem. <b>Zatím jen v aplikaci — push do telefonu připravujeme.</b></div></div>'+
+      '<div class="small muted" style="margin-top:8px;line-height:1.4;">Upozornění se objeví ve Zprávách '+(c.predstih===7?'týden':(c.predstih===14?'dva týdny':(c.predstih===30?'měsíc':'dva měsíce')))+' předem. <b>Termíny hlídá aplikace v telefonu</b> — ukážou se, jakmile ji otevřete.</div></div>'+
+    '<div id="pushKarta"></div>'+
     (vs.length? '<div class="list-card" style="margin-top:8px;"><div class="list-item" onclick="openVozidla()">'+
         '<div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14l-1.5-5a2 2 0 0 0-2-1.5h-7a2 2 0 0 0-2 1.5z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></div>'+
         '<div class="li-body"><h4>Spravovat vozidla</h4><p>'+vs.length+' '+plural(vs.length,'vozidlo','vozidla','vozidel')+' · termíny a asistence</p></div>'+
@@ -3025,6 +3198,8 @@ function dnu(datum){
 }
 function cesky(datum){
   if(!datum) return '';
+  /* U nehody se ukládá i čas — v přehledu a na vytištěném záznamu má být vidět. */
+  if(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(String(datum))) return datumNaCesky(datum);
   const d = new Date(datum);
   return isNaN(d) ? datum : d.toLocaleDateString('cs-CZ');
 }
@@ -3093,7 +3268,7 @@ function ulozNehodu(){
   const n = getNehody();
   const z = {
     id: 'n' + Date.now(),
-    datum: document.getElementById('nDatum').value,
+    datum: hodnotaData('nDatum'),
     misto: (document.getElementById('nMisto').value||'').trim(),
     spz: (document.getElementById('nSpz').value||'').trim(),
     ucastnik: (document.getElementById('nUcastnik').value||'').trim(),
@@ -3294,7 +3469,12 @@ function formNehody(z){
   const vs = getVehicles();
   const h = x => x ? ' value="' + escT(x) + '"' : '';
   return '<div class="g-form" style="margin-top:10px;border-top:1px solid var(--line);padding-top:13px;">' +
-    '<div class="field"><label>Datum a čas</label><input type="datetime-local" id="nDatum"' + h(z.datum) + '/></div>' +
+    /* Vlastní kalendář i tady — datetime-local se na cizojazyčném telefonu
+       otevře v jazyce telefonu. */
+    '<div class="field"><label>Datum a čas</label><input type="text" id="nDatum" inputmode="numeric" ' +
+      'placeholder="dd. mm. rrrr, hh:mm" data-iso="' + escT(z.datum || '') + '"' +
+      (z.datum ? ' value="' + escT(datumNaCesky(z.datum)) + '"' : '') +
+      ' onclick="otevriKalendar(\'nDatum\',\'Datum a čas nehody\',true)" onchange="srovnejDatum(this)"/></div>' +
     '<div class="field"><label>Místo</label><input type="text" id="nMisto"' + h(z.misto) + ' placeholder="ulice, obec, případně kilometr"/></div>' +
     '<div class="field"><label>Moje vozidlo</label><select id="nSpz"><option value="">Neuvedeno</option>' +
       vs.map(v => '<option' + (z.spz === v.spz ? ' selected' : '') + '>' + escT(v.spz) + '</option>').join('') + '</select></div>' +
