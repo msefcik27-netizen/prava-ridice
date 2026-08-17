@@ -347,7 +347,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 117</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 118</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -3884,29 +3884,32 @@ function kresliKody(klientId){
   if(pocet) pocet.textContent = rada.length
     ? rada.length + ' ' + mnozne(rada.length,'kód','kódy','kódů') : 'zatím žádné';
   if(!rada.length){ el.innerHTML = '<div class="prazdno">Klient zatím nemá žádné kódy.</div>'; return; }
-  el.innerHTML = `
-    <div class="radky-tab" style="grid-template-columns:56px 130px 1fr 90px 128px;font-size:11.5px;font-weight:700;
-         letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">
-      <div>QR</div><div>Kód</div><div>Kdo uplatnil</div><div>Stav</div><div></div>
-    </div>` + rada.map(k => {
+  /* Tabulka s pěti sloupci se do editoru nevešla a tlačítka přetékala za
+     okraj. Kód je proto karta: vlevo QR, vpravo údaje pod sebou a tlačítka
+     na vlastním řádku, který se v úzkém sloupci zalomí. */
+  el.innerHTML = rada.map(k => {
       const [popis, barva] = stavKodu(k);
-      return `<div class="radky-tab" style="grid-template-columns:56px 130px 1fr 90px 128px;align-items:center">
-        <div title="Vyfocením se otevře aplikace s vyplněným kódem">${qrSvg(odkazSKodem(k.kod), 48)}</div>
-        <code class="kod" style="font-size:12.5px">${esc(k.kod)}</code>
-        <div style="font-size:12.5px;min-width:0;overflow:hidden;text-overflow:ellipsis">${
-          k.uplatnil_email
-            ? esc(k.uplatnil_email) + (k.ma_zarizeni ? ' · zařízení' : ' · bez zařízení') +
-              (k.zarizeni_prevzato ? ' · ' + k.zarizeni_prevzato + '× přeneseno' : '')
-            : '<span style="color:var(--muted)">—</span>'}</div>
-        <div style="font-size:12px;font-weight:700;color:${barva}">${popis}</div>
-        <div class="radek-akce" style="display:flex;gap:4px">
-          <button type="button" class="blok-akce" title="Zkopírovat odkaz s kódem — otevře aplikaci s vyplněným kódem"
-            onclick="zkopirujOdkaz('${esc(k.kod)}')">Odkaz</button>
-          <button type="button" class="blok-akce" title="Zkopírovat kód"
-            onclick="zkopirujKod('${esc(k.kod)}')">Kopie</button>
-          ${k.aktivni ? `<button type="button" class="blok-akce" style="color:var(--err)"
-            title="Zruší kód i přístup, který z něj vznikl"
-            onclick="zneplatniKod('${esc(k.kod)}','${klientId}')">Zneplatnit</button>` : ''}
+      return `<div style="display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)">
+        <div style="flex:0 0 auto;line-height:0" title="Vyfocením se otevře aplikace s vyplněným kódem">${qrSvg(odkazSKodem(k.kod), 52)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <code class="kod" style="font-size:12.5px">${esc(k.kod)}</code>
+            <span style="font-size:12px;font-weight:700;color:${barva}">${popis}</span>
+          </div>
+          <div style="font-size:12.5px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis">${
+            k.uplatnil_email
+              ? esc(k.uplatnil_email) + (k.ma_zarizeni ? ' · zařízení' : ' · bez zařízení') +
+                (k.zarizeni_prevzato ? ' · ' + k.zarizeni_prevzato + '× přeneseno' : '')
+              : 'zatím nikdo neuplatnil'}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px">
+            <button type="button" class="blok-akce" title="Zkopírovat odkaz s kódem — otevře aplikaci s vyplněným kódem"
+              onclick="zkopirujOdkaz('${esc(k.kod)}')">Odkaz</button>
+            <button type="button" class="blok-akce" title="Zkopírovat kód"
+              onclick="zkopirujKod('${esc(k.kod)}')">Kopie</button>
+            ${k.aktivni ? `<button type="button" class="blok-akce" style="color:var(--err)"
+              title="Zruší kód i přístup, který z něj vznikl"
+              onclick="zneplatniKod('${esc(k.kod)}','${klientId}')">Zneplatnit</button>` : ''}
+          </div>
         </div>
       </div>`;
     }).join('');
