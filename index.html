@@ -1020,7 +1020,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 130<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 131<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1906,7 +1906,7 @@ function openTopic(oblastId,title){
         : `<div data-clanek="${(t.bloky && t.bloky.length) ? 'bloky' : 'telo'}">` +
           ((t.bloky && t.bloky.length) ? vykresliBloky(t.bloky) : vykresliTelo(t.b)) + '</div>')}
     <div class="list-card">
-      <div class="list-item" data-clanek="odkaz" onclick="openExt('${t.u}')">
+      <div class="list-item" data-clanek="odkaz" data-odkaz="${escT(t.u)}" onclick="openExt(this.dataset.odkaz)">
         <div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></div>
         <div class="li-body"><h4 data-text="clanek.web.nadpis">${txt('clanek.web.nadpis','Celý článek na webu')}</h4><p data-text="clanek.web.popis">${txt('clanek.web.popis','pravaridice.cz — vždy aktuální znění')}</p></div>
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
@@ -2031,7 +2031,7 @@ function renderZpravy(){
         </span>
       </div>
       ${z.telo ? `<p${z.klice&&z.klice.telo?` data-text="${z.klice.telo}"`:''}>${z.telo}</p>` : ''}
-      ${z.odkaz ? `<button class="btn btn-outline-dark btn-sm" style="margin-top:9px" onclick="openExt('${z.odkaz}', ${z.noveOkno})">${z.odkazText}</button>` : ''}
+      ${z.odkaz ? `<button class="btn btn-outline-dark btn-sm" style="margin-top:9px" data-odkaz="${escT(z.odkaz)}" data-nove="${z.noveOkno ? '1' : ''}" onclick="openExt(this.dataset.odkaz, !!this.dataset.nove)">${escT(z.odkazText)}</button>` : ''}
       ${z.akce ? `<button class="btn btn-outline-dark btn-sm"${z.klice&&z.klice.btn?` data-text="${z.klice.btn}"`:''} style="margin-top:9px" onclick="${z.akce}">${z.akceText}</button>` : ''}
     </div>`).join('');
 }
@@ -2644,17 +2644,12 @@ async function authInit(){
   try{
     await loadSupabase();
     sb=window.supabase.createClient(PR_CFG.SUPABASE_URL, PR_CFG.SUPABASE_ANON);
-    const {data}=await sb.auth.getSession();
-    if(data && data.session){
-      authUser=data.session.user; nastavAuthStav('prihlasen');
-      await afterLogin(); await zjistiPristup();
-      await hlidejZarizeni(); await nactiSouhlasy();
-      let ceka=null; try{ ceka=JSON.parse(localStorage.getItem('pr-cekam-na-potvrzeni')||'null'); }catch(e){}
-      if(ceka) await poPotvrzeni();
-      else dovnitrPoPrihlaseni();
-    } else {
-      nastavAuthStav('neprihlasen');
-    }
+
+    /* Posluchač změn přihlášení se registruje **hned**, ne až za sérií
+       čekání. Kdyby cokoli mezi tím selhalo, skončilo by se ve větvi s chybou
+       a posluchač by nevznikl nikdy — pak by ověření kódu v Profilu sice
+       proběhlo, ale aplikace by se o něm nedozvěděla a člověk by musel
+       aplikaci restartovat. */
     sb.auth.onAuthStateChange(async (_e,session)=>{
       authUser = session ? session.user : null;
       nastavAuthStav(authUser ? 'prihlasen' : 'neprihlasen');
@@ -2674,6 +2669,18 @@ async function authInit(){
         else dovnitrPoPrihlaseni();
       }
     });
+
+    const {data}=await sb.auth.getSession();
+    if(data && data.session){
+      authUser=data.session.user; nastavAuthStav('prihlasen');
+      await afterLogin(); await zjistiPristup();
+      await hlidejZarizeni(); await nactiSouhlasy();
+      let ceka=null; try{ ceka=JSON.parse(localStorage.getItem('pr-cekam-na-potvrzeni')||'null'); }catch(e){}
+      if(ceka) await poPotvrzeni();
+      else dovnitrPoPrihlaseni();
+    } else {
+      nastavAuthStav('neprihlasen');
+    }
     renderAccount();
   }catch(e){
     /* Knihovna se nenačetla nebo nebylo spojení. To není odhlášení — účet
@@ -5145,12 +5152,18 @@ async function nactiObsah(){
       ['prehled','pruvodce','sluzby','zpravy','profil'].forEach(karta=>{
         const cil=document.getElementById('bloky-'+karta); if(!cil) return;
         const bloky=texty.filter(t=>t.klic.startsWith('blok.'+karta+'.') && ((t.hodnota||'').trim() || (t.odkaz||'').trim()));
+        /* Text vlastního bloku píše obsluha v administraci a vkládá se sem
+           jako HTML. Bez ošetření stačí apostrof nebo šipka a karta se
+           rozpadne — u odkazu dokonce přestane fungovat tlačítko, protože
+           adresa končí uvnitř řetězce v obsluze klepnutí. Odkaz se proto
+           předává datovým atributem, ne textem v kódu. */
         cil.innerHTML = bloky.map(t=>`
-          <div class="card" data-blok="${t.klic}" style="margin-top:10px;">
-            ${t.popis ? `<h3 style="margin:0 0 6px;font-size:15px;font-weight:800;">${t.popis}</h3>` : ''}
-            <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink-soft);white-space:pre-line;">${t.hodnota}</p>
+          <div class="card" data-blok="${escT(t.klic)}" style="margin-top:10px;">
+            ${t.popis ? `<h3 style="margin:0 0 6px;font-size:15px;font-weight:800;">${escT(t.popis)}</h3>` : ''}
+            <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink-soft);white-space:pre-line;">${escT(t.hodnota)}</p>
             ${t.odkaz ? `<button class="btn btn-outline-dark btn-sm" style="margin-top:10px"
-                onclick="openExt('${t.odkaz}', ${t.nove_okno !== false})">${t.odkaz_text || 'Otevřít'}</button>` : ''}
+                data-odkaz="${escT(t.odkaz)}" data-nove="${t.nove_okno !== false ? '1' : ''}"
+                onclick="openExt(this.dataset.odkaz, !!this.dataset.nove)">${escT(t.odkaz_text || 'Otevřít')}</button>` : ''}
           </div>`).join('');
       });
     }

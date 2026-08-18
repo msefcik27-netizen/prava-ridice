@@ -368,7 +368,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 126</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 127</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -593,7 +593,15 @@ function prejmenujKarty(){
     if(t && nazev) t.textContent = nazev;
   });
 }
+/* Když není co ztratit, přepíná se **okamžitě**. Kdyby se i v tomhle případě
+   čekalo, rozešlo by se pořadí s kódem, který hned po přepnutí sahá na prvky
+   nové karty — třeba zaměření řádku seznamu po klepnutí do náhledu. */
 function prepni(co){
+  if(!rozepsanyFormular()){ prepniHned(co); return; }
+  smimOdejit().then(smim => { if(smim) prepniHned(co); });
+}
+
+function prepniHned(co){
   KARTY.forEach(k=>{
     const t=$('t-'+k); if(t) t.classList.toggle('on', k===co);
     const sek=$('sek-'+k); if(!sek) return;
@@ -701,8 +709,16 @@ async function posun(typ, id, smer){
 }
 
 function prepniUzel(id){ rozbaleno[id] = !(rozbaleno[id] === true); kresliStrom(); }
-function vyberOblast(id){ vybrano = {typ:'oblast', id}; rozbaleno[id] = true; kresliStrom(); editorOblasti(); }
-function vyberClanek(id){ vybrano = {typ:'clanek', id}; kresliStrom(); editorClanku(); }
+function vyberOblast(id){
+  const dal = () => { vybrano = {typ:'oblast', id}; rozbaleno[id] = true; kresliStrom(); editorOblasti(); };
+  if(!rozepsanyFormular()) return dal();
+  smimOdejit().then(smim => { if(smim) dal(); });
+}
+function vyberClanek(id){
+  const dal = () => { vybrano = {typ:'clanek', id}; kresliStrom(); editorClanku(); };
+  if(!rozepsanyFormular()) return dal();
+  smimOdejit().then(smim => { if(smim) dal(); });
+}
 
 /* ---------- editor oblasti ---------- */
 function editorOblasti(){
@@ -864,7 +880,7 @@ function editorClanku(){
           <p class="napoveda">Kam vede řádek „Celý článek na webu“ dole v článku.</p></div>
 
         ${zamekShora}
-        <div class="prepinac pristup ${c.placeny?'zap':''}" onclick="prepniPristup(this);nahledZamku()" id="f-placeny">
+        <div class="prepinac pristup ${c.placeny?'zap':''}" onclick="prepniPristup(this);nahledZamku();nahledClanku()" id="f-placeny">
           <div class="txt"><b>Úroveň přístupu</b>
             <span>Zapnuto = vyžaduje <b>VIP přístup</b>, text se do telefonu vůbec nepošle.
               Vypnuto = článek je <b>standardní</b>, přečte si ho i uživatel bez zaplacení.</span></div>
@@ -895,11 +911,16 @@ function editorClanku(){
 function nahledZamku(){
   const el = $('nahled'); if(!el) return;
   const placeny = $('f-placeny').classList.contains('zap');
+  /* Ukázka musí sedět s aplikací. U VIP článku se krátký popis člověku bez
+     přístupu **neukazuje** — býval to u krátkých témat celá odpověď. Dřív
+     tu byl vidět, takže ukázka slibovala něco, co aplikace nedělá. */
   el.innerHTML = placeny ? `<div class="nahled">
-      <h3>Co uvidí uživatel bez plného přístupu</h3>
-      <div style="font-weight:800;font-size:16px;margin-top:6px">${esc($('f-nadpis').value)}</div>
-      <div style="color:#6B7B7F;font-size:13.5px;margin-top:2px">${esc($('f-perex').value)}</div>
+      <h3>Co uvidí uživatel se standardním přístupem</h3>
+      <div style="font-weight:800;font-size:16px;margin-top:6px">${esc($('f-nadpis').value)}
+        <span class="odznak o-plny">VIP</span></div>
       <div class="zamek">🔒 Tato část je dostupná s VIP přístupem.</div>
+      <p class="napoveda" style="margin:8px 0 0">Krátký popis se nezobrazí — u placeného
+        obsahu by se jím dala prozradit odpověď.</p>
     </div>` : '';
 }
 
@@ -964,7 +985,11 @@ function kresliSluzby(){
   }).join('') || '<div class="prazdno">Zatím žádné služby.</div>';
 }
 
-function vyberSluzbu(id){ vybranaSluzba = id; kresliSluzby(); editorSluzby(); naNahledSluzby('radek'); }
+function vyberSluzbu(id){
+  const dal = () => { vybranaSluzba = id; kresliSluzby(); editorSluzby(); naNahledSluzby('radek'); };
+  if(!rozepsanyFormular()) return dal();
+  smimOdejit().then(smim => { if(smim) dal(); });
+}
 
 /* Kliknu do pole u služby → náhled otevře její detail a část zvýrazní. */
 function naNahledSluzby(cast){
@@ -1919,6 +1944,9 @@ function nahledJakoNastav(kdo, automaticky){
   posliNahled(kdo === 'neprihlasen' ? {prihlasen:false, pristup:false}
             : kdo === 'omezeny'     ? {prihlasen:true,  pristup:false}
                                     : {prihlasen:true,  pristup:true});
+  /* Rozepsaný článek se musí poslat znovu — jeho zámek závisí na tom,
+     komu se náhled ukazuje. */
+  try{ if(vybrano && vybrano.typ === 'clanek') nahledClanku(); }catch(e){}
   kresliOvladaceNahledu();
 }
 
@@ -2439,7 +2467,12 @@ function nahledClanku(){
     perex: hod('f-perex'),
     telo: hod('f-telo'),
     odkaz: hod('f-odkaz'),
-    zamceno: false,
+    /* Náhled musí ukázat totéž co telefon. VIP článek se člověku bez
+       přístupu neposílá vůbec — dřív tu bylo natvrdo `false`, takže náhled
+       ve stavu „Standardní" ukazoval celý placený text a Nela neměla jak
+       zkontrolovat, co uvidí řidič. */
+    zamceno: !!($('f-placeny') ? $('f-placeny').classList.contains('zap')
+                               : c.placeny) && nahledJako !== 'plny',
     bloky: blokyClanku(vybrano.id).map(b => ({
       id: b.id,
       poradi: b.poradi, typ: b.typ, nadpis: b.nadpis, text: b.text,
@@ -3314,6 +3347,46 @@ function formularUlozen(el){
   z.posun();
 }
 
+/* Zavření panelu nebo F5 — prohlížeč se zeptá sám, text si určuje on.
+   Bez tohohle by se rozepsaný článek ztratil úplně potichu. */
+window.addEventListener('beforeunload', ev => {
+  if(!rozepsanyFormular()) return;
+  ev.preventDefault();
+  ev.returnValue = '';
+});
+
+/* ---------- rozepsané změny ----------
+   Vrátí tlačítko Uložit prvního formuláře, který má rozepsanou změnu.
+   Hledá se mezi viditelnými — sbalená sekce na jiné kartě už není to,
+   o co by obsluha přišla. */
+function rozepsanyFormular(){
+  return [...document.querySelectorAll('[data-ulozit][data-zmeneno="1"]')]
+    .find(b => b.offsetParent !== null) || null;
+}
+
+/* Zeptá se, co s rozepsanou změnou. Vrací true = pokračuj, false = zůstaň.
+   Volá se všude, kde by se obrazovka překreslila a změna by tím zmizela. */
+async function smimOdejit(){
+  const btn = rozepsanyFormular();
+  if(!btn) return true;
+  const kde = (btn.closest('details.sekce') || {}).querySelector
+    ? ((btn.closest('details.sekce').querySelector('summary') || {}).textContent || '').split('\n')[0].trim()
+    : '';
+  /* Dvě otázky za sebou, tři možné konce. Administrace používá systémové
+     dialogy všude jinde, tak ať se tady nechová jinak. */
+  const kdeText = kde ? 'V sekci „' + kde.slice(0, 60) + '" máte' : 'Máte';
+  if(confirm(kdeText + ' rozepsanou změnu, která se ještě neuložila.\n\n' +
+             'OK = uložit ji a pokračovat\nZrušit = neukládat')){
+    /* Uložení si obstará samo tlačítko — ví, co má uložit. Počká se, až
+       doběhne, jinak by se obrazovka překreslila uprostřed zápisu. */
+    btn.click();
+    await new Promise(r => setTimeout(r, 700));
+    return true;
+  }
+  return confirm('Opravdu tu změnu zahodit?\n\n' +
+                 'OK = zahodit a pokračovat\nZrušit = zůstat a dopsat ji');
+}
+
 function hlidejFormular(el){
   if(!el) return;
   const btn = el.querySelector('[data-ulozit="hlavni"]') || el.querySelector('[data-ulozit]');
@@ -3456,7 +3529,12 @@ function vykresliSpravu(){
   const nepotvrzeni = c(s.nepotvrzeni, registrovanych - c(s.potvrzenych));
   const plny = c(s.plny, s.s_pristupem);
   const omezeny = c(s.omezeny, c(s.potvrzenych) - plny);
-  const sedi = (nepotvrzeni + omezeny + plny) === registrovanych;
+  /* Kontrola má smysl jen u čísel, která přišla ze serveru. Když se dopočítají
+     náhradou, vyjde součet vždycky — a hláška „nesedí" by se nemohla objevit
+     ani tehdy, když nesedí doopravdy. Chybějící pole znamenají starší verzi
+     funkce statistiky(); to je vlastní zpráva. */
+  const zeServeru = s.nepotvrzeni !== undefined && s.plny !== undefined && s.omezeny !== undefined;
+  const sedi = !zeServeru || (nepotvrzeni + omezeny + plny) === registrovanych;
   const zdroje = [
     plny && s.plny_kod ? s.plny_kod + '× firemní kód' : '',
     s.plny_platba ? s.plny_platba + '× zaplaceno' : '',
@@ -3470,7 +3548,9 @@ function vykresliSpravu(){
       ${dlazdice('Omezený přístup', omezeny, 'placený obsah nevidí')}
       ${dlazdice('Plný přístup', plny, zdroje || 'vidí všechno')}
     </div>
-    <p class="napoveda">Registrovaných je celkem <b>${registrovanych}</b>${sedi ? '' : ' (součet výše nesedí — spusťte prosím znovu registrovani.sql)'}.
+    <p class="napoveda">Registrovaných je celkem <b>${registrovanych}</b>${
+      !zeServeru ? ' (čísla jsou dopočítaná — pro rozpad zdrojů přístupu spusťte <b>statistiky.sql</b>)'
+      : (sedi ? '' : ' (součet výše nesedí — spusťte prosím znovu <b>statistiky.sql</b>)')}.
        Každý je právě v jednom z těch tří stavů, takže se čísla nepřekrývají.
        Aplikaci si nainstalovalo <b>${c(s.instalaci)}</b> ${mnozne(c(s.instalaci),'zařízení','zařízení','zařízení')} — to je víc než registrovaných,
        protože se dá používat i bez přihlášení.</p>
