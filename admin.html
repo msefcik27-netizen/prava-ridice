@@ -368,7 +368,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 124</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 126</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -471,7 +471,11 @@ let rozbaleno = {};
 let upravovane = new Set();   // klíče bloků, které jsou zrovna v editaci
 
 const $  = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* Apostrof patří do seznamu: escapovaný text se vkládá i dovnitř jednoduše
+   uvozeného řetězce v onclick, takže klient „Autodoprava O'Brien" jinak
+   rozbije obsluhu tlačítka — a to bez jakékoli hlášky. */
+const esc = s => String(s ?? '').replace(/[&<>"']/g,
+  c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 function hlaska(text, chyba){
   const h = $('hlaska');
@@ -487,7 +491,16 @@ async function start(){
   db = supabase.createClient(CFG.URL, CFG.ANON);
   const { data } = await db.auth.getSession();
   if(data.session){ await poPrihlaseni(data.session); }
-  db.auth.onAuthStateChange((_e, s) => { if(s) poPrihlaseni(s); });
+  /* Jen skutečné přihlášení, ne obnovení tokenu. Knihovna si token obnovuje
+     zhruba jednou za hodinu a na každou takovou událost se dřív načetla
+     všechna data znovu — čímž se z paměti ztratily rozepsané bloky, nápoje
+     a seznamy. Uložit pak ohlásilo úspěch, protože nebylo co ukládat. */
+  db.auth.onAuthStateChange((udalost, s) => {
+    if(!s) return;
+    if(udalost === 'TOKEN_REFRESHED' || udalost === 'USER_UPDATED') return;
+    if(uzivatel && uzivatel.id === s.user.id) return;   // už přihlášený, nenačítat znovu
+    poPrihlaseni(s);
+  });
 }
 
 async function prihlas(){
@@ -2013,6 +2026,11 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('message', ev => {
+  /* Zprávy bere administrace jen ze svého náhledu. Bez téhle kontroly by
+     dokázalo přepínat karty a otevírat editory jakékoli okno, které na
+     administraci dosáhne. */
+  const ram = document.getElementById('telRam');
+  if(!ram || ev.source !== ram.contentWindow) return;
   const z = ev.data || {};
   if(z.pr !== 'nahled') return;
   if(z.pripraveno){
@@ -3369,7 +3387,11 @@ async function kresliSpravu(){
   const [k, st, pop, tr] = await Promise.all([
     db.from('v_klienti').select('*').order('nazev'),
     db.rpc('statistiky'),
-    db.from('poptavky').select('*').order('vytvoreno', {ascending:false}).limit(50),
+    /* Nedoručené poptávky nejsou nikde jinde než tady, takže je nesmí
+       z obrazovky vytlačit padesát novějších, které v JIRA v pořádku jsou.
+       Načítají se proto zvlášť a bez ohledu na stáří. */
+    db.from('poptavky').select('*').is('jira_klic', null)
+      .order('vytvoreno', {ascending:false}).limit(200),
     db.from('provozni_terminy').select('*').order('poradi')
   ]);
   /* Tabulka termínů nemusí existovat, když se ještě nespustilo SQL —
@@ -3515,7 +3537,8 @@ function stavTerminu(t){
    když token vyprší dřív, než měl, pozná se to tady jako první. */
 function nedorucenePoptavky(){
   const hranice = Date.now() - 30 * 86400000;
-  return poptavky.filter(p => !p.jira_klic && new Date(p.vytvoreno) >= hranice).length;
+  return poptavky.filter(p => !p.jira_klic && p.stav !== 'vyrizeno' && p.stav !== 'zamitnuto'
+                              && new Date(p.vytvoreno) >= hranice).length;
 }
 
 function sekceTerminu(){
@@ -3577,7 +3600,9 @@ const STAVY_POPTAVKY = {novy:'Nová', v_reseni:'V řešení', vyrizeno:'Vyříze
    z nich by se přestal číst. Zůstává jen to, co v JIRA není: co se tam
    nepodařilo poslat. Když je všechno v pořádku, není tu vidět nic. */
 function sekcePoptavek(){
-  const spadle = poptavky.filter(p => !p.jira_klic);
+  /* Vyřízená poptávka z červené tabulky zmizí — jinak by se počítala do
+     varování napořád a varování, které nejde uklidit, se přestane číst. */
+  const spadle = poptavky.filter(p => !p.jira_klic && p.stav !== 'vyrizeno' && p.stav !== 'zamitnuto');
   if(!spadle.length) return '';
   return `
   <h2 style="margin-top:26px">Nedoručené poptávky
@@ -3686,7 +3711,7 @@ function nahledKlienta(k){
         Firma má ${lidi} ${mnozne(lidi,'zaměstnance','zaměstnance','zaměstnanců')},
         ale jen ${kodu} ${mnozne(kodu,'kód','kódy','kódů')} — chybí ${chybiKodu}.</p>` : ''}
       ${kodu ? `<div class="lista" style="margin-top:10px">
-        <button class="blok-akce" onclick="exportKoduKlienta('${k.id}','${esc(k.nazev)}')">Kódy do CSV</button>
+        <button class="blok-akce" onclick="exportKoduKlienta('${k.id}')">Kódy do CSV</button>
       </div>` : ''}
     </div>`;
 }
@@ -4153,10 +4178,28 @@ async function zneplatniKod(kod, klientId){
 
 /* Kartičky k rozdání. Tiskne se jen to, co ještě nikdo neuplatnil — rozdat
    znovu už použitý kód by znamenalo, že se někdo marně pokouší a nechápe proč. */
+/* Jméno klienta se nepředává v obsluze tlačítka, ale hledá podle id.
+   Vkládat text do jednoduše uvozeného řetězce uvnitř onclick nejde spolehlivě
+   ošetřit: prohlížeč atribut nejdřív dekóduje z HTML a teprve pak z něj dělá
+   kód, takže `&#39;` se stihne proměnit zpátky na apostrof — a klient
+   „Autodoprava O'Brien" rozbil obsluhu tlačítka, bez jakékoli hlášky. */
 async function vytiskniKody(klientId, nazev){
-  const rada = (kodyKlienta[klientId] || await nactiKody(klientId))
-    .filter(k => k.aktivni && k.pouzito < k.limit_uplatneni);
-  if(!rada.length){ hlaska('Není co tisknout — všechny kódy jsou už rozebrané.', true); return; }
+  if(nazev === undefined){ const kl = klienti.find(x => x.id === klientId); nazev = kl ? kl.nazev : ''; }
+  /* Prošlý kód na kartičce znamená, že zaměstnanec dostane při zadání chybu
+     a nechápe proč. Server ho odmítne, takže rozdávat ho nemá smysl. */
+  const dnes = new Date().toISOString().slice(0, 10);
+  const vse = (kodyKlienta[klientId] || await nactiKody(klientId));
+  const rada = vse.filter(k => k.aktivni && k.pouzito < k.limit_uplatneni
+                               && !(k.platnost_do && k.platnost_do < dnes));
+  const proslych = vse.filter(k => k.aktivni && k.pouzito < k.limit_uplatneni
+                                   && k.platnost_do && k.platnost_do < dnes).length;
+  if(!rada.length){
+    hlaska(proslych
+      ? 'Není co tisknout — ' + proslych + ' volných kódů má prošlou platnost.'
+      : 'Není co tisknout — všechny kódy jsou už rozebrané.', true);
+    return;
+  }
+  if(proslych) hlaska(proslych + ' kódů s prošlou platností se netiskne.');
 
   const karty = rada.map(k => `
     <div class="karta">
@@ -4200,6 +4243,7 @@ async function vytiskniKody(klientId, nazev){
 }
 
 async function exportKoduKlienta(klientId, nazev){
+  if(nazev === undefined){ const kl = klienti.find(x => x.id === klientId); nazev = kl ? kl.nazev : ''; }
   const rada = kodyKlienta[klientId] || await nactiKody(klientId);
   if(!rada.length){ hlaska('Klient nemá žádné kódy.', true); return; }
   const radky = [['kod','odkaz','stav','uplatnil','kdy','zarizeni']].concat(
@@ -4231,8 +4275,8 @@ function formularKlienta(k){
           <div id="kody-${k.id}"></div>
           <div class="lista" style="margin-top:12px">
             <button type="button" class="btn btn-vedl" onclick="vydejKody('${k.id}')">+ Vydat kódy</button>
-            <button type="button" class="btn btn-vedl" onclick="vytiskniKody('${k.id}','${esc(k.nazev)}')">Vytisknout kartičky</button>
-            <button type="button" class="btn btn-vedl" onclick="exportKoduKlienta('${k.id}','${esc(k.nazev)}')">Stáhnout do CSV</button>
+            <button type="button" class="btn btn-vedl" onclick="vytiskniKody('${k.id}')">Vytisknout kartičky</button>
+            <button type="button" class="btn btn-vedl" onclick="exportKoduKlienta('${k.id}')">Stáhnout do CSV</button>
           </div>
         </div>
       </details>
@@ -4331,10 +4375,19 @@ async function ulozKlienta(id){
      kódy — jinak by se musela přepisovat u každého zvlášť. Zneplatněné kódy
      se tím ale znovu nezapínají: zneplatnění je vědomý zásah a nemá ho zrušit
      obyčejné uložení klienta. */
+  /* Platnost se zapisuje jen tehdy, když ji obsluha opravdu změnila. Pole se
+     totiž plní **minimem** přes kódy klienta — kdo má část kódů bez omezení
+     a část s datem, viděl by to datum a obyčejným uložením klienta by ho
+     nevědomky nasadil úplně všem. */
   const platnost = $('k-platnost').value.trim();
-  const zmenaKodu = { platnost_do: platnost || null };
+  const puvodni = (k.platnost_do || '').slice(0, 10);
+  const zmenaKodu = {};
+  if(platnost !== puvodni) zmenaKodu.platnost_do = platnost || null;
   if(!zmeny.aktivni) zmenaKodu.aktivni = false;
-  await db.from('promo_kody').update(zmenaKodu).eq('klient_id', id);
+  if(Object.keys(zmenaKodu).length){
+    const { error: chybaKodu } = await db.from('promo_kody').update(zmenaKodu).eq('klient_id', id);
+    if(chybaKodu){ hlaska('Klient uložen, ale u kódů se změna neuložila: ' + chybaKodu.message, true); }
+  }
   delete kodyKlienta[id];
   vybranyKlient = null; await kresliSpravu();
   hlaska('Klient uložen.');

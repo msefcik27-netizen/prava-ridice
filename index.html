@@ -1020,7 +1020,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 125<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 130<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1346,7 +1346,10 @@ const GUIDE=[
   {t:'Sankce při porušení pravidel L17',c:'Od 17 let',d:'Bez mentora zabavení průkazu a zákaz 6–12 měsíců.',
    b:'',zamceno:true,u:WEB+'/'}]},
 ];
-const ALL_TOPICS = GUIDE.flatMap(o=>o.topics.map(t=>({...t,oblast:o.n,oblastId:o.id})));
+/* Seznam všech témat se **počítá při každém použití**, ne jednou při startu.
+   Obsah se totiž po načtení z databáze celý vymění a starý snímek by znamenal,
+   že článek přidaný v administraci nejde v aplikaci vyhledat. */
+const vsechnaTemata = () => GUIDE.flatMap(o => o.topics.map(t => ({...t, oblast:o.n, oblastId:o.id})));
 /* Stavy bodového konta podle barevného manuálu.
    Pořadí je závazné — hledá se první pásmo, do kterého se počet bodů vejde. */
 const STAVY_BODU = [
@@ -1807,7 +1810,7 @@ function renderGuide(){
   const box=document.getElementById('guideResults');
   renderGuideOblasti();
   if(!q){ label.style.display='none'; box.innerHTML=''; return; }
-  let res=ALL_TOPICS.filter(t=>
+  let res=vsechnaTemata().filter(t=>
     t.t.toLowerCase().includes(q) || t.d.toLowerCase().includes(q) ||
     t.oblast.toLowerCase().includes(q) || (t.c||'').toLowerCase().includes(q));
   label.style.display='block'; label.textContent='Výsledky ('+res.length+')';
@@ -1841,14 +1844,18 @@ function renderOblasti(){
       '<p style="margin-top:5px;">'+x.s+'</p></div>').join('')+
     '<div class="section-label" style="margin-top:14px;">Kategorie</div>'+
     '<div class="list-card">'+CAT_ORDER.map((cat,i)=>{
-      const arts = cat.key ? ALL_TOPICS.filter(t=>t.c===cat.key) : [];
+      const arts = cat.key ? vsechnaTemata().filter(t=>t.c===cat.key) : [];
       const open = openCat===i;
       return '<div class="list-item" onclick="toggleCat('+i+')">'+
         '<div class="li-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+SVC_ICONS[cat.ic]+'</svg></div>'+
         '<div class="li-body"><h4>'+cat.n+'</h4></div>'+
         '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transform:rotate('+(open?'90':'0')+'deg);transition:.2s;"><path d="M9 6l6 6-6 6"/></svg></div>'+
         (open?'<div style="background:#faf9f6;border-bottom:1px solid var(--line);">'+
-          (arts.length?arts.map(t=>'<div class="list-item" style="padding-left:26px;border-bottom:none;" onclick="event.stopPropagation();openTopic(\''+t.oblastId+'\',\''+t.t.replace(/'/g,"\\'")+'\')"><div class="li-body"><h4 style="font-size:13.5px;">'+t.t+'</h4><p>'+t.d+'</p></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>').join('')
+          /* Tady platí totéž co v seznamu oblastí a ve vyhledávání: u zamčeného
+             tématu se popisek neukazuje, protože u krátkých témat je to celá
+             odpověď. Do buildu 125 se tu ukazoval — bez štítku, takže to ani
+             nevypadalo jako placený obsah. */
+          (arts.length?arts.map(t=>'<div class="list-item" style="padding-left:26px;border-bottom:none;" onclick="event.stopPropagation();openTopic(\''+t.oblastId+'\',\''+t.t.replace(/'/g,"\\'")+'\')"><div class="li-body"><h4 style="font-size:13.5px;">'+t.t+znackaPristupu(!!(t.vip ?? t.zamceno))+'</h4><p>'+(t.zamceno ? txt('clanek.zamceny.perex','Odemkne VIP přístup.') : t.d)+'</p></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>').join('')
             :'<div style="padding:12px 26px;"><p class="small muted" style="margin:0 0 8px;line-height:1.5;">Obsah pro tuto oblast připravujeme. Potřebujete poradit hned?</p><button class="btn btn-dark btn-sm" onclick="event.stopPropagation();go(\'konzultace\')">Konzultace zdarma</button></div>')+
         '</div>':'');
     }).join('')+'</div>';
@@ -1864,9 +1871,13 @@ function openOblast(id){
 /* Odemčený článek bez textu znamená, že obsah nedorazil z databáze — placené
    články jsou ve vestavěném znění záměrně bez těla. Prázdná obrazovka by
    vypadala jako porucha, proto se to řekne. */
+/* Odemčený článek bez textu je vždycky chyba — ať přišel z databáze, nebo
+   ne. Dřív se za chybu považoval jen u vestavěného obsahu, takže když se
+   text z databáze nestáhl (typicky proto, že se stahoval anonymně), uživatel
+   viděl prázdnou obrazovku bez vysvětlení. */
 function prazdnyClanek(t){
   const maText = (t.b || '').trim() || (t.bloky && t.bloky.length);
-  return !maText && !obsahZDatabaze;
+  return !maText;
 }
 
 function openTopic(oblastId,title){
@@ -1951,7 +1962,10 @@ function vlastniUpozorneni(){
       klice:{nadpis:'zpravy.auto.pokuta.nadpis',
              telo: dni < 0 ? 'zpravy.auto.pokuta.po' : 'zpravy.auto.pokuta.pred',
              btn:'zpravy.auto.pokuta.btn'},
-      nadpis: txt('zpravy.auto.pokuta.nadpis','Splatnost pokuty — {duvod}', {duvod: p.duvod || 'bez popisu'}),
+      /* Důvod pokuty píše uživatel. Do karty zprávy se vkládá jako HTML,
+         takže se musí escapovat — jinak stačí napsat „rychlost <40 km/h"
+         a zbytek nadpisu zmizí. */
+      nadpis: txt('zpravy.auto.pokuta.nadpis','Splatnost pokuty — {duvod}', {duvod: escT(p.duvod || 'bez popisu')}),
       telo: dni < 0
         ? txt('zpravy.auto.pokuta.po','Splatnost byla {datum}. Nezaplacená pokuta se vymáhá exekučně.', {datum: cesky(p.splatnost)})
         : txt('zpravy.auto.pokuta.pred','Zaplatit do {datum} — zbývá {dni} {jednotka}.',
@@ -1972,7 +1986,9 @@ function vlastniUpozorneni(){
                    telo: dni < 0 ? 'zpravy.auto.doklad.vyprselo'
                        : (dni === 0 ? 'zpravy.auto.doklad.dnes' : 'zpravy.auto.doklad.zbyva'),
                    btn:'zpravy.auto.doklad.btn'},
-            nadpis: txt('zpravy.auto.doklad.nadpis','{doklad} končí — {vozidlo}', {doklad: nazev, vozidlo: spz}),
+            /* SPZ píše uživatel a se zapnutou zálohou putuje i na další jeho
+               zařízení — do karty zprávy proto jen escapovaná. */
+            nadpis: txt('zpravy.auto.doklad.nadpis','{doklad} končí — {vozidlo}', {doklad: nazev, vozidlo: escT(spz)}),
             telo: dni < 0 ? txt('zpravy.auto.doklad.vyprselo','Platnost vypršela před {dni} dny.', {dni: Math.abs(dni)})
                 : (dni === 0 ? txt('zpravy.auto.doklad.dnes','Platnost končí dnes.')
                              : txt('zpravy.auto.doklad.zbyva','Zbývá {dni} {jednotka}.', {dni: dni, jednotka: plural(dni,'den','dny','dní')})),
@@ -2066,6 +2082,7 @@ async function applyPromo(){
   if(data && data.ok){
     pristupZeServeru = true; state.promoOk = true; saveState();
     odemkniObsah();
+    nactiObsah();
     renderPlan(); renderStavPristupu();
     try{ renderServices(); renderGuideOblasti(); }catch(e){}
     toast('Kód uplatněn — máte VIP přístup.');
@@ -2421,6 +2438,10 @@ async function submitForm(){
                                user_id: (authUser && authUser.id) || null })
       });
       odeslano = r.ok;
+      /* Tahle cesta umí poslat jen text. Když jsou přílohy, nedojdou —
+         a uživatel to musí vědět, jinak má fotky protokolu za odeslané
+         a už je nemá kde vzít. */
+      if(r.ok && prilohy.length) neprosloPriloh = prilohy.map(f => f.name);
       if(!r.ok) console.warn('poptávka', r.status, await r.text());
     }catch(e){ console.warn('poptávka', e); }
   }
@@ -2668,6 +2689,9 @@ async function authSignOut(){
      zachytilo hlídání ztraceného přihlášení a nabízelo návrat zpátky ve
      chvíli, kdy se člověk právě sám odhlásil. */
   state.promoOk = false; saveState();
+  /* A zruší se odběr upozornění — jinak by telefonu dál chodila oznámení
+     k účtu, ze kterého se člověk odhlásil. */
+  try{ await vypniPush(); }catch(e){}
   if(sb){ await sb.auth.signOut(); }
   /* Odhlášením se záloha nemaže — data patří účtu, ne telefonu. Jen se
      přestane synchronizovat, aby se nezapisovalo pod cizí přihlášení. */
@@ -3012,6 +3036,7 @@ async function prevzatoJinde(){
   /* Napřed značka přístupu, pak odhlášení — vysvětlení má být jedno, tohle,
      ne dvě okna přes sebe. */
   state.promoOk = false; saveState();
+  try{ await vypniPush(); }catch(e){}
   try{ await sb.auth.signOut(); }catch(e){}
   authUser = null; pristupZeServeru = null;
   authStav = 'neprihlasen';
@@ -3031,9 +3056,19 @@ async function zjistiPristup(){
     const { data, error } = await sb.rpc('mam_pristup');
     if(!error && typeof data === 'boolean'){
       pristupZeServeru = data;
+      /* Když server řekne, že přístup není, musí zmizet i značka v telefonu.
+         Jinak by po nejbližším výpadku spojení platila dál — a přístup, který
+         skončil, by se tím tiše obnovil napořád. */
       if(data){ state.promoOk = true; saveState(); }
-      // s plným přístupem zmizí zámky u služeb i témat
-      if(data) odemkniObsah();
+      else if(state.promoOk){ state.promoOk = false; saveState(); }
+      // s přístupem zmizí zámky u služeb i témat
+      if(data){
+        odemkniObsah();
+        /* A hlavně: obsah se musí stáhnout znovu, teď už jménem uživatele.
+           Při startu se stahoval anonymně, takže text placených článků
+           v aplikaci vůbec není. */
+        nactiObsah();
+      }
       renderStavPristupu(); renderPlan();
       try{ renderServices(); renderGuideOblasti(); }catch(e){}
     }
@@ -3556,6 +3591,12 @@ async function poPotvrzeni(){
     if(!error && data && data.ok){
       state.promoOk = true; saveState(); renderStavPristupu();
       pristupZeServeru = true; renderPlan();
+      /* Uplatnění kódu proběhne až po zjistiPristup(), takže tam přístup
+         ještě nebyl vidět a zámky nikdo nesundal. Musí se to udělat tady —
+         jinak nový zaměstnanec vidí „VIP přístup" a pod tím samé zámky. */
+      odemkniObsah();
+      try{ renderServices(); renderGuideOblasti(); }catch(e){}
+      nactiObsah();
       toast('Kód uplatněn ✓');
     } else {
       const duvod = (data && data.duvod) || 'chyba';
@@ -4083,14 +4124,31 @@ async function prepniZalohu(){
             'aplikace chodit nebudou.',
       potvrdit: 'Zrušit zálohu', zrusit: 'Nechat', nebezpecne: true });
     if(!chce) return;
-    try{ await sb.rpc('odvolej_zalohu'); }catch(e){}
+    /* Knihovna chyby databáze nevyhazuje, vrací je v `{ error }`. Bez téhle
+       kontroly aplikace tvrdila „data z účtu smazána" i tehdy, když mazání
+       neproběhlo — a to je tvrzení, které má právní váhu. */
+    let chybaOdvolani = null;
+    try{
+      const { error } = await sb.rpc('odvolej_zalohu');
+      chybaOdvolani = error;
+    }catch(e){ chybaOdvolani = e; }
+    if(chybaOdvolani){
+      await okno({ nadpis:'Zálohu se nepodařilo zrušit',
+        text:'Data zůstala na účtu — nepovedlo se spojit se serverem. Zkuste to prosím '+
+             'znovu, až budete mít signál. V telefonu se nic nezměnilo.',
+        potvrdit:'Rozumím', zrusit:false });
+      return;
+    }
     nastavZalohu(false);
     toast('Záloha zrušena a data z účtu smazána.');
   } else {
+    let chybaSouhlasu = null;
     try{
-      await sb.from('souhlasy').upsert({ user_id: authUser.id, zaloha: true,
+      const { error } = await sb.from('souhlasy').upsert({ user_id: authUser.id, zaloha: true,
                                          zmeneno: new Date().toISOString() });
-    }catch(e){ toast('Zálohu se nepodařilo zapnout.'); return; }
+      chybaSouhlasu = error;
+    }catch(e){ chybaSouhlasu = e; }
+    if(chybaSouhlasu){ toast('Zálohu se nepodařilo zapnout — zkuste to prosím znovu.'); return; }
     nastavZalohu(true);
     clearTimeout(zalohaCeka);
     try{ await sb.rpc('uloz_vozidla', { p_vozidla: getVehicles() }); }catch(e){}
@@ -4264,10 +4322,7 @@ async function smazPokutu(id){
   setPokuty(getPokuty().filter(x => x.id !== id));
   /* S pokutou mizí i to, co je k ní vyfocené. Nechat v telefonu fotky
      složenky, kterou uživatel právě smazal, by bylo tiché hromadění. */
-  try{
-    for(const d of (await seznamDokladu()).filter(d => d.spz === klicPokuty(id)))
-      await smazDoklad(d.id);
-  }catch(e){}
+  await smazDokladyKlice(klicPokuty(id));
   renderVozidla(); renderZpravy(); renderUnread();
 }
 function zmenStavPokuty(id, stav){
@@ -4670,8 +4725,17 @@ function formPokuty(p){
       txt('garaz.pokuta.doklad.pozn','Zůstane jen ve vašem telefonu — nikam ji neposíláme. Z PDF přečteme částku a splatnost, z fotky zatím ne.') + '</p>' +
     '<div style="display:flex;gap:8px;"><button data-text="garaz.pokuta.ulozit" class="btn btn-dark btn-sm" style="flex:1;" onclick="ulozPokutu()">' +
       txt('garaz.pokuta.ulozit','Uložit pokutu') + '</button>' +
-    '<button data-text="garaz.zrusit" class="btn btn-outline-dark btn-sm" style="flex:0 0 auto;width:auto;padding:0 16px;" onclick="garazForm=null;renderVozidla()">' +
+    '<button data-text="garaz.zrusit" class="btn btn-outline-dark btn-sm" style="flex:0 0 auto;width:auto;padding:0 16px;" onclick="zrusPokutu()">' +
       txt('garaz.zrusit','Zrušit') + '</button></div></div>';
+}
+
+/* Zrušení rozepsané pokuty. Číslo dostane pokuta už při otevření formuláře,
+   aby se dala přiložit fotka dřív, než se uloží — takže při zrušení je
+   potřeba uklidit i to, co se mezitím přiložilo. */
+function zrusPokutu(){
+  const novy = garazForm && garazForm.id === null && garazForm.novyId;
+  garazForm = null; renderVozidla();
+  if(novy) smazDokladyKlice(klicPokuty(novy));
 }
 
 function formNehody(z){
@@ -4741,6 +4805,10 @@ function addVehicle(){
   const vs = getVehicles();
   const i = garazForm && garazForm.id !== null ? +garazForm.id : -1;
   const uprava = i >= 0 && vs[i];
+  /* Doklady jsou v telefonu klíčované SPZ. Když se SPZ opraví, musí jít
+     s vozidlem — jinak zůstanou pod starým klíčem, kde na ně nikdo nedosáhne
+     a nikdo je nesmaže. */
+  if(uprava && vs[i] && vs[i].spz && vs[i].spz !== spz) prejmenujDoklady(vs[i].spz, spz);
   if(uprava) vs[i] = zaznam; else vs.push(zaznam);
   setVehicles(vs);
   garazForm = null; renderVozidla(); renderZpravy(); renderUnread();
@@ -4754,7 +4822,28 @@ async function rmVehicle(i){
               {spz: vs[i] ? vs[i].spz : ''}),
     potvrdit: 'Smazat', zrusit: 'Ponechat', nebezpecne: true });
   if(!ok) return;
+  /* Se smazaným vozidlem musí zmizet i jeho doklady. Fotka technického
+     průkazu obsahuje osobní údaje a slibujeme, že je má uživatel pod
+     kontrolou — pak je musíme umět i uklidit. */
+  const smazana = vs[i] && vs[i].spz;
   vs.splice(i,1); setVehicles(vs); renderVozidla();
+  if(smazana) smazDokladyKlice(smazana);
+}
+
+/* Úklid dokladů patřících k jednomu klíči (SPZ nebo POKUTA:id). */
+async function smazDokladyKlice(klic){
+  try{
+    for(const d of (await seznamDokladu()).filter(d => d.spz === klic))
+      await smazDoklad(d.id);
+  }catch(e){}
+}
+
+/* Přesun dokladů pod nový klíč — používá se, když se opraví SPZ. */
+async function prejmenujDoklady(stary, novy){
+  try{
+    for(const d of (await seznamDokladu()).filter(d => d.spz === stary))
+      await ulozDoklad({ ...d, spz: novy });
+  }catch(e){}
 }
 
 /* ============ TRVALÉ ULOŽENÍ (localStorage) ============ */
@@ -4967,9 +5056,32 @@ function zdrojObsahu(odkud){
   if(el) el.textContent = ' · obsah: ' + odkud;
 }
 
+/* Obsah se po přihlášení načítá znovu, teď už jménem uživatele. Dvě stahování
+   naráz nemají smysl — ale požadavek na opakování se nesmí zahodit: přijde
+   typicky ve chvíli, kdy první (anonymní) stahování ještě běží, a je to právě
+   ten pokus, který jediný přinese text placených článků. */
+let obsahBezi = false, obsahZnovu = false;
+
+/* Hlavičky pro dotaz na obsah. Rozhodující je token přihlášeného uživatele:
+   pohled `v_clanky` podle něj pozná, komu smí vydat text placeného článku.
+   S anonymním klíčem nedostane text nikdo — ani ten, kdo za něj zaplatil. */
+async function hlavickyObsahu(){
+  const h = { apikey: PR_CFG.SUPABASE_ANON, Authorization: 'Bearer ' + PR_CFG.SUPABASE_ANON };
+  try{
+    if(sb && sb.auth){
+      const { data } = await sb.auth.getSession();
+      const token = data && data.session && data.session.access_token;
+      if(token) h.Authorization = 'Bearer ' + token;
+    }
+  }catch(e){}
+  return h;
+}
+
 async function nactiObsah(){
   if(!PR_CFG.SUPABASE_URL || !PR_CFG.SUPABASE_ANON) return;
-  const hlavicky = { apikey: PR_CFG.SUPABASE_ANON, Authorization: 'Bearer ' + PR_CFG.SUPABASE_ANON };
+  if(obsahBezi){ obsahZnovu = true; return; }
+  obsahBezi = true;
+  const hlavicky = await hlavickyObsahu();
   const dotaz = (cesta) => fetch(PR_CFG.SUPABASE_URL + '/rest/v1/' + cesta, { headers: hlavicky })
                             .then(r => r.ok ? r.json() : Promise.reject(r.status));
   try{
@@ -5067,6 +5179,13 @@ async function nactiObsah(){
   }catch(e){
     console.log('[obsah] databáze nedostupná, používá se vestavěný obsah', e);
     zdrojObsahu('vestavěné znění');
+  }finally{
+    obsahBezi = false;
+    /* Načtení obsahu naplní GUIDE znovu podle databáze, takže by vrátilo
+       zámky i tomu, kdo přístup má — když doběhne až po ověření přístupu.
+       Proto se to na konci srovná. */
+    try{ if(maPlnyPristup()) odemkniObsah(); renderGuideOblasti(); renderServices(); }catch(e){}
+    if(obsahZnovu){ obsahZnovu = false; nactiObsah(); }
   }
 }
 
