@@ -1020,7 +1020,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 124<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 125<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1780,7 +1780,7 @@ function renderGuideOblasti(){
                    odpověď („10 let praxe, 5 let bez zákazu, nula bodů") —
                    ukázat ho znamená rozdat placený obsah v seznamu. */
                 (t.zamceno
-                  ? '<p class="muted">'+txt('clanek.zamceny.perex','Odemkne VIP přístup.')+'</p>'
+                  ? '<p class="muted" data-text="clanek.zamceny.perex">'+txt('clanek.zamceny.perex','Odemkne VIP přístup.')+'</p>'
                   : (t.d?'<p>'+t.d+'</p>':''))+'</div>'+
                 '<svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>').join('')
             : '<div style="padding:12px 24px;"><p class="small muted" style="margin:0 0 8px;line-height:1.5;">Obsah pro tuto oblast připravujeme. Potřebujete poradit hned?</p>'+
@@ -2249,16 +2249,21 @@ function oknoOdeslano(neprosly){
         '<div class="odeslano-znak">'+
           '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 7"/></svg>'+
         '</div>'+
-        '<h3>Máme to</h3>'+
-        '<p>Vaše poptávka je u nás v systému. Nikam už nemusíte psát.</p>'+
+        '<h3 data-text="formular.odeslano.nadpis">'+txt('formular.odeslano.nadpis','Máme to')+'</h3>'+
+        '<p data-text="formular.odeslano.popis">'+txt('formular.odeslano.popis','Vaše poptávka je u nás v systému. Nikam už nemusíte psát.')+'</p>'+
         '<ol class="odeslano-kroky">'+
-          '<li><span class="cislo">1</span><span>Právník si projde, co jste popsal.</span></li>'+
-          '<li><span class="cislo">2</span><span>Zavoláme vám <b>do 2 hodin</b> v pracovní době. Mimo ni hned ráno.</span></li>'+
-          '<li><span class="cislo">3</span><span>Řeknete si, co dělat dál — a kolik to bude stát.</span></li>'+
+          '<li><span class="cislo">1</span><span data-text="formular.odeslano.krok1">'+
+            txt('formular.odeslano.krok1','Právník si projde, co jste popsal.')+'</span></li>'+
+          '<li><span class="cislo">2</span><span data-text="formular.odeslano.krok2">'+
+            txt('formular.odeslano.krok2','Zavoláme vám do 2 hodin v pracovní době. Mimo ni hned ráno.')+'</span></li>'+
+          '<li><span class="cislo">3</span><span data-text="formular.odeslano.krok3">'+
+            txt('formular.odeslano.krok3','Řeknete si, co dělat dál — a kolik to bude stát.')+'</span></li>'+
         '</ol>'+ varovani +
         '<div class="okno-lista">'+
-          '<button type="button" class="btn btn-outline-dark btn-sm" data-ne>Zavolat hned</button>'+
-          '<button type="button" class="btn btn-dark btn-sm" data-ano>Hotovo</button>'+
+          '<button type="button" data-text="formular.odeslano.zavolat" class="btn btn-outline-dark btn-sm" data-ne>'+
+            txt('formular.odeslano.zavolat','Zavolat hned')+'</button>'+
+          '<button type="button" data-text="formular.odeslano.hotovo" class="btn btn-dark btn-sm" data-ano>'+
+            txt('formular.odeslano.hotovo','Hotovo')+'</button>'+
         '</div></div>';
     document.body.appendChild(pozadi);
     requestAnimationFrame(() => {
@@ -3175,17 +3180,17 @@ function renderAccount(){
      ověřit účet, znamená poslat ho zakládat účet, který už má. */
   if(!authUser && authStav !== 'neprihlasen'){
     const vypadek = authStav === 'nedostupne';
-    box.innerHTML='<div class="eyebrow" style="margin-bottom:6px;">Účet</div>'+
-      '<div class="title-md" style="font-size:16px;margin-bottom:4px;">'+
-        (vypadek ? 'Přihlášení se nepodařilo ověřit' : 'Ověřuji přihlášení…')+'</div>'+
-      '<div class="small muted">'+
+    box.innerHTML='<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:6px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
+      '<div class="title-md" data-text="'+(vypadek?'profil.ucet.vypadek':'profil.ucet.overuji')+'" style="font-size:16px;margin-bottom:4px;">'+
+        (vypadek ? txt('profil.ucet.vypadek','Přihlášení se nepodařilo ověřit')
+                 : txt('profil.ucet.overuji','Ověřuji přihlášení…'))+'</div>'+
+      '<div class="small muted" data-text="'+(vypadek?'profil.ucet.vypadek.popis':'profil.ucet.overuji.popis')+'">'+
         (vypadek
-          ? 'Nepodařilo se spojit se serverem. Váš účet tím nezanikl — zkuste to prosím znovu, '+
-            'až budete mít signál.'
-          : 'Chvilku strpení.')+'</div>'+
+          ? txt('profil.ucet.vypadek.popis','Nepodařilo se spojit se serverem. Váš účet tím nezanikl — zkuste to prosím znovu, až budete mít signál.')
+          : txt('profil.ucet.overuji.popis','Chvilku strpení.'))+'</div>'+
       (vypadek
-        ? '<button class="btn btn-outline-dark btn-sm" style="width:auto;padding:9px 13px;margin-top:10px;" '+
-          'onclick="authInit()">Zkusit znovu</button>'
+        ? '<button data-text="profil.ucet.vypadek.btn" class="btn btn-outline-dark btn-sm" style="width:auto;padding:9px 13px;margin-top:10px;" '+
+          'onclick="authInit()">'+txt('profil.ucet.vypadek.btn','Zkusit znovu')+'</button>'
         : '');
     return;
   }
@@ -3211,21 +3216,26 @@ function renderAccount(){
     /* Poslali jsme e-mail a čekáme na kód. Odkaz z e-mailu funguje dál —
        tohle je cesta pro toho, kdo čte poštu jinde, než má aplikaci. */
     if(ucetCeka){
+      /* Text obsahuje tučnou adresu, takže se nedá dosadit jako holý text —
+         značka je proto data-zdroj, podle které ho pozná i náhled. */
       box.innerHTML='<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:6px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
-        '<div class="title-md" style="font-size:16px;margin-bottom:4px;">Otevřete si e-mail</div>'+
-        '<div class="small muted" style="margin-bottom:10px;line-height:1.45;">Poslali jsme ho na <b>'+
-          String(ucetCeka).replace(/&/g,'&amp;').replace(/</g,'&lt;')+
-          '</b>. Je v něm odkaz i číselný kód — stačí jedno z toho. '+
-          'Když čtete poštu na počítači, opište sem kód.</div>'+
+        '<div data-text="profil.ucet.kod.nadpis" class="title-md" style="font-size:16px;margin-bottom:4px;">'+
+          txt('profil.ucet.kod.nadpis','Otevřete si e-mail')+'</div>'+
+        '<div data-zdroj="text:profil.ucet.kod.popis" class="small muted" style="margin-bottom:10px;line-height:1.45;">'+
+          txt('profil.ucet.kod.popis','Poslali jsme ho na {email}. Je v něm odkaz i číselný kód — stačí jedno z toho. Když čtete poštu na počítači, opište sem kód.',
+              {email: '<b>'+String(ucetCeka).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</b>'})+'</div>'+
         '<div class="field" style="margin-bottom:0;"><input class="pole-input" id="uctKod" inputmode="numeric" '+
-          'autocomplete="one-time-code" maxlength="10" placeholder="kód z e-mailu" '+
+          'autocomplete="one-time-code" maxlength="10" data-ph="profil.ucet.kod.ph" placeholder="'+txt('profil.ucet.kod.ph','kód z e-mailu')+'" '+
           'style="letter-spacing:.22em;font-weight:700;" '+
           'onkeydown="if(event.key===\'Enter\')ucetOverKod()" /></div>'+
         '<div class="small" id="uctChyba" style="display:none;color:var(--red);margin-top:7px;"></div>'+
-        '<button class="btn btn-dark btn-sm" style="margin-top:10px;" id="uctKodBtn" onclick="ucetOverKod()">Přihlásit</button>'+
+        '<button data-text="profil.ucet.kod.btn" class="btn btn-dark btn-sm" style="margin-top:10px;" id="uctKodBtn" onclick="ucetOverKod()">'+
+          txt('profil.ucet.kod.btn','Přihlásit')+'</button>'+
         '<div class="row-between" style="gap:10px;margin-top:8px;">'+
-          '<button class="btn btn-outline-dark btn-sm" style="flex:1;" onclick="ucetZnovu()">Poslat znovu</button>'+
-          '<button class="btn btn-outline-dark btn-sm" style="flex:1;" onclick="ucetJinyEmail()">Jiný e-mail</button>'+
+          '<button data-text="profil.ucet.kod.znovu" class="btn btn-outline-dark btn-sm" style="flex:1;" onclick="ucetZnovu()">'+
+            txt('profil.ucet.kod.znovu','Poslat znovu')+'</button>'+
+          '<button data-text="profil.ucet.kod.jiny" class="btn btn-outline-dark btn-sm" style="flex:1;" onclick="ucetJinyEmail()">'+
+            txt('profil.ucet.kod.jiny','Jiný e-mail')+'</button>'+
         '</div>';
       return;
     }
@@ -3236,8 +3246,8 @@ function renderAccount(){
       '<input data-ph="profil.ucet.ph" class="pole-input" id="uctEmail" aria-label="Váš e-mail" type="email" inputmode="email" autocomplete="email" '+
         'autocapitalize="off" spellcheck="false" placeholder="'+txt('profil.ucet.ph','vas@email.cz')+'" '+
         'value="'+posledni.replace(/"/g,'&quot;')+'" />'+
-      (posledni ? '<div class="small muted" style="margin-top:6px;line-height:1.4;">'+
-        'Naposledy jste byl přihlášen touto adresou. Odkaz vám pošleme znovu.</div>' : '')+
+      (posledni ? '<div data-text="profil.ucet.posledni" class="small muted" style="margin-top:6px;line-height:1.4;">'+
+        txt('profil.ucet.posledni','Naposledy jste byl přihlášen touto adresou. Odkaz vám pošleme znovu.')+'</div>' : '')+
       '<div class="small" id="uctChyba" style="display:none;color:var(--red);margin-top:7px;"></div>'+
       '<button data-text="profil.ucet.btn" class="btn btn-dark btn-sm" style="margin-top:10px;" id="uctTlacitko" onclick="prihlasEmailem()">'+txt('profil.ucet.btn','Poslat přihlašovací odkaz')+'</button>';
   }

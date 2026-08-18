@@ -368,7 +368,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 123</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 124</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -1167,12 +1167,12 @@ const POLE_OBRAZOVKA = {
   'garaz.vozidlo.pridano':'vozidla',
   'garaz.vozidlo.upraveno':'vozidla',
   'garaz.zrusit':'vozidla',
+  'garaz.pokuta.advokat':'vozidla',
+  'garaz.pokuty.pridat':'vozidla',
   'garaz.pokuta.ulozit':'vozidla',
   'garaz.pokuta.chyba':'vozidla',
   'garaz.pokuta.pripsat':'vozidla',
   'garaz.pokuta.zprava':'vozidla',
-  'garaz.pokuta.advokat':'vozidla',
-  'garaz.pokuty.pridat':'vozidla',
   'garaz.doklady.nadpis':'vozidla',
   'garaz.doklady.popis':'vozidla',
   'garaz.nehody.prazdno':'vozidla',
@@ -1205,6 +1205,7 @@ const POLE_OBRAZOVKA = {
   'pruvodce.hledat.ph':'pruvodce',
   'pruvodce.vysledky':'pruvodce',
   'pruvodce.oblasti.stitek':'pruvodce',
+  'clanek.zamceny.perex':'pruvodce',
   'nadpis.oblasti':'oblasti',
   'clanek.zamek':'topic',
   'clanek.web.nadpis':'topic',
@@ -1262,17 +1263,36 @@ const POLE_OBRAZOVKA = {
   'formular.odkaz':'konzultace',
   'odkaz.zasady':'konzultace',
   'formular.odeslat':'konzultace',
+  'formular.odeslano.nadpis':'konzultace',
+  'formular.odeslano.popis':'konzultace',
+  'formular.odeslano.krok1':'konzultace',
+  'formular.odeslano.krok2':'konzultace',
+  'formular.odeslano.krok3':'konzultace',
+  'formular.odeslano.zavolat':'konzultace',
+  'formular.odeslano.hotovo':'konzultace',
   'profil.nadpis':'profil',
   'profil.ucet.stitek':'profil',
+  'profil.ucet.overuji':'profil',
+  'profil.ucet.vypadek':'profil',
+  'profil.ucet.kod.nadpis':'profil',
   'profil.ucet.neprihlasen':'profil',
+  'profil.ucet.overuji.popis':'profil',
+  'profil.ucet.vypadek.popis':'profil',
   'profil.ucet.nepr':'profil',
+  'profil.ucet.kod.popis':'profil',
   'profil.ucet.zaloha':'profil',
+  'profil.ucet.vypadek.btn':'profil',
   'profil.ucet.odhlasit':'profil',
   'profil.ucet.ph':'profil',
+  'profil.ucet.kod.ph':'profil',
+  'profil.ucet.posledni':'profil',
   'profil.ucet.btn':'profil',
   'profil.data.stahnout':'profil',
+  'profil.ucet.kod.btn':'profil',
   'profil.data.zrusit':'profil',
+  'profil.ucet.kod.znovu':'profil',
   'profil.data.popis':'profil',
+  'profil.ucet.kod.jiny':'profil',
   'profil.predplatne.stitek':'profil',
   'profil.plan.plny':'profil',
   'profil.plan.omezeny':'profil',
@@ -1347,11 +1367,11 @@ const POLE_OBRAZOVKA = {
 const SEZNAM_MISTO = {
   urady:    {obrazovka:'vozidla', poradi:670},
   nehoda:   {obrazovka:'nehoda', poradi:800},
-  recenze:  {obrazovka:'recenze', poradi:720},
-  postup:   {obrazovka:'postup', poradi:740},
-  tel:      {obrazovka:'kontakt', poradi:770},
-  mail:     {obrazovka:'kontakt', poradi:790},
-  pobocka:  {obrazovka:'kontakt', poradi:810}
+  recenze:  {obrazovka:'recenze', poradi:840},
+  postup:   {obrazovka:'postup', poradi:860},
+  tel:      {obrazovka:'kontakt', poradi:890},
+  mail:     {obrazovka:'kontakt', poradi:910},
+  pobocka:  {obrazovka:'kontakt', poradi:930}
 };
 
 /* Obrazovky každé karty: nejdřív samotná karta, pak podobrazovky v pořadí
@@ -1526,12 +1546,12 @@ const LIMIT_POLE = {
   'garaz.vozidlo.pridano':120,
   'garaz.vozidlo.upraveno':120,
   'garaz.zrusit':30,
+  'garaz.pokuta.advokat':30,
+  'garaz.pokuty.pridat':30,
   'garaz.pokuta.ulozit':30,
   'garaz.pokuta.chyba':120,
   'garaz.pokuta.pripsat':400,
   'garaz.pokuta.zprava':400,
-  'garaz.pokuta.advokat':30,
-  'garaz.pokuty.pridat':30,
   'garaz.doklady.nadpis':60,
   'garaz.doklady.popis':160,
   'garaz.nehody.prazdno':120,
@@ -1564,6 +1584,7 @@ const LIMIT_POLE = {
   'pruvodce.hledat.ph':60,
   'pruvodce.vysledky':120,
   'pruvodce.oblasti.stitek':30,
+  'clanek.zamceny.perex':120,
   'nadpis.oblasti':60,
   'clanek.zamek':120,
   'clanek.web.nadpis':60,
@@ -1621,17 +1642,36 @@ const LIMIT_POLE = {
   'formular.odkaz':120,
   'odkaz.zasady':300,
   'formular.odeslat':120,
+  'formular.odeslano.nadpis':60,
+  'formular.odeslano.popis':400,
+  'formular.odeslano.krok1':400,
+  'formular.odeslano.krok2':400,
+  'formular.odeslano.krok3':400,
+  'formular.odeslano.zavolat':120,
+  'formular.odeslano.hotovo':120,
   'profil.nadpis':60,
   'profil.ucet.stitek':30,
+  'profil.ucet.overuji':120,
+  'profil.ucet.vypadek':120,
+  'profil.ucet.kod.nadpis':60,
   'profil.ucet.neprihlasen':120,
+  'profil.ucet.overuji.popis':160,
+  'profil.ucet.vypadek.popis':400,
   'profil.ucet.nepr':400,
+  'profil.ucet.kod.popis':400,
   'profil.ucet.zaloha':120,
+  'profil.ucet.vypadek.btn':30,
   'profil.ucet.odhlasit':30,
   'profil.ucet.ph':60,
+  'profil.ucet.kod.ph':60,
+  'profil.ucet.posledni':400,
   'profil.ucet.btn':40,
   'profil.data.stahnout':120,
+  'profil.ucet.kod.btn':30,
   'profil.data.zrusit':30,
+  'profil.ucet.kod.znovu':120,
   'profil.data.popis':400,
+  'profil.ucet.kod.jiny':120,
   'profil.predplatne.stitek':30,
   'profil.plan.plny':120,
   'profil.plan.omezeny':120,
@@ -1702,6 +1742,7 @@ const LIMIT_POLE = {
 /* Vlastní bloky a co v tabulce přibylo později: rozumný strop, ať to nikdy
    nespadne na „bez omezení". */
 function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ? 400 : 200); }
+
 
 
 
