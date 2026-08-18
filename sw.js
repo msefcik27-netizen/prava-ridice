@@ -1,11 +1,15 @@
 /* Práva řidiče — service worker (offline cache + push) */
-const CACHE = 'pravaridice-v79';
+const CACHE = 'pravaridice-v80';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  /* Maskable ikony patří do keše taky — na Androidu se z nich skládá ikona
+     na ploše a chybějící soubor znamená, že si systém dogeneruje vlastní. */
+  './icon-maskable-192.png',
+  './icon-maskable-512.png'
 ];
 
 self.addEventListener('install', e => {
