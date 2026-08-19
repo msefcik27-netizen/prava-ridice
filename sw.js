@@ -1,9 +1,13 @@
 /* Práva řidiče — service worker (offline cache + push) */
-const CACHE = 'pravaridice-v80';
+const CACHE = 'pravaridice-v81';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
+  /* Logo z úvodní obrazovky. Do keše patří i proto, že se 19. 8. měnilo
+     (dostalo průhledné pozadí) — bez nového čísla keše by lidem zůstala
+     stará verze s tmavým obdélníkem. */
+  './logo-full-dark.png',
   './icon-192.png',
   './icon-512.png',
   /* Maskable ikony patří do keše taky — na Androidu se z nich skládá ikona
