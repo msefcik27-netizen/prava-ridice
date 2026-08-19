@@ -368,7 +368,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 127</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 128</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -1150,7 +1150,6 @@ const POLE_OBRAZOVKA = {
   'prehled.body.nadpis':'prehled',
   'prehled.body.jednotka':'prehled',
   'prehled.body.btn1':'prehled',
-  'prehled.body.btn2':'prehled',
   'prehled.vyzva.stitek':'prehled',
   'prehled.vyzva.nadpis8':'prehled',
   'prehled.vyzva.nadpis12':'prehled',
@@ -1403,8 +1402,8 @@ const POLE_OBRAZOVKA = {
    poradi u polí, takže se texty a seznamy dají seřadit dohromady — telefony
    se ukážou hned pod štítkem Telefony, ne až pod všemi texty. */
 const SEZNAM_MISTO = {
-  urady:    {obrazovka:'vozidla', poradi:670},
-  nehoda:   {obrazovka:'nehoda', poradi:800},
+  urady:    {obrazovka:'vozidla', poradi:660},
+  nehoda:   {obrazovka:'nehoda', poradi:790},
   recenze:  {obrazovka:'recenze', poradi:840},
   postup:   {obrazovka:'postup', poradi:860},
   tel:      {obrazovka:'kontakt', poradi:890},
@@ -1529,7 +1528,6 @@ const LIMIT_POLE = {
   'prehled.body.nadpis':60,
   'prehled.body.jednotka':30,
   'prehled.body.btn1':30,
-  'prehled.body.btn2':30,
   'prehled.vyzva.stitek':30,
   'prehled.vyzva.nadpis8':120,
   'prehled.vyzva.nadpis12':120,
@@ -1780,6 +1778,10 @@ const LIMIT_POLE = {
 /* Vlastní bloky a co v tabulce přibylo později: rozumný strop, ať to nikdy
    nespadne na „bez omezení". */
 function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ? 400 : 200); }
+
+
+
+
 
 
 
@@ -2854,9 +2856,33 @@ function sekceSeznamu(druh){
 }
 
 /* I v seznamech platí strop — recenze přes celou obrazovku by kartu roztáhla. */
-const LIMIT_SEZNAMU = {recenze:{a:40, b:260, c:60}, postup:{a:60, b:200, c:60},
-                       nehoda:{a:60, b:200, c:60}, tel:{a:40, b:24, c:60},
+/* U kroků se do textu píšou odkazy na tísňové linky — jeden takový odkaz
+   i s obarvením zabere přes 60 znaků, aniž by na obrazovce něco přibylo.
+   Proto mají kroky strop vyšší než ostatní seznamy. */
+const LIMIT_SEZNAMU = {recenze:{a:40, b:260, c:60}, postup:{a:120, b:320, c:60},
+                       nehoda:{a:120, b:320, c:60}, tel:{a:40, b:24, c:60},
                        mail:{a:40, b:60, c:60}, pobocka:{a:40, b:80, c:60}};
+
+/* Strop pro jedno pole seznamu. Základ z LIMIT_SEZNAMU, ale nikdy míň, než
+   co v poli stojí teď — plus 40 znaků, aby šlo dopsat. Bez toho se dá text
+   zamknout: stačí, aby v něm byl odkaz, jehož značkování sežere víc než
+   samotné sdělení. */
+function limitPolozky(zaklad, hodnota){
+  return Math.max(zaklad, Math.ceil(((hodnota || '').length + 40) / 10) * 10);
+}
+
+/* Počítadlo pod polem seznamu — dokud tam nebylo, vypadal dosažený strop
+   jako porouchaná klávesnice. */
+function polozkaZmenena(el, id, sloupec, zaklad){
+  roste(el);
+  zmenPolozku(id, sloupec, el.value);
+  const poc = el.parentNode.querySelector('.pocitadlo');
+  if(poc){
+    const max = Number(el.getAttribute('maxlength')) || zaklad;
+    poc.textContent = el.value.length + ' / ' + max;
+    poc.classList.toggle('u-konce', el.value.length >= max * 0.9);
+  }
+}
 
 function kresliSeznam(druh){
   const el = $('sez-' + druh); if(!el) return;
@@ -2869,18 +2895,21 @@ function kresliSeznam(druh){
       <div class="sez-pole">
         <div class="radky2">
           <div><label>${esc(d.a)}</label>
-            <textarea class="roste" rows="1" maxlength="${lim.a}" onkeydown="bezEnteru(event)"
+            <textarea class="roste" rows="1" maxlength="${limitPolozky(lim.a, s.nadpis)}" onkeydown="bezEnteru(event)"
               onfocus="naNahledSeznam('${druh}','${s.id}')"
-              oninput="roste(this);zmenPolozku('${s.id}','nadpis',this.value)">${esc(s.nadpis)}</textarea></div>
+              oninput="polozkaZmenena(this,'${s.id}','nadpis',${lim.a})">${esc(s.nadpis)}</textarea>
+            <div class="pocitadlo">${(s.nadpis||'').length} / ${limitPolozky(lim.a, s.nadpis)}</div></div>
           <div><label>${esc(d.b)}</label>
-            <textarea class="roste" rows="1" maxlength="${lim.b}" onkeydown="bezEnteru(event)"
+            <textarea class="roste" rows="1" maxlength="${limitPolozky(lim.b, s.text)}" onkeydown="bezEnteru(event)"
               onfocus="naNahledSeznam('${druh}','${s.id}')"
-              oninput="roste(this);zmenPolozku('${s.id}','text',this.value)">${esc(s.text)}</textarea></div>
+              oninput="polozkaZmenena(this,'${s.id}','text',${lim.b})">${esc(s.text)}</textarea>
+            <div class="pocitadlo">${(s.text||'').length} / ${limitPolozky(lim.b, s.text)}</div></div>
         </div>
         ${d.c ? `<div class="pole" style="margin:10px 0 0"><label>${esc(d.c)}</label>
-          <textarea class="roste" rows="1" maxlength="${lim.c}" onkeydown="bezEnteru(event)"
+          <textarea class="roste" rows="1" maxlength="${limitPolozky(lim.c, s.doplnek)}" onkeydown="bezEnteru(event)"
             onfocus="naNahledSeznam('${druh}','${s.id}')"
-            oninput="roste(this);zmenPolozku('${s.id}','doplnek',this.value)">${esc(s.doplnek||'')}</textarea></div>` : ''}
+            oninput="polozkaZmenena(this,'${s.id}','doplnek',${lim.c})">${esc(s.doplnek||'')}</textarea>
+          <div class="pocitadlo">${(s.doplnek||'').length} / ${limitPolozky(lim.c, s.doplnek)}</div></div>` : ''}
       </div>
       <div class="poradi-sipky">
         <button type="button" title="Nahoru" ${i === 0 ? 'disabled' : ''} onclick="posunPolozku('${s.id}',-1)">▲</button>
