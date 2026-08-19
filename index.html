@@ -870,6 +870,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
             <div class="li-body">
               <h4 data-text="prehled.vozidla.nadpis">Vozidla a důležité termíny</h4>
               <p id="vehSub" data-text="prehled.vozidla.popis">Hlídání STK, pojištění, známek, pokut a dokladů na jednom místě.</p>
+              <p id="vehStav" style="display:none;margin-top:2px;font-weight:600;"></p>
             </div>
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
           </div>
@@ -1016,7 +1017,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 133<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 134<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -4178,13 +4179,26 @@ function vehLabel(w){
 function renderVehSub(){
   const el=document.getElementById('vehSub'); if(!el) return;
   znac('vehSub','prehled.vozidla.popis');
+  /* Popis toho, co se pod řádkem skrývá, tu je vždycky — je editovatelný
+     a v administraci u něj musí svítit ten samý text. */
+  el.textContent=txt('prehled.vozidla.popis','Hlídání STK, pojištění, známek, pokut a dokladů na jednom místě.');
+  el.style.color='';
+
+  /* Stav vozidel je samostatné sdělení a má vlastní řádek. Bez vozidel
+     a bez vyplněných termínů se neukazuje — prázdná věta („0 vozidel")
+     nikomu nepomůže a jen roztáhne kartu. */
+  const stav=document.getElementById('vehStav');
+  if(!stav) return;
   const vs=getVehicles();
-  if(!vs.length){ el.textContent=txt('prehled.vozidla.popis','Hlídejte STK, pojištění a dálniční známku.'); el.style.color=''; return; }
+  const schovej=()=>{ stav.style.display='none'; stav.textContent=''; };
+  if(!vs.length){ schovej(); return; }
   let worst=null, spz='';
   vs.forEach(v=>{ const w=vehWorst(v); if(w && (!worst || w.days<worst.days)){ worst=w; spz=v.spz; } });
   const l=vehLabel(worst);
-  if(l){ el.textContent=spz+': '+l.t; el.style.color=l.c; }
-  else { el.textContent=vs.length+' '+plural(vs.length,'vozidlo','vozidla','vozidel')+' bez termínů.'; el.style.color=''; }
+  if(!l){ schovej(); return; }
+  stav.textContent=spz+': '+l.t;
+  stav.style.color=l.c;
+  stav.style.display='';
 }
 function openVozidla(){ renderVozidla(); go('vozidla'); }
 function openNehoda(){
