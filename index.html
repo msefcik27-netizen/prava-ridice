@@ -1025,7 +1025,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 135<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 137<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1613,8 +1613,33 @@ function vykresliBlok(b){
   }
 }
 
+/* Bloky se kreslí, dokud se nenarazí na zamčený. Tam se vykreslí zámek
+   a končí se — zeď má být jedna. Řetěz prázdných karet by vypadal jako
+   porucha, ne jako nabídka. */
 function vykresliBloky(pole){
-  return (pole || []).slice().sort((a,b) => (a.poradi||0) - (b.poradi||0)).map(vykresliBlok).join('');
+  const rada = (pole || []).slice().sort((a,b) => (a.poradi||0) - (b.poradi||0));
+  let ven = '';
+  for(const b of rada){
+    if(b.zamceno){ ven += zamekBloku(); break; }
+    ven += vykresliBlok(b);
+  }
+  return ven;
+}
+
+function zamekBloku(){
+  return '<div class="zamek-blok">' +
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect x="4.4" y="10.4" width="15.2" height="9.6" rx="2.4"/><path d="M8 10.4V7.8a4 4 0 0 1 8 0v2.6"/></svg>' +
+    '<span data-text="clanek.blok.zamek">' +
+      txt('clanek.blok.zamek','Pokračování je součástí PREMIUM přístupu.') + '</span></div>' +
+    '<button class="btn btn-dark btn-sm" style="margin:10px 0 4px" data-text="clanek.blok.zamek.btn" ' +
+      'onclick="go(\'predplatne\')">' + txt('clanek.blok.zamek.btn','Získat PREMIUM přístup') + '</button>';
+}
+
+/* Má článek zamčené jen kusy? Pak se u nadpisu ukáže jiný štítek než
+   u celého zamčeného článku — aby si je nikdo nepletl. */
+function castecneZamceny(t){
+  return !t.zamceno && !!(t.bloky || []).some(b => b.zamceno || b.placeny);
 }
 
 /* Články bez bloků: aspoň odstavce a mezinadpisy (řádek začínající ##).
@@ -1732,7 +1757,7 @@ function openService(id){
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.4" y="10.4" width="15.2" height="9.6" rx="2.4"/><path d="M8 10.4V7.8a4 4 0 0 1 8 0v2.6"/></svg>'+
       '<span data-text="sluzby.zamek">'+txt('sluzby.zamek','Tato služba je popsaná v plném přístupu.')+'</span></div>'+
       '<button class="btn btn-dark btn-sm" style="margin-top:10px" data-text="sluzby.zamek.btn" onclick="go(\'predplatne\')">'+
-        txt('sluzby.zamek.btn','Získat VIP přístup')+'</button>':'')+
+        txt('sluzby.zamek.btn','Získat PREMIUM přístup')+'</button>':'')+
     (x.zamceno ? '' :
       ((x.hrozi&&x.hrozi.length?'<div class="section-label" data-text="sluzby.hrozi.stitek" style="margin-top:14px;">'+txt('sluzby.hrozi.stitek','Co vám hrozí')+'</div>'+
         '<div class="card" data-sluzba="'+(x.sid||x.id)+':hrozi">'+x.hrozi.map(h=>'<div style="display:flex;gap:9px;padding:5px 0;"><span style="color:var(--orange);font-weight:800;">•</span><span style="font-size:13.5px;line-height:1.45;color:var(--ink-soft);">'+h+'</span></div>').join('')+'</div>':'')+
@@ -1788,7 +1813,7 @@ function renderGuideOblasti(){
                    odpověď („10 let praxe, 5 let bez zákazu, nula bodů") —
                    ukázat ho znamená rozdat placený obsah v seznamu. */
                 (t.zamceno
-                  ? '<p class="muted" data-text="clanek.zamceny.perex">'+txt('clanek.zamceny.perex','Odemkne VIP přístup.')+'</p>'
+                  ? '<p class="muted" data-text="clanek.zamceny.perex">'+txt('clanek.zamceny.perex','Odemkne PREMIUM přístup.')+'</p>'
                   : (t.d?'<p>'+t.d+'</p>':''))+'</div>'+
                 '<svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>').join('')
             : '<div style="padding:12px 24px;"><p class="small muted" style="margin:0 0 8px;line-height:1.5;">Obsah pro tuto oblast připravujeme. Potřebujete poradit hned?</p>'+
@@ -1825,7 +1850,7 @@ function renderGuide(){
   }
   /* Ve vyhledávání platí totéž co v seznamu: u zamčeného tématu se popisek
      neukazuje, jinak by stačilo hledat a číst výsledky. */
-  box.innerHTML=res.map(t=>`<div class="topic" onclick="openTopic('${t.oblastId}','${t.t.replace(/'/g,"\\'")}')"><div class="cat">${t.oblast}</div><h4>${t.t}${znackaPristupu(!!(t.vip ?? t.zamceno))}</h4><p>${t.zamceno ? txt('clanek.zamceny.perex','Odemkne VIP přístup.') : t.d}</p></div>`).join('');
+  box.innerHTML=res.map(t=>`<div class="topic" onclick="openTopic('${t.oblastId}','${t.t.replace(/'/g,"\\'")}')"><div class="cat">${t.oblast}</div><h4>${t.t}${znackaPristupu(!!(t.vip ?? t.zamceno))}</h4><p>${t.zamceno ? txt('clanek.zamceny.perex','Odemkne PREMIUM přístup.') : t.d}</p></div>`).join('');
 }
 
 /* ============ OBLASTI A ČLÁNKY ============ */
@@ -1860,7 +1885,7 @@ function renderOblasti(){
              tématu se popisek neukazuje, protože u krátkých témat je to celá
              odpověď. Do buildu 125 se tu ukazoval — bez štítku, takže to ani
              nevypadalo jako placený obsah. */
-          (arts.length?arts.map(t=>'<div class="list-item" style="padding-left:26px;border-bottom:none;" onclick="event.stopPropagation();openTopic(\''+t.oblastId+'\',\''+t.t.replace(/'/g,"\\'")+'\')"><div class="li-body"><h4 style="font-size:13.5px;">'+t.t+znackaPristupu(!!(t.vip ?? t.zamceno))+'</h4><p>'+(t.zamceno ? txt('clanek.zamceny.perex','Odemkne VIP přístup.') : t.d)+'</p></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>').join('')
+          (arts.length?arts.map(t=>'<div class="list-item" style="padding-left:26px;border-bottom:none;" onclick="event.stopPropagation();openTopic(\''+t.oblastId+'\',\''+t.t.replace(/'/g,"\\'")+'\')"><div class="li-body"><h4 style="font-size:13.5px;">'+t.t+znackaPristupu(!!(t.vip ?? t.zamceno))+'</h4><p>'+(t.zamceno ? txt('clanek.zamceny.perex','Odemkne PREMIUM přístup.') : t.d)+'</p></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>').join('')
             :'<div style="padding:12px 26px;"><p class="small muted" style="margin:0 0 8px;line-height:1.5;">Obsah pro tuto oblast připravujeme. Potřebujete poradit hned?</p><button class="btn btn-dark btn-sm" onclick="event.stopPropagation();go(\'konzultace\')">Konzultace zdarma</button></div>')+
         '</div>':'');
     }).join('')+'</div>';
@@ -1891,15 +1916,15 @@ function openTopic(oblastId,title){
   document.getElementById('topicBody').innerHTML=`
     <div class="card" style="margin-bottom:12px;">
       <div class="cat" data-clanek="kategorie" style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink-2);margin-bottom:6px;">${[o.n, t.c].filter((x,i,p) => x && p.indexOf(x) === i).join(' · ')}</div>
-      <h2 class="title-md" data-clanek="nadpis" style="margin-bottom:10px;">${t.t}${znackaPristupu(!!(t.vip ?? t.zamceno))}</h2>
+      <h2 class="title-md" data-clanek="nadpis" style="margin-bottom:10px;">${t.t}${znackaPristupu(!!(t.vip ?? t.zamceno), castecneZamceny(t))}</h2>
       ${(t.d && !t.zamceno) ? `<p data-clanek="perex" style="margin:0 0 10px;line-height:1.5;font-size:13px;color:var(--muted);">${t.d}</p>` : ''}
       ${t.zamceno
         ? `<div class="zamek-blok">
              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.4" y="10.4" width="15.2" height="9.6" rx="2.4"/><path d="M8 10.4V7.8a4 4 0 0 1 8 0v2.6"/></svg>
-             <span data-text="clanek.zamek">${txt('clanek.zamek','Tato část je dostupná s VIP přístupem.')}</span>
+             <span data-text="clanek.zamek">${txt('clanek.zamek','Tato část je dostupná s PREMIUM přístupem.')}</span>
            </div>
            <button class="btn btn-dark btn-sm" style="margin:0 0 4px" data-text="clanek.zamek.btn"
-             onclick="go('predplatne')">${txt('clanek.zamek.btn','Získat VIP přístup')}</button>`
+             onclick="go('predplatne')">${txt('clanek.zamek.btn','Získat PREMIUM přístup')}</button>`
         : ''}
     </div>
     ${t.zamceno ? '' : (prazdnyClanek(t)
@@ -2090,7 +2115,7 @@ async function applyPromo(){
     nactiObsah();
     renderPlan(); renderStavPristupu();
     try{ renderServices(); renderGuideOblasti(); }catch(e){}
-    toast('Kód uplatněn — máte VIP přístup.');
+    toast('Kód uplatněn — máte PREMIUM přístup.');
     back('profil');
     return;
   }
@@ -2110,7 +2135,7 @@ async function applyPromo(){
 function renderPlan(){
   const el = document.getElementById('planTitle'); if(!el) return;
   znac('planTitle', maPlnyPristup() ? 'profil.plan.plny' : 'profil.plan.omezeny');
-  el.textContent = maPlnyPristup() ? txt('profil.plan.plny','VIP přístup') : txt('profil.plan.omezeny','Standardní přístup');
+  el.textContent = maPlnyPristup() ? txt('profil.plan.plny','PREMIUM přístup') : txt('profil.plan.omezeny','Standardní přístup');
   const btn = document.getElementById('planBtn');
   if(btn) btn.style.display = maPlnyPristup() ? 'none' : '';
 }
@@ -2770,7 +2795,7 @@ async function prihlaseniZmizelo(){
   try{ renderAccount(); renderStavPristupu(); renderPlan(); }catch(e){}
   const chce = await okno({
     nadpis: 'Přihlaste se prosím znovu',
-    text: 'Přihlášení k účtu v tomhle telefonu vypršelo. VIP přístup je navázaný '+
+    text: 'Přihlášení k účtu v tomhle telefonu vypršelo. PREMIUM přístup je navázaný '+
           'na účet, ne na telefon — než se přihlásíte, ukazuje se jen část obsahu. '+
           'Stačí v Profilu zadat e-mail: body, nastavení i přístup se vrátí.',
     potvrdit: 'Přihlásit se', zrusit: 'Později'
@@ -2782,7 +2807,7 @@ async function prihlaseniZmizelo(){
    služeb i ve výsledcích hledání, aby uživatel předem věděl, co se otevře. */
 /* Odemknutí obsahu po získání přístupu. Úroveň se přitom musí zapamatovat:
    `zamceno` se vymaže, ale `vip` zůstává, aby bylo pořád poznat, který
-   článek je VIP. Bez toho VIP článek po zaplacení vypadá jako každý jiný —
+   článek je PREMIUM. Bez toho PREMIUM článek po zaplacení vypadá jako každý jiný —
    přesně to se v provozu stalo. */
 function odemkniObsah(){
   SERVICES.forEach(x => { if(x.vip === undefined) x.vip = !!x.zamceno; x.zamceno = false; });
@@ -2792,12 +2817,13 @@ function odemkniObsah(){
 
 function znackaPristupu(vip, castecne){
   if(!vip && !castecne) return '';
-  /* Štítek říká úroveň obsahu, ne jestli mě dovnitř pustí — VIP článek má
-     být poznat i pro toho, kdo přístup má. Krátké „VIP" schválně: celé
-     „VIP přístup" se vedle dlouhých nadpisů láme do dvou řádků. */
+  /* Štítek říká úroveň obsahu, ne jestli mě dovnitř pustí — PREMIUM článek má
+     být poznat i pro toho, kdo přístup má. Píše se samotné „PREMIUM", ne celé
+     „PREMIUM přístup": vedle dlouhých nadpisů by se to lámalo do dvou řádků.
+     „část PREMIUM" je vlastní stav — článek, kde je zamčený jen kus. */
   return castecne
-    ? '<span class="zamek-znacka castecne">část VIP</span>'
-    : '<span class="zamek-znacka">VIP</span>';
+    ? '<span class="zamek-znacka castecne">část PREMIUM</span>'
+    : '<span class="zamek-znacka">PREMIUM</span>';
 }
 
 /* ---------- datum ----------
@@ -3102,12 +3128,12 @@ function renderStavPristupu(){
             : '<rect x="4.4" y="10.4" width="15.2" height="9.6" rx="2.4"/><path d="M8 10.4V7.8a4 4 0 0 1 8 0v2.6"/>');
   const klicN = plny ? 'pristup.plny.nadpis' : (nepr ? 'pristup.neprihlasen.nadpis' : 'pristup.omezeny.nadpis');
   const klicP = plny ? 'pristup.plny.popis'  : (nepr ? 'pristup.neprihlasen.popis'  : 'pristup.omezeny.popis');
-  const nadpis = plny ? txt('pristup.plny.nadpis','VIP přístup')
+  const nadpis = plny ? txt('pristup.plny.nadpis','PREMIUM přístup')
     : (nepr ? txt('pristup.neprihlasen.nadpis','Nepřihlášeno')
             : txt('pristup.omezeny.nadpis','Standardní přístup'));
   const popis = plny ? txt('pristup.plny.popis','Máte otevřený veškerý obsah aplikace.')
     : (nepr ? txt('pristup.neprihlasen.popis','Přístup je navázaný na váš účet. Přihlaste se v Profilu.')
-            : txt('pristup.omezeny.popis','Část článků a služeb je uzamčená. Odemkne je VIP přístup.'));
+            : txt('pristup.omezeny.popis','Část článků a služeb je uzamčená. Odemkne je PREMIUM přístup.'));
   const tlacitko = plny ? ''
     : (nepr ? '<button data-text="pristup.neprihlasen.btn" class="btn btn-outline-dark btn-sm pp-btn" onclick="tab(\'profil\')">'+txt('pristup.neprihlasen.btn','Přihlásit')+'</button>'
             : '<button data-text="pristup.omezeny.btn" class="btn btn-outline-dark btn-sm pp-btn" onclick="go(\'predplatne\')">'+txt('pristup.omezeny.btn','Odemknout')+'</button>');
@@ -3289,7 +3315,7 @@ function renderAccount(){
     let posledni=''; try{ posledni = localStorage.getItem('pr-ucet-email')||''; }catch(e){}
     box.innerHTML='<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:6px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
       '<div data-text="profil.ucet.neprihlasen" class="title-md" style="font-size:16px;margin-bottom:4px;">'+txt('profil.ucet.neprihlasen','Nepřihlášeno')+'</div>'+
-      '<div data-text="profil.ucet.nepr" class="small muted" style="margin-bottom:10px;">'+txt('profil.ucet.nepr','Přihlášením se vám vrátí body řidiče, nastavení i VIP přístup — třeba po přechodu na nový telefon.')+'</div>'+
+      '<div data-text="profil.ucet.nepr" class="small muted" style="margin-bottom:10px;">'+txt('profil.ucet.nepr','Přihlášením se vám vrátí body řidiče, nastavení i PREMIUM přístup — třeba po přechodu na nový telefon.')+'</div>'+
       '<input data-ph="profil.ucet.ph" class="pole-input" id="uctEmail" aria-label="Váš e-mail" type="email" inputmode="email" autocomplete="email" '+
         'autocapitalize="off" spellcheck="false" placeholder="'+txt('profil.ucet.ph','vas@email.cz')+'" '+
         'value="'+posledni.replace(/"/g,'&quot;')+'" />'+
@@ -3347,6 +3373,22 @@ async function prihlasEmailem(){
 
 /* Ověření kódu z e-mailu v Profilu. Totéž co v úvodu aplikace — jen se sem
    dostane ten, kdo aplikaci už má. */
+/* Supabase pojmenovává jednorázový kód podle toho, jakou zprávu poslal —
+   u nového člověka jinak než u toho, kdo se vrací. Z aplikace se nepozná,
+   který druh to zrovna je, proto se zkusí po řadě. Špatný druh jen vrátí
+   chybu; první, který projde, přihlásí. */
+async function overKodTypy(klient, email, kod){
+  let posledni = null;
+  for(const typ of ['email', 'magiclink', 'signup']){
+    try{
+      const v = await klient.auth.verifyOtp({ email, token: kod, type: typ });
+      if(!(v && v.error)) return null;
+      posledni = v.error;
+    }catch(e){ posledni = e; }
+  }
+  return posledni;
+}
+
 async function ucetOverKod(){
   const pole = document.getElementById('uctKod');
   const chybaEl = document.getElementById('uctChyba');
@@ -3360,11 +3402,7 @@ async function ucetOverKod(){
   ukaz('');
   const tl = document.getElementById('uctKodBtn');
   if(tl){ tl.disabled = true; tl.textContent = 'Ověřuji…'; }
-  let error = null;
-  try{
-    const v = await sb.auth.verifyOtp({ email: ucetCeka, token: kod, type: 'email' });
-    error = v && v.error;
-  }catch(e){ error = e; }
+  const error = await overKodTypy(sb, ucetCeka, kod);
   if(error){
     if(tl){ tl.disabled = false; tl.textContent = 'Přihlásit'; }
     ukaz(/expired|invalid|token/i.test(error.message || '')
@@ -3557,11 +3595,7 @@ async function obOverKod(){
   if(!sb || !ob.email){ obChybaKod('Ověření je dočasně nedostupné. Zkuste to prosím později.'); return; }
   obChybaKod('');
   if(tl){ tl.disabled = true; tl.textContent = 'Ověřuji…'; }
-  let error = null;
-  try{
-    const v = await sb.auth.verifyOtp({ email: ob.email, token: kod, type: 'email' });
-    error = v && v.error;
-  }catch(e){ error = e; }
+  const error = await overKodTypy(sb, ob.email, kod);
   if(error){
     if(tl){ tl.disabled = false; tl.textContent = txt('onboard.cekani.kod.btn','Potvrdit'); }
     obChybaKod(/expired|invalid|token/i.test(error.message || '')
@@ -3605,7 +3639,7 @@ async function poPotvrzeni(){
       pristupZeServeru = true; renderPlan();
       /* Uplatnění kódu proběhne až po zjistiPristup(), takže tam přístup
          ještě nebyl vidět a zámky nikdo nesundal. Musí se to udělat tady —
-         jinak nový zaměstnanec vidí „VIP přístup" a pod tím samé zámky. */
+         jinak nový zaměstnanec vidí „PREMIUM přístup" a pod tím samé zámky. */
       odemkniObsah();
       try{ renderServices(); renderGuideOblasti(); }catch(e){}
       nactiObsah();
@@ -3679,7 +3713,7 @@ function renderOb(){
   B.innerHTML='<div class="ob-step"><div style="height:18px;"></div>'+
     '<div class="ob-eyebrow" data-text="onboard.reg.stitek">'+txt('onboard.reg.stitek','Registrace')+'</div>'+
     '<h1 class="title-lg" data-text="onboard.reg.nadpis" style="font-size:25px;">'+txt('onboard.reg.nadpis','Ještě váš e-mail a jsme hotovi.')+'</h1>'+
-    '<p data-text="onboard.reg.popis" style="font-size:13.5px;margin-top:9px;">'+txt('onboard.reg.popis','Pošleme na něj potvrzovací odkaz. Slouží k zálohování bodů řidiče, zprávám od advokáta a k aktivaci VIP přístupu.')+'</p>'+
+    '<p data-text="onboard.reg.popis" style="font-size:13.5px;margin-top:9px;">'+txt('onboard.reg.popis','Pošleme na něj potvrzovací odkaz. Slouží k zálohování bodů řidiče, zprávám od advokáta a k aktivaci PREMIUM přístupu.')+'</p>'+
     /* Aplikace spuštěná z plochy poprvé: buď je člověk opravdu nový, nebo
        ji používal v prohlížeči a přišel o přihlášení. Rozeznat to nejde,
        proto se to řekne jako podmínka — novému to nevadí, druhému to ušetří

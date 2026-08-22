@@ -38,7 +38,9 @@ header button:hover{background:rgba(255,255,255,.24)}
 /* Zarovnáno doleva, ať obsah lícuje s hlavičkou a záložkami — vycentrované
    to na širokém monitoru odsazovalo o několik set pixelů. */
 main{max-width:1180px;margin:0;padding:22px 20px 80px}
-.wrap{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start}
+/* `minmax(0,1fr)` u druhého sloupce: bez toho se editor odmítá zúžit pod
+   šířku svého nejširšího obsahu a vytlačí náhled z okna. */
+.wrap{display:grid;grid-template-columns:360px minmax(0,1fr);gap:20px;align-items:start}
 @media(max-width:900px){.wrap{grid-template-columns:1fr}}
 
 .panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
@@ -119,7 +121,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
   text-transform:uppercase;padding:5px 10px;border-radius:8px;background:#E9EEEF;color:#6B7B7F}
 .prepinac.pristup .stav-pristup::after{content:'Standardní'}
 .prepinac.pristup.zap .stav-pristup{background:#FFE9C7;color:var(--warn)}
-.prepinac.pristup.zap .stav-pristup::after{content:'VIP'}
+.prepinac.pristup.zap .stav-pristup::after{content:'PREMIUM'}
 .prepinac.pristup.zap .knof{background:var(--warn)}
 
 .btn{border:0;border-radius:10px;padding:11px 17px;font-weight:700;cursor:pointer;font-size:14px}
@@ -207,6 +209,13 @@ label.btn{text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink);m
 
 .prazdno{color:var(--muted);font-size:14px;padding:24px 8px;text-align:center}
 
+/* Na užším okně se nabídka karet tiskne k sobě, místo aby přetekla
+   nebo se zalomila pod název. */
+@media(max-width:1340px){
+  .tabs button{padding-left:11px;padding-right:11px}
+  main{padding-left:14px;padding-right:14px}
+}
+
 /* ---------- přihlášení ---------- */
 #login{max-width:400px;margin:70px auto;background:#fff;border:1px solid var(--line);
       border-radius:16px;padding:28px}
@@ -216,7 +225,22 @@ label.btn{text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink);m
 #nastaveni code{background:#fff;padding:2px 6px;border-radius:5px;font-size:12.5px}
 
 /* ---------- živý náhled telefonu ---------- */
-main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1580px;align-items:start}
+/* Náhled dostane, co potřebuje rámeček telefonu (352 px + rámeček a odsazení),
+   a zbytek zůstane editoru. `minmax` místo pevné šířky proto, aby se na užším
+   okně zúžil náhled, ne pracovní plocha. */
+main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22px;max-width:1580px;align-items:start}
+
+/* Dva kroky zúžení. Hranice jsou odvozené od šířky editoru: první nastupuje
+   tam, kde by klesl pod ~640 px, druhá pod ~560 px. */
+@media(max-width:1500px){
+  main{gap:18px}
+  .wrap{grid-template-columns:300px minmax(0,1fr);gap:16px}
+}
+@media(max-width:1340px){
+  main{grid-template-columns:minmax(0,1fr) minmax(320px,352px)}
+  .wrap{grid-template-columns:264px minmax(0,1fr);gap:14px}
+  .radky2{grid-template-columns:1fr}
+}
 @media(max-width:1260px){main{grid-template-columns:1fr}}
 .telefon{position:sticky;top:104px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}
 .telefon > h2{font-size:12px;margin:0 0 10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
@@ -368,7 +392,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 130</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 132</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -519,12 +543,28 @@ async function prihlas(){
 
 /* Druhá cesta k témuž přihlášení. Kolik má kód míst, si určuje Supabase
    (šest až deset), proto se tady hlídá jen to, že je to vůbec kód. */
+/* Supabase pojmenovává jednorázový kód podle toho, jakou zprávu poslal —
+   u nového člověka jinak než u toho, kdo se vrací. Z aplikace se nepozná,
+   který druh to zrovna je, proto se zkusí po řadě. Špatný druh jen vrátí
+   chybu; první, který projde, přihlásí. */
+async function overKodTypy(klient, email, kod){
+  let posledni = null;
+  for(const typ of ['email', 'magiclink', 'signup']){
+    try{
+      const v = await klient.auth.verifyOtp({ email, token: kod, type: typ });
+      if(!(v && v.error)) return null;
+      posledni = v.error;
+    }catch(e){ posledni = e; }
+  }
+  return posledni;
+}
+
 async function prihlasKodem(){
   const email = $('email').value.trim();
   const kod = ($('kod').value || '').replace(/\D/g, '');
   if(kod.length < 6 || kod.length > 10){
     hlaska('Opište prosím z e-mailu celý kód — jsou to jen číslice.', true); return; }
-  const { error } = await db.auth.verifyOtp({ email, token: kod, type: 'email' });
+  const error = await overKodTypy(db, email, kod);
   if(error){
     hlaska(/expired|invalid|token/i.test(error.message || '')
       ? 'Tenhle kód neplatí nebo už vypršel. Nechte si poslat nový.'
@@ -641,10 +681,10 @@ function vykresliOblast(o){
       </span>
       <span class="nazev">${esc(o.nazev)}</span>
       ${o.placeny
-          ? '<span class="odznak o-plny" title="Celá oblast vyžaduje VIP přístup">VIP</span>'
+          ? '<span class="odznak o-plny" title="Celá oblast vyžaduje PREMIUM přístup">PREMIUM</span>'
           : (() => { const pl = cl.filter(c=>c.placeny).length;
-              return pl ? `<span class="odznak o-plny" title="${pl} z ${cl.length} článků vyžaduje VIP přístup">${pl}× VIP</span>`
-                        : '<span class="odznak o-omezeny" title="Obsah je dostupný ve standardním přístupu">standardní</span>'; })()}
+              return pl ? `<span class="odznak o-plny" title="${pl} z ${cl.length} článků vyžaduje PREMIUM přístup">${pl}× PREMIUM</span>`
+                        : '<span class="odznak o-omezeny" title="Obsah je dostupný ve standardním přístupu">Standardní</span>'; })()}
       ${o.publikovano ? '' : '<span class="odznak o-koncept">skryto</span>'}
       <span class="radek-akce dole">
         ${sipky('oblast', o.id)}
@@ -663,10 +703,13 @@ function vykresliClanek(c){
   return `<li class="uzel"><div class="radek ${vyb?'on':''}" onclick="vyberClanek('${c.id}')">
       <span class="sipka"></span>
       <span class="nazev">${esc(c.nadpis)}</span>
-      ${c.placeny ? '<span class="odznak o-plny" title="Vyžaduje VIP přístup">VIP</span>'
-                  : (shora ? '<span class="odznak o-plny" title="VIP přístup podle nastavení oblasti" style="opacity:.75">VIP · z oblasti</span>'
-                           : '<span class="odznak o-omezeny" title="Dostupné ve standardním přístupu">standardní</span>')}
+      ${c.placeny ? '<span class="odznak o-plny" title="Vyžaduje PREMIUM přístup">PREMIUM</span>'
+                  : (shora ? '<span class="odznak o-plny" title="PREMIUM přístup podle nastavení oblasti" style="opacity:.75">PREMIUM · z oblasti</span>'
+                           : '<span class="odznak o-omezeny" title="Dostupné ve Standardním přístupu">Standardní</span>')}
       ${c.publikovano ? '' : '<span class="odznak o-koncept">koncept</span>'}
+      <span class="radek-akce dole">
+        ${sipky('clanek', c.id)}
+      </span>
     </div></li>`;
 }
 
@@ -734,8 +777,8 @@ function editorOblasti(){
     <p class="napoveda" style="margin:0 0 14px">Pořadí oblastí se mění šipkami ve struktuře vlevo.</p>
     <div class="prepinac pristup ${o.placeny?'zap':''}" onclick="prepniPristup(this)" id="f-placeny">
       <div class="txt"><b>Úroveň přístupu</b>
-        <span>Zapnuto = celá oblast včetně podoblastí vyžaduje <b>VIP přístup</b>.
-          Vypnuto = obsah je <b>standardní</b>, dostupný i bez zaplacení.</span></div>
+        <span>Zapnuto = celá oblast včetně podoblastí vyžaduje <b>PREMIUM přístup</b>.
+          Vypnuto = obsah je <b>Standardní</b>, dostupný i bez zaplacení.</span></div>
       <span class="stav-pristup"></span>
       <div class="knof"></div></div>
     <div class="prepinac ${o.publikovano?'zap':''}" onclick="this.classList.toggle('zap')" id="f-publ">
@@ -882,8 +925,8 @@ function editorClanku(){
         ${zamekShora}
         <div class="prepinac pristup ${c.placeny?'zap':''}" onclick="prepniPristup(this);nahledZamku();nahledClanku()" id="f-placeny">
           <div class="txt"><b>Úroveň přístupu</b>
-            <span>Zapnuto = vyžaduje <b>VIP přístup</b>, text se do telefonu vůbec nepošle.
-              Vypnuto = článek je <b>standardní</b>, přečte si ho i uživatel bez zaplacení.</span></div>
+            <span>Zapnuto = vyžaduje <b>PREMIUM přístup</b>, text se do telefonu vůbec nepošle.
+              Vypnuto = článek je <b>Standardní</b>, přečte si ho i uživatel bez zaplacení.</span></div>
           <span class="stav-pristup"></span>
           <div class="knof"></div></div>
 
@@ -913,14 +956,14 @@ function editorClanku(){
 function nahledZamku(){
   const el = $('nahled'); if(!el) return;
   const placeny = $('f-placeny').classList.contains('zap');
-  /* Ukázka musí sedět s aplikací. U VIP článku se krátký popis člověku bez
+  /* Ukázka musí sedět s aplikací. U PREMIUM článku se krátký popis člověku bez
      přístupu **neukazuje** — býval to u krátkých témat celá odpověď. Dřív
      tu byl vidět, takže ukázka slibovala něco, co aplikace nedělá. */
   el.innerHTML = placeny ? `<div class="nahled">
       <h3>Co uvidí uživatel se standardním přístupem</h3>
       <div style="font-weight:800;font-size:16px;margin-top:6px">${esc($('f-nadpis').value)}
-        <span class="odznak o-plny">VIP</span></div>
-      <div class="zamek">🔒 Tato část je dostupná s VIP přístupem.</div>
+        <span class="odznak o-plny">PREMIUM</span></div>
+      <div class="zamek">🔒 Tato část je dostupná s PREMIUM přístupem.</div>
       <p class="napoveda" style="margin:8px 0 0">Krátký popis se nezobrazí — u placeného
         obsahu by se jím dala prozradit odpověď.</p>
     </div>` : '';
@@ -1002,7 +1045,8 @@ async function duplikujClanek(id){
       clanek_id: novy.id, poradi: b.poradi, typ: b.typ,
       nadpis: b.nadpis, text: b.text, odkaz: b.odkaz, odkaz_text: b.odkaz_text,
       ikona: b.ikona, data: b.data || {},
-      pozadi: b.pozadi || 'bila', velikost: b.velikost || 'normalni'
+      pozadi: b.pozadi || 'bila', velikost: b.velikost || 'normalni',
+      placeny: !!b.placeny
     }));
     const { data: vlozene, error: chybaKopie } = await db.from('bloky').insert(kopie).select();
     if(chybaKopie){
@@ -1040,8 +1084,8 @@ function kresliSluzby(){
     const vyb = vybranaSluzba === s.id;
     return `<li class="uzel"><div class="radek ${vyb?'on':''}" onclick="vyberSluzbu('${s.id}')">
       <span class="sipka"></span><span class="nazev">${esc(s.nazev)}</span>
-      ${s.placeny ? '<span class="odznak o-plny" title="Vyžaduje VIP přístup">VIP</span>'
-                  : '<span class="odznak o-omezeny" title="Dostupné ve standardním přístupu">standardní</span>'}
+      ${s.placeny ? '<span class="odznak o-plny" title="Vyžaduje PREMIUM přístup">PREMIUM</span>'
+                  : '<span class="odznak o-omezeny" title="Dostupné ve Standardním přístupu">Standardní</span>'}
       ${s.publikovano ? '' : '<span class="odznak o-koncept">skryto</span>'}</div></li>`;
   }).join('') || '<div class="prazdno">Zatím žádné služby.</div>';
 }
@@ -1093,8 +1137,8 @@ function editorSluzby(){
     <div class="pole"><label>Pořadí</label><input type="text" id="s-poradi" value="${s.poradi||0}"></div>
     <div class="prepinac pristup ${s.placeny?'zap':''}" onclick="prepniPristup(this)" id="s-placeny">
       <div class="txt"><b>Úroveň přístupu</b>
-        <span>Zapnuto = detail služby vyžaduje <b>VIP přístup</b>.
-          Vypnuto = služba je <b>standardní</b>, uvidí ji i uživatel bez zaplacení.</span></div>
+        <span>Zapnuto = detail služby vyžaduje <b>PREMIUM přístup</b>.
+          Vypnuto = služba je <b>Standardní</b>, uvidí ji i uživatel bez zaplacení.</span></div>
       <span class="stav-pristup"></span>
       <div class="knof"></div></div>
     <div class="prepinac ${s.publikovano?'zap':''}" onclick="this.classList.toggle('zap')" id="s-publ">
@@ -1553,7 +1597,7 @@ const LIMIT_POLE = {
   'onboard.uvod.plocha':120,
   'onboard.uvod.plocha.pozn':400,
   'onboard.uvod.prihlasit':120,
-  'onboard.body.stitek':30,
+  'onboard.body.stitek':40,
   'onboard.body.nadpis':60,
   'onboard.body.text1':400,
   'onboard.body.text2':400,
@@ -1860,6 +1904,7 @@ function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ?
 
 
 
+
 /* Jméno obrazovky se bere z aplikace — z pole, které ten nadpis drží.
    Když ho Nela přejmenuje, přejmenuje se i sekce v administraci. */
 function hodnotaPole(klic){
@@ -1900,7 +1945,7 @@ const NAZEV_KARTY = {uvod:'Úvod', prehled:'Přehled', pruvodce:'Průvodce', slu
 /* Z čí perspektivy se náhled kreslí. Bez tohohle je snadné zapomenout,
    že běžný uživatel vidí něco jiného než správce. */
 const NAHLED_JAKO = [
-  ['plny',        'VIP přístup'],
+  ['plny',        'PREMIUM přístup'],
   ['omezeny',     'Standardní'],
   ['neprihlasen', 'Nepřihlášený']
 ];
@@ -2270,6 +2315,9 @@ function pridejBlok(typ){
     typ, nadpis: '', text: '', odkaz: '', odkaz_text: '', ikona: typ === 'hero' ? 'shield' : null,
     data: typ === 'tabulka' ? {zahlavi: ['', ''], radky: [['', '']]} : (typ === 'seznam' ? {polozky: ['']} : {}),
     pozadi: typ === 'hero' ? 'petrol' : 'bila',
+    /* Nový blok je standardní. Zamykat se má vědomě — kdyby nové bloky
+       vznikaly jako PREMIUM, článek by tiše zmizel čtenářům pod rukama. */
+    placeny: false,
     velikost: 'normalni', _otevreny: true
   });
   kresliBloky(); nahledClanku();
@@ -2340,6 +2388,18 @@ function velikostiHtml(b){
     `<button type="button" class="${b.velikost === k ? 'on' : ''}"
        onclick="zmenBlok('${b.id}','velikost','${k}');kresliBloky()">${nazev}</button>`
   ).join('') + '</div>';
+}
+
+/* Úroveň přístupu u bloku. Záměrně dvě tlačítka vedle sebe, ne přepínač:
+   je to volba mezi dvěma stavy, ne zapnutí funkce, a takhle je vidět,
+   co znamená vypnuto. */
+function pristupBlokuHtml(b){
+  return '<div class="chipy">' +
+    `<button type="button" class="${b.placeny ? '' : 'on'}"
+       onclick="zmenBlok('${b.id}','placeny',false);kresliBloky();nahledClanku()">Standardní</button>` +
+    `<button type="button" class="${b.placeny ? 'on' : ''}"
+       onclick="zmenBlok('${b.id}','placeny',true);kresliBloky();nahledClanku()">PREMIUM</button>` +
+    '</div>';
 }
 
 function poleBloku(b){
@@ -2450,6 +2510,7 @@ function kresliBloky(){
     <details class="bl-karta" data-blok="${b.id}" ${b._otevreny ? 'open' : ''} ontoggle="oznacOtevreny('${b.id}', this.open)">
       <summary class="bl-hlava">
         <span class="bl-typ">${esc(NAZEV_TYPU(b.typ))}</span>
+        ${b.placeny ? '<span class="odznak o-plny" title="Blok vyžaduje PREMIUM přístup">PREMIUM</span>' : ''}
         <span class="bl-shrnuti" data-shrnuti="${b.id}">${esc(shrnutiBloku(b))}</span>
         <span class="poradi-sipky" onclick="event.preventDefault();event.stopPropagation()">
           <button type="button" title="Nahoru" ${i === 0 ? 'disabled' : ''} onclick="posunBlok('${b.id}',-1)">▲</button>
@@ -2465,6 +2526,13 @@ function kresliBloky(){
                  <p class="napoveda" style="margin:0">${esc(DUVOD_BEZ_PALETY[b.typ])}</p></div>`
             : `<div class="pole"><label>Barva pozadí</label>${paletaHtml(b)}</div>`}
           <div class="pole"><label>Velikost písma</label>${velikostiHtml(b)}</div>
+        </div>
+        <div class="pole" style="margin-top:10px">
+          <label>Úroveň přístupu</label>
+          ${pristupBlokuHtml(b)}
+          <p class="napoveda" style="margin:6px 0 0">PREMIUM = blok se do telefonu
+            vůbec nepošle, čtenář na jeho místě uvidí zámek a nabídku předplatného.
+            Zbytek článku zůstává čitelný.</p>
         </div>
       </div>
     </details>`).join('')
@@ -2530,7 +2598,7 @@ function nahledClanku(){
     perex: hod('f-perex'),
     telo: hod('f-telo'),
     odkaz: hod('f-odkaz'),
-    /* Náhled musí ukázat totéž co telefon. VIP článek se člověku bez
+    /* Náhled musí ukázat totéž co telefon. PREMIUM článek se člověku bez
        přístupu neposílá vůbec — dřív tu bylo natvrdo `false`, takže náhled
        ve stavu „Standardní" ukazoval celý placený text a Nela neměla jak
        zkontrolovat, co uvidí řidič. */
@@ -2540,7 +2608,11 @@ function nahledClanku(){
       id: b.id,
       poradi: b.poradi, typ: b.typ, nadpis: b.nadpis, text: b.text,
       odkaz: b.odkaz, odkaz_text: b.odkaz_text, ikona: b.ikona,
-      data: b.data, pozadi: b.pozadi, velikost: b.velikost
+      data: b.data, pozadi: b.pozadi, velikost: b.velikost,
+      placeny: !!b.placeny,
+      /* Náhled musí lhát stejně jako server: ve stavu „Standardní" nebo
+         „Nepřihlášený" se zamčený blok chová, jako by v něm nic nebylo. */
+      zamceno: !!b.placeny && nahledJako !== 'plny'
     }))
   }});
 }
@@ -2560,7 +2632,8 @@ async function ulozBlokyClanku(clanekId){
       nadpis: b.nadpis || null, text: b.text || null,
       odkaz: b.odkaz || null, odkaz_text: b.odkaz_text || null,
       ikona: b.ikona || null, data: b.data || {},
-      pozadi: b.pozadi || 'bila', velikost: b.velikost || 'normalni'
+      pozadi: b.pozadi || 'bila', velikost: b.velikost || 'normalni',
+      placeny: !!b.placeny
     };
     if(b._novy){
       const { data, error } = await db.from('bloky').insert(zaznam).select().single();
