@@ -1025,7 +1025,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 137<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 138<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1162,7 +1162,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="card" style="background:var(--teal-800);color:#fff;">
           <div class="eyebrow" style="color:rgba(255,255,255,.6);" data-text="predplatne.stitek">Práva řidiče Premium</div>
           <div style="font-size:26px;font-weight:800;margin:6px 0;" data-text="predplatne.nazev">Jednorázový nákup</div>
-          <p style="color:rgba(255,255,255,.8);font-size:14px;line-height:1.5;margin:0 0 4px;" data-text="predplatne.popis">Zaplatíte jednou, přístup máte navždy — plný průvodce, kalkulačky a prioritní konzultace. Cena bude upřesněna.</p>
+          <p style="color:rgba(255,255,255,.8);font-size:14px;line-height:1.5;margin:0 0 4px;" data-text="predplatne.popis">Zaplatíte jednou, přístup máte navždy — celý průvodce, kalkulačky a prioritní konzultace. Jednorázově 999 Kč.</p>
         </div>
         <div class="field" style="margin-top:18px;">
           <label data-text="predplatne.kod.label">Promo kód</label>
@@ -1170,7 +1170,8 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           <div class="hint" data-text="predplatne.kod.hint">S platným promo kódem je aplikace zdarma.</div>
         </div>
         <button class="btn btn-ghost" style="margin-bottom:10px;" onclick="applyPromo()" data-text="predplatne.btn.kod">Uplatnit promo kód</button>
-        <button class="btn btn-peach" onclick="toast('Platby budou spuštěny po fázi promo kódů.')" data-text="predplatne.btn.koupit">Koupit přístup (již brzy)</button>
+        <button class="btn btn-peach" id="koupitBtn" onclick="koupitPristup()" data-text="predplatne.btn.koupit">Koupit PREMIUM přístup</button>
+        <p class="hint" style="margin-top:10px;text-align:center;" data-text="predplatne.btn.pozn">Platbu vyřizuje Stripe. Číslo karty se k nám nedostane.</p>
       </div>
     </div>
 
@@ -2095,6 +2096,76 @@ function renderProfileLinks(){
 /* Uplatnění kódu vyhodnocuje výhradně server — kontroluje platnost, doménu
    i limit. Dřív si aplikace odsouhlasila jakýkoli řetězec sama, takže tvrdila
    „plný přístup", i když ho uživatel neměl. */
+/* ---------- nákup PREMIUM přístupu ----------
+   Platba se zakládá na serveru (funkce `koupit`) — cena i produkt jsou mimo
+   dosah prohlížeče. Sem se vrací jen adresa, kam poslat člověka. */
+async function koupitPristup(){
+  const tl = document.getElementById('koupitBtn');
+  await pripravSb();
+  if(!sb){ toast(txt('predplatne.chyba.spojeni','Platba je dočasně nedostupná. Zkuste to prosím za chvíli.')); return; }
+  if(!authUser){
+    toast(txt('predplatne.chyba.prihlaseni','Nejdřív se přihlaste e-mailem — přístup se váže na váš účet.'));
+    go('profil'); return;
+  }
+  if(tl){ tl.disabled = true; tl.textContent = txt('predplatne.btn.pripravuji','Připravuji platbu…'); }
+  try{
+    const { data } = await sb.auth.getSession();
+    const token = data && data.session && data.session.access_token;
+    const r = await fetch(PR_CFG.SUPABASE_URL + '/functions/v1/koupit', {
+      method: 'POST',
+      headers: { apikey: PR_CFG.SUPABASE_ANON, Authorization: 'Bearer ' + token,
+                 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    const odpoved = await r.json().catch(() => ({}));
+    if(!r.ok || !odpoved.url) throw new Error(odpoved.error || ('stav ' + r.status));
+    /* `replace`, ne `assign`: po návratu z platby nemá mít smysl mačkat Zpět
+       na rozdělanou platbu. */
+    window.location.replace(odpoved.url);
+  }catch(e){
+    console.warn('koupit', e);
+    if(tl){ tl.disabled = false; tl.textContent = txt('predplatne.btn.koupit','Koupit PREMIUM přístup'); }
+    toast(txt('predplatne.chyba.zalozeni','Platbu se nepodařilo založit. Zkuste to prosím znovu.'));
+  }
+}
+
+/* Návrat z platby. Adresa s ?platba=ok **není důkaz** — může si ji otevřít
+   kdokoli. Ptáme se proto serveru, a protože Stripe svou zprávu doručí během
+   vteřin (ne okamžitě), zkouší se to několikrát po sobě. */
+async function poNavratuZPlatby(){
+  let param;
+  try{ param = new URLSearchParams(location.search).get('platba'); }catch(e){ return; }
+  if(!param) return;
+
+  /* Adresa se uklidí hned, ať po obnovení stránky nezačíná znovu. */
+  try{ history.replaceState({}, '', location.pathname); }catch(e){}
+
+  if(param === 'zrusena'){
+    go('predplatne');
+    toast(txt('predplatne.zrusena','Platba nebyla dokončena. Nic jsme neúčtovali.'));
+    return;
+  }
+  if(param !== 'ok') return;
+
+  await pripravSb();
+  go('predplatne');
+  toast(txt('predplatne.overuji','Ověřuji platbu…'));
+
+  for(let pokus = 0; pokus < 6; pokus++){
+    await new Promise(r => setTimeout(r, pokus ? 2000 : 400));
+    try{ await zjistiPristup(); }catch(e){}
+    if(maPlnyPristup()){
+      try{ renderPlan(); renderStavPristupu(); }catch(e){}
+      toast(txt('predplatne.hotovo','Zaplaceno — PREMIUM přístup je aktivní. Děkujeme.'));
+      go('profil');
+      return;
+    }
+  }
+  /* Nedopadlo to do půl minuty. Neznamená to, že platba selhala — spíš že
+     se zpráva ještě nedoručila. Říct to narovinu je lepší než mlčet. */
+  toast(txt('predplatne.ceka','Platba proběhla, přístup se ještě zapisuje. Zkuste za chvíli obnovit aplikaci.'));
+}
+
 async function applyPromo(){
   const kod = (document.getElementById('promoInput').value||'').trim().toUpperCase();
   if(kod.length < 4){ toast('Zadejte prosím firemní kód.'); return; }
@@ -5304,6 +5375,10 @@ if(kodZOdkazu){
     }, 400);
   }
 }
+
+/* Návrat z platby. Musí být až tady, po `enterApp()` — jinak by se toast
+   i přepnutí obrazovky ztratily pod úvodními obrazovkami. */
+setTimeout(() => { try{ poNavratuZPlatby(); }catch(e){ console.warn('platba', e); } }, 600);
 
 /* ============ NÁHLED PRO ADMINISTRACI ============
    Administrace si aplikaci otevře v rámu telefonu s ?nahled=1 a posílá jí

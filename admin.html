@@ -276,6 +276,10 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 .bl-karta[open] .bl-hlava{border-bottom:1px solid var(--line)}
 .bl-hlava::-webkit-details-marker{display:none}
 .bl-hlava{list-style:none}
+/* Stejná šipka jako u sekce. Klepnutí na hlavičku blok sbalilo i dřív, ale
+   nebylo to na něm poznat — kdo tu možnost neznal, nesáhl na ni. */
+.bl-hlava::before{content:'▸';color:var(--turq-deep);font-size:12px;flex:0 0 auto;transition:transform .15s}
+.bl-karta[open] > .bl-hlava::before{transform:rotate(90deg)}
 .bl-typ{flex:0 0 auto;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
   color:var(--turq-deep);background:rgba(0,212,212,.13);border-radius:6px;padding:3px 7px}
 .bl-shrnuti{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
@@ -319,6 +323,15 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 .tel-jako{margin-top:0}
 .tel-jako button{padding:5px 9px;font-size:12px}
 .krok{display:flex;align-items:center;gap:9px;margin:22px 0 12px;font-weight:800;font-size:15px;color:var(--ink)}
+/* Krok jako sbalitelná část. Šipka je až za číslem, aby číslo zůstalo první
+   věc, kterou oko chytne — kroky se čtou podle pořadí. */
+.krok-sekce > summary.krok{list-style:none;cursor:pointer}
+.krok-sekce > summary.krok::-webkit-details-marker{display:none}
+.krok-sekce > summary.krok::after{content:'▸';color:var(--turq-deep);font-size:12px;
+  margin-left:2px;transition:transform .15s}
+.krok-sekce[open] > summary.krok::after{transform:rotate(90deg)}
+.krok-sekce[open] > summary.krok{margin-bottom:12px}
+.krok-sekce > summary.krok{margin-bottom:0}
 .krok-cislo{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
   border-radius:50%;background:var(--grad);color:#fff;font-size:13px;font-weight:800;flex:0 0 auto}
 .pridat{border:1px dashed var(--line);border-radius:12px;background:#fff}
@@ -853,24 +866,27 @@ function editorClanku(){
   $('editor').innerHTML = `
     <h2>Článek</h2>
 
-    <div class="krok"><span class="krok-cislo">1</span>O čem článek je</div>
-    <div class="pole"><label>Nadpis</label>
-      <input type="text" id="f-nadpis" value="${esc(c.nadpis)}"
-        onfocus="naNahledClanku('nadpis')" oninput="nahledClanku()"></div>
-    <div class="pole"><label>Krátký popis</label>
-      <input type="text" id="f-perex" value="${esc(c.perex)}"
-        onfocus="naNahledClanku('perex')" oninput="nahledClanku()">
-      <p class="napoveda">Zobrazí se v seznamu pod nadpisem. <b>Je vidět vždy</b>, i u placeného článku.</p></div>
+    <details class="krok-sekce" open>
+      <summary class="krok"><span class="krok-cislo">1</span>O čem článek je</summary>
+      <div class="pole"><label>Nadpis</label>
+        <input type="text" id="f-nadpis" value="${esc(c.nadpis)}"
+          onfocus="naNahledClanku('nadpis')" oninput="nahledClanku()"></div>
+      <div class="pole"><label>Krátký popis</label>
+        <input type="text" id="f-perex" value="${esc(c.perex)}"
+          onfocus="naNahledClanku('perex')" oninput="nahledClanku()">
+        <p class="napoveda">Zobrazí se v seznamu pod nadpisem. <b>Je vidět vždy</b>, i u placeného článku.</p></div>
+    </details>
 
-    <div class="krok"><span class="krok-cislo">2</span>Obsah</div>
-
-    <div class="pole">
-      <label for="f-telo">Text článku</label>
-      <p class="napoveda" style="margin:0 0 8px">Nejjednodušší cesta: napište článek jako běžný
-         text. Prázdný řádek dělí odstavce. Aplikace ho takhle zobrazí — <b>dokud článek nemá
-         žádný blok</b>.</p>
-      <textarea id="f-telo" onfocus="naNahledClanku('telo')" oninput="nahledClanku()">${esc(c.telo)}</textarea>
-    </div>
+    <details class="krok-sekce" open>
+      <summary class="krok"><span class="krok-cislo">2</span>Obsah</summary>
+      <div class="pole">
+        <label for="f-telo">Text článku</label>
+        <p class="napoveda" style="margin:0 0 8px">Nejjednodušší cesta: napište článek jako běžný
+           text. Prázdný řádek dělí odstavce. Aplikace ho takhle zobrazí — <b>dokud článek nemá
+           žádný blok</b>.</p>
+        <textarea id="f-telo" onfocus="naNahledClanku('telo')" oninput="nahledClanku()">${esc(c.telo)}</textarea>
+      </div>
+    </details>
 
     <details class="sekce" style="margin-top:14px" id="bl-sekce">
       <summary>Bloky — když má článek vypadat jinak než jako odstavce<span class="pocet"
@@ -1467,6 +1483,7 @@ const POLE_OBRAZOVKA = {
   'predplatne.kod.hint':'predplatne',
   'predplatne.btn.kod':'predplatne',
   'predplatne.btn.koupit':'predplatne',
+  'predplatne.btn.pozn':'predplatne',
   'nadpis.upozorneni':'upozorneni',
   'upozorneni.body.stitek':'upozorneni',
   'upozorneni.body.nadpis':'upozorneni',
@@ -1509,11 +1526,11 @@ const POLE_OBRAZOVKA = {
 const SEZNAM_MISTO = {
   urady:    {obrazovka:'vozidla', poradi:660},
   nehoda:   {obrazovka:'nehoda', poradi:790},
-  recenze:  {obrazovka:'recenze', poradi:840},
-  postup:   {obrazovka:'postup', poradi:860},
-  tel:      {obrazovka:'kontakt', poradi:890},
-  mail:     {obrazovka:'kontakt', poradi:910},
-  pobocka:  {obrazovka:'kontakt', poradi:930}
+  recenze:  {obrazovka:'recenze', poradi:850},
+  postup:   {obrazovka:'postup', poradi:870},
+  tel:      {obrazovka:'kontakt', poradi:900},
+  mail:     {obrazovka:'kontakt', poradi:920},
+  pobocka:  {obrazovka:'kontakt', poradi:940}
 };
 
 /* Obrazovky každé karty: nejdřív samotná karta, pak podobrazovky v pořadí
@@ -1845,6 +1862,7 @@ const LIMIT_POLE = {
   'predplatne.kod.hint':400,
   'predplatne.btn.kod':30,
   'predplatne.btn.koupit':40,
+  'predplatne.btn.pozn':70,
   'nadpis.upozorneni':60,
   'upozorneni.body.stitek':30,
   'upozorneni.body.nadpis':60,
@@ -1883,6 +1901,8 @@ const LIMIT_POLE = {
 /* Vlastní bloky a co v tabulce přibylo později: rozumný strop, ať to nikdy
    nespadne na „bez omezení". */
 function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ? 400 : 200); }
+
+
 
 
 
