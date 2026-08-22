@@ -135,6 +135,13 @@ input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1}
 label.btn{text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink);margin:0}
 .lista{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:6px}
 .lista .vpravo{margin-left:auto}
+/* Lišta editoru se nenechá odrolovat pryč. U článku se sedmi bloky bylo
+   Uložit až úplně dole a při práci s blokem nebylo vidět vůbec. Vlastní
+   pozadí a záporné okraje: bez nich by pod lištou prosvítal projíždějící
+   text a v rozích by vykukoval. */
+#editor > .lista{position:sticky;bottom:0;z-index:5;background:#fff;
+  margin:16px -16px -16px;padding:12px 16px;border-top:1px solid var(--line);
+  border-radius:0 0 13px 13px}
 
 .upozorneni-shora{background:#FFF3DF;border:1px solid #F0DCB0;border-radius:11px;
   padding:11px 13px;font-size:13px;color:#7A5A18;margin-bottom:10px}
@@ -405,7 +412,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 132</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 134</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -2551,8 +2558,9 @@ function kresliBloky(){
           <label>Úroveň přístupu</label>
           ${pristupBlokuHtml(b)}
           <p class="napoveda" style="margin:6px 0 0">PREMIUM = blok se do telefonu
-            vůbec nepošle, čtenář na jeho místě uvidí zámek a nabídku předplatného.
-            Zbytek článku zůstává čitelný.</p>
+            vůbec nepošle. Čtenář na jeho místě uvidí zámek a nabídku předplatného
+            a <b>článek tam pro něj končí</b> — bloky pod ním se nezobrazí.
+            Vybírá se tedy místo, kde má být hranice: co je nad ním, je zdarma.</p>
         </div>
       </div>
     </details>`).join('')
@@ -3507,6 +3515,12 @@ function stavFormulare(el, jenSve){
   el.querySelectorAll('input,textarea,select').forEach(x => { if(vlastni(x)) casti.push(x.value); });
   el.querySelectorAll('.prepinac').forEach(x => {
     if(vlastni(x)) casti.push(x.classList.contains('zap') ? '1' : '0');
+  });
+  /* Chipy taky. Bez nich se přepnutí bloku na PREMIUM nepoznalo jako změna,
+     tlačítko dál říkalo „Zavřít" a volba se ztratila. Čte se třída `on` —
+     tedy přesně to, co je na obrazovce vidět. */
+  el.querySelectorAll('.chipy button').forEach(x => {
+    if(vlastni(x)) casti.push(x.classList.contains('on') ? '1' : '0');
   });
   return casti.join('\u0001');
 }
