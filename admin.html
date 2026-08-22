@@ -368,7 +368,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 396px;gap:22px;max-width:1
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 129</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 130</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -897,6 +897,8 @@ function editorClanku(){
 
     <div class="lista" style="margin-top:16px">
       <button class="btn btn-hlavni" data-ulozit onclick="ulozClanek()">Uložit</button>
+      <button class="btn btn-vedl" onclick="duplikujClanek('${c.id}')"
+        title="Vytvoří kopii včetně bloků. Kopie je vždy koncept.">Duplikovat</button>
       <button class="btn btn-smaz vpravo" onclick="smazClanek('${c.id}')">Smazat článek</button>
     </div>`;
 
@@ -961,6 +963,65 @@ async function ulozClanek(){
   Object.assign(clanky.find(c => c.id === vybrano.id), zmeny);
   kresliStrom(); kresliBloky(); formularUlozen($('editor'));
   hlaska(zmeny.publikovano ? 'Uloženo a publikováno.' : 'Uloženo jako koncept.');
+}
+
+/* Kopie hotového článku i s bloky. Kostra článku (hero, odstavce, Pozor,
+   tabulka) je u většiny témat stejná — postavit ji pokaždé znovu je
+   zbytečná práce. */
+async function duplikujClanek(id){
+  const c = clanky.find(x => x.id === id);
+  if(!c) return;
+
+  /* Kopíruje se uložený stav, ne rozepsaný formulář. Kdyby se to smíchalo,
+     obsluha by dostala kopii něčeho, co nikde nevidí. */
+  if(!(await smimOdejit())) return;
+
+  const nadpis = prompt('Nadpis kopie:', c.nadpis + ' (kopie)');
+  if(!nadpis) return;
+
+  /* Bloky se čtou z databáze, ne z paměti — ať je jisté, že se kopíruje
+     to, co je opravdu uložené. */
+  const { data: puvodni, error: chybaBloku } = await db.from('bloky')
+    .select('*').eq('clanek_id', id).order('poradi');
+  if(chybaBloku){ hlaska('Nepodařilo se načíst bloky: ' + chybaBloku.message, true); return; }
+
+  const { data: novy, error } = await db.from('clanky').insert({
+    nadpis: nadpis.trim(),
+    slug: slug(nadpis),                 /* vlastní adresa, jinak by si dvě stránky překážely */
+    oblast_id: c.oblast_id,
+    perex: c.perex, telo: c.telo, kategorie: c.kategorie, odkaz: c.odkaz,
+    placeny: c.placeny,
+    publikovano: false,                 /* kopie nikdy nevyskočí v aplikaci sama */
+    poradi: (c.poradi || 0) + 5,        /* hned za předlohou */
+    upravil: uzivatel.email
+  }).select().single();
+  if(error){ hlaska('Kopii se nepodařilo vytvořit: ' + error.message, true); return; }
+
+  if(puvodni && puvodni.length){
+    const kopie = puvodni.map(b => ({
+      clanek_id: novy.id, poradi: b.poradi, typ: b.typ,
+      nadpis: b.nadpis, text: b.text, odkaz: b.odkaz, odkaz_text: b.odkaz_text,
+      ikona: b.ikona, data: b.data || {},
+      pozadi: b.pozadi || 'bila', velikost: b.velikost || 'normalni'
+    }));
+    const { data: vlozene, error: chybaKopie } = await db.from('bloky').insert(kopie).select();
+    if(chybaKopie){
+      /* Článek bez bloků by byl horší než žádný — obsluha by nevěděla,
+         co se povedlo a co ne. Radši se uklidí a řekne se to. */
+      await db.from('clanky').delete().eq('id', novy.id);
+      hlaska('Bloky se nepodařilo zkopírovat, kopie zrušena: ' + chybaKopie.message, true);
+      return;
+    }
+    bloky = bloky.concat(vlozene || []);
+  }
+
+  clanky.push(novy);
+  rozbaleno[novy.oblast_id] = true;
+  vybrano = {typ:'clanek', id: novy.id};
+  kresliStrom(); editorClanku();
+  hlaska('Kopie vytvořena jako koncept — ' +
+    (puvodni ? puvodni.length : 0) + ' ' +
+    mnozne(puvodni ? puvodni.length : 0, 'blok', 'bloky', 'bloků') + ' zkopírováno.');
 }
 
 async function smazClanek(id){
