@@ -53,6 +53,9 @@ main{max-width:1180px;margin:0;padding:22px 20px 80px}
 /* Ovládání řádku pohromadě: vejde-li se vedle názvu, zůstane vpravo; jinak
    spadne pod něj a název dostane celou šířku. */
 .radek-akce{display:flex;align-items:center;gap:8px;margin-left:auto;flex:0 0 auto}
+/* `dole` = vynucený vlastní řádek. Patří jen tam, kde je vedle šipek ještě
+   něco dalšího (u oblasti „+ článek" a počet). Kde jsou jen šipky, se
+   `dole` nedává — vejdou se vedle odznaku a ušetří řádek na položku. */
 .radek-akce.dole{flex:1 0 100%;margin-left:0;padding-left:26px}
 .radek:hover{background:var(--cream)}
 .radek.on{background:var(--teal-900);color:#fff}
@@ -412,7 +415,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 135</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 136</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -727,9 +730,7 @@ function vykresliClanek(c){
                   : (shora ? '<span class="odznak o-plny" title="PREMIUM přístup podle nastavení oblasti" style="opacity:.75">PREMIUM · z oblasti</span>'
                            : '<span class="odznak o-omezeny" title="Dostupné ve Standardním přístupu">Standardní</span>')}
       ${c.publikovano ? '' : '<span class="odznak o-koncept">koncept</span>'}
-      <span class="radek-akce dole">
-        ${sipky('clanek', c.id)}
-      </span>
+      <span class="radek-akce">${sipky('clanek', c.id)}</span>
     </div></li>`;
 }
 
@@ -1120,9 +1121,7 @@ function kresliSluzby(){
       ${s.placeny ? '<span class="odznak o-plny" title="Vyžaduje PREMIUM přístup">PREMIUM</span>'
                   : '<span class="odznak o-omezeny" title="Dostupné ve Standardním přístupu">Standardní</span>'}
       ${s.publikovano ? '' : '<span class="odznak o-koncept">skryto</span>'}
-      <span class="radek-akce dole">
-        ${sipky('sluzba', s.id)}
-      </span></div></li>`;
+      <span class="radek-akce">${sipky('sluzba', s.id)}</span></div></li>`;
   }).join('') || '<div class="prazdno">Zatím žádné služby.</div>';
 }
 
