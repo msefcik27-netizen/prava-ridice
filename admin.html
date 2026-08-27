@@ -412,7 +412,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 134</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 135</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -747,13 +747,17 @@ function sipky(typ, id){
    se prohodí dvojice. */
 async function posun(typ, id, smer){
   const jeOblast = typ === 'oblast';
-  const tabulka  = jeOblast ? 'oblasti' : 'clanky';
-  const pole     = jeOblast ? oblasti : clanky;
+  const jeSluzba = typ === 'sluzba';
+  const tabulka  = jeOblast ? 'oblasti' : (jeSluzba ? 'sluzby' : 'clanky');
+  const pole     = jeOblast ? oblasti  : (jeSluzba ? sluzby  : clanky);
   const polozka  = pole.find(x => x.id === id); if(!polozka) return;
 
+  /* Služby nemají rodiče — sourozenci jsou všechny. */
   const sourozenci = (jeOblast
       ? oblasti.filter(o => (o.rodic_id || null) === (polozka.rodic_id || null))
-      : clanky.filter(c => c.oblast_id === polozka.oblast_id))
+      : (jeSluzba
+          ? sluzby.slice()
+          : clanky.filter(c => c.oblast_id === polozka.oblast_id)))
     .sort((a,b) => (a.poradi||0) - (b.poradi||0));
 
   const i = sourozenci.findIndex(x => x.id === id);
@@ -764,11 +768,17 @@ async function posun(typ, id, smer){
   const a = sourozenci[i], b = sourozenci[j];
   const tmp = a.poradi; a.poradi = b.poradi; b.poradi = tmp;
 
-  kresliStrom();   // překreslit hned, ať to nedrhne
+  /* Překreslit hned, ať to nedrhne — a ten správný seznam: služby mají
+     vlastní, ve stromu vlevo nejsou. */
+  if(jeSluzba) kresliSluzby(); else kresliStrom();
   const ulozeni = sourozenci.map(x => db.from(tabulka).update({poradi:x.poradi}).eq('id', x.id));
   const vysledky = await Promise.all(ulozeni);
   const chyba = vysledky.find(v => v.error);
-  if(chyba){ hlaska('Uložení pořadí selhalo: '+chyba.error.message, true); await nactiVse(); }
+  if(chyba){
+    hlaska('Uložení pořadí selhalo: '+chyba.error.message, true);
+    await nactiVse();
+    if(jeSluzba) kresliSluzby();
+  }
 }
 
 function prepniUzel(id){ rozbaleno[id] = !(rozbaleno[id] === true); kresliStrom(); }
@@ -1109,7 +1119,10 @@ function kresliSluzby(){
       <span class="sipka"></span><span class="nazev">${esc(s.nazev)}</span>
       ${s.placeny ? '<span class="odznak o-plny" title="Vyžaduje PREMIUM přístup">PREMIUM</span>'
                   : '<span class="odznak o-omezeny" title="Dostupné ve Standardním přístupu">Standardní</span>'}
-      ${s.publikovano ? '' : '<span class="odznak o-koncept">skryto</span>'}</div></li>`;
+      ${s.publikovano ? '' : '<span class="odznak o-koncept">skryto</span>'}
+      <span class="radek-akce dole">
+        ${sipky('sluzba', s.id)}
+      </span></div></li>`;
   }).join('') || '<div class="prazdno">Zatím žádné služby.</div>';
 }
 
