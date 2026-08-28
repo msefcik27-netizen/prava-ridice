@@ -1052,7 +1052,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 139<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 140<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -5647,6 +5647,13 @@ if(NAHLED){
       if('zvyrazniOblast' in z){ nahledZvyrazniOblast(z.zvyrazniOblast); }
       /* Vzhled náhledu určuje administrace, ne nastavení počítače. */
       if(z.tema){ document.documentElement.setAttribute('data-tema', z.tema); }
+      /* Totéž velikost písma. Schválně jen atribut, ne nastavPismo(): to by
+         volbu uložilo do telefonu a přepsalo Nele, co má ve své aplikaci. */
+      if(z.pismo){
+        const h = document.documentElement;
+        if(z.pismo === 'normalni') h.removeAttribute('data-pismo');
+        else h.setAttribute('data-pismo', z.pismo);
+      }
       if('garaz' in z){
         if(z.garaz){ openVozidla(); garazPrepni(z.garaz); }
         else { garazForm = null; openVozidla(); }

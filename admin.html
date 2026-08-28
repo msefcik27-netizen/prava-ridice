@@ -415,7 +415,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 137</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 138</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -2124,6 +2124,10 @@ function kresliOvladaceNahledu(){
     '<div class="tel-rada tel-jako"><span>Vzhled</span>' +
     [['svetly', 'Světlý'], ['tmavy', 'Tmavý']].map(([k, nazev]) =>
       `<button class="${k === nahledTema ? 'on' : ''}" onclick="nahledTemaNastav('${k}')">${nazev}</button>`
+    ).join('') + '</div>' +
+    '<div class="tel-rada tel-jako"><span>Písmo</span>' +
+    [['normalni', 'Normální'], ['vetsi', 'Větší'], ['nejvetsi', 'Největší']].map(([k, nazev]) =>
+      `<button class="${k === nahledPismo ? 'on' : ''}" onclick="nahledPismoNastav('${k}')">${nazev}</button>`
     ).join('') + '</div>';
 }
 
@@ -2134,6 +2138,22 @@ let nahledTema = 'svetly';
 function nahledTemaNastav(k){
   nahledTema = k;
   posliNahled({ tema: k });
+  kresliOvladaceNahledu();
+}
+
+/* Velikost písma v náhledu. Uživatel si ji přepíná v Profilu; tady je proto,
+   aby si Nela ověřila, jak její texty vypadají při největším nastavení —
+   nadpis, který se při základní velikosti vejde na řádek, se při největší
+   zalomí na tři. To musí vidět při psaní, ne od klienta.
+
+   Drží se **jen v administraci**. Do telefonu se nic neukládá, takže se tím
+   nemění, co uvidí klient, a nepřepíše se tím, co si Nela nastavila v Profilu
+   ve své vlastní aplikaci — administrace i aplikace běží na stejné adrese
+   a sdílejí úložiště prohlížeče. */
+let nahledPismo = 'normalni';
+function nahledPismoNastav(k){
+  nahledPismo = k;
+  posliNahled({ pismo: k });
   kresliOvladaceNahledu();
 }
 
@@ -2222,6 +2242,9 @@ window.addEventListener('message', ev => {
   if(z.pr !== 'nahled') return;
   if(z.pripraveno){
     posliNahled({ tema: nahledTema });
+    /* Připomenout i velikost: náhled se překresluje a bez toho by se po
+       každém načtení vrátil na základní. */
+    posliNahled({ pismo: nahledPismo });
     nahledPripraven = true;
     const fronta = nahledFronta.splice(0);
     nahledTexty();
