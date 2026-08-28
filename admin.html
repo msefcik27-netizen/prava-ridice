@@ -415,7 +415,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 138</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 140</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -659,9 +659,13 @@ function prejmenujKarty(){
 /* Když není co ztratit, přepíná se **okamžitě**. Kdyby se i v tomhle případě
    čekalo, rozešlo by se pořadí s kódem, který hned po přepnutí sahá na prvky
    nové karty — třeba zaměření řádku seznamu po klepnutí do náhledu. */
-function prepni(co){
-  if(!rozepsanyFormular()){ prepniHned(co); return; }
-  smimOdejit().then(smim => { if(smim) prepniHned(co); });
+/* `pak` se spustí až po skutečném přepnutí. Druhá větev je asynchronní —
+   čeká se na odpověď „opustit bez uložení?" — takže volající, který chce
+   po přepnutí něco udělat (typicky zaměřit pole), to nemůže dělat hned
+   po návratu z prepni(). */
+function prepni(co, pak){
+  if(!rozepsanyFormular()){ prepniHned(co); if(pak) pak(); return; }
+  smimOdejit().then(smim => { if(smim){ prepniHned(co); if(pak) pak(); } });
 }
 
 function prepniHned(co){
@@ -1288,13 +1292,21 @@ const POLE_OBRAZOVKA = {
   'onboard.cekani.znovu':'uvod-cekani',
   'onboard.cekani.jiny':'uvod-cekani',
   'prehled.body.nadpis':'prehled',
+  'prehled.stav.bezpecno':'prehled',
+  'prehled.stav.upozorneni':'prehled',
+  'prehled.stav.riziko':'prehled',
+  'prehled.stav.kriticky':'prehled',
+  'prehled.stav.hranice':'prehled',
   'prehled.body.jednotka':'prehled',
+  'prehled.body.zbyva':'prehled',
+  'prehled.body.zadny':'prehled',
+  'prehled.body.varovani':'prehled',
   'prehled.body.btn1':'prehled',
   'prehled.vyzva.stitek':'prehled',
-  'prehled.vyzva.nadpis8':'prehled',
   'prehled.vyzva.nadpis12':'prehled',
-  'prehled.vyzva.text8':'prehled',
+  'prehled.vyzva.nadpis8':'prehled',
   'prehled.vyzva.text12':'prehled',
+  'prehled.vyzva.text8':'prehled',
   'prehled.vyzva.btn1':'prehled',
   'kontakt.telefon':'prehled',
   'prehled.vyzva.btn2':'prehled',
@@ -1320,6 +1332,7 @@ const POLE_OBRAZOVKA = {
   'pristup.plny.popis':'prehled',
   'pristup.neprihlasen.btn':'prehled',
   'pristup.omezeny.btn':'prehled',
+  'obecne.zpet':'points-help',
   'pomoc.body.nadpis':'points-help',
   'pomoc.body.uvod':'points-help',
   'pomoc.body.1.nadpis':'points-help',
@@ -1384,6 +1397,21 @@ const POLE_OBRAZOVKA = {
   'pruvodce.oblasti.stitek':'pruvodce',
   'clanek.zamceny.perex':'pruvodce',
   'nadpis.oblasti':'oblasti',
+  'oblasti.caste.stitek':'oblasti',
+  'oblasti.caste.1.nadpis':'oblasti',
+  'oblasti.caste.znacka':'oblasti',
+  'oblasti.caste.1.sankce':'oblasti',
+  'oblasti.caste.2.nadpis':'oblasti',
+  'oblasti.caste.2.sankce':'oblasti',
+  'oblasti.caste.3.nadpis':'oblasti',
+  'oblasti.caste.3.sankce':'oblasti',
+  'oblasti.caste.4.nadpis':'oblasti',
+  'oblasti.caste.4.sankce':'oblasti',
+  'oblasti.kategorie.stitek':'oblasti',
+  'oblasti.kat.vybodovani':'oblasti',
+  'oblasti.kat.prestupky':'oblasti',
+  'oblasti.kat.trestne':'oblasti',
+  'oblasti.kat.l17':'oblasti',
   'clanek.zamek':'topic',
   'clanek.web.nadpis':'topic',
   'clanek.web.popis':'topic',
@@ -1401,6 +1429,8 @@ const POLE_OBRAZOVKA = {
   'sluzby.cena.popis':'service-detail',
   'sluzby.pruvodce.nadpis':'service-detail',
   'zpravy.nadpis':'zpravy',
+  'zpravy.prazdno':'zpravy',
+  'zpravy.prazdno.smazane':'zpravy',
   'zpravy.hero.stitek':'zpravy',
   'zpravy.hero.nadpis':'zpravy',
   'zpravy.hero.popis':'zpravy',
@@ -1477,6 +1507,13 @@ const POLE_OBRAZOVKA = {
   'profil.plocha.nadpis':'profil',
   'profil.plocha.popis':'profil',
   'profil.upozorneni.nadpis':'profil',
+  'profil.upozorneni.body':'profil',
+  'profil.upozorneni.stk':'profil',
+  'profil.upozorneni.pojisteni':'profil',
+  'profil.upozorneni.znamka':'profil',
+  'profil.upozorneni.zpravy':'profil',
+  'profil.upozorneni.vypnuto':'profil',
+  'profil.upozorneni.souhrn':'profil',
   'profil.vzhled.stitek':'profil',
   'profil.tema.auto':'profil',
   'profil.tema.svetly':'profil',
@@ -1512,16 +1549,36 @@ const POLE_OBRAZOVKA = {
   'upozorneni.body.stitek':'upozorneni',
   'upozorneni.body.nadpis':'upozorneni',
   'upozorneni.body.popis':'upozorneni',
+  'upozorneni.prah.stitek':'upozorneni',
   'upozorneni.prah.pozn':'upozorneni',
   'upozorneni.vozidlo.stitek':'upozorneni',
   'upozorneni.zaloha.nadpis':'upozorneni',
   'upozorneni.zaloha.popis':'upozorneni',
+  'upozorneni.push.stitek':'upozorneni',
+  'upozorneni.push.nadpis':'upozorneni',
+  'upozorneni.push.popis':'upozorneni',
+  'upozorneni.push.prihlasit':'upozorneni',
+  'upozorneni.stav.neumi':'upozorneni',
+  'upozorneni.stav.naploche':'upozorneni',
+  'upozorneni.stav.nenastaveno':'upozorneni',
+  'upozorneni.stav.odmitnuto':'upozorneni',
+  'upozorneni.stav.neprihlasen':'upozorneni',
+  'upozorneni.stav.jine':'upozorneni',
   'upozorneni.stk.nadpis':'upozorneni',
   'upozorneni.stk.popis':'upozorneni',
   'upozorneni.poj.nadpis':'upozorneni',
   'upozorneni.poj.popis':'upozorneni',
   'upozorneni.znamka.nadpis':'upozorneni',
   'upozorneni.znamka.popis':'upozorneni',
+  'upozorneni.predstih.stitek':'upozorneni',
+  'upozorneni.predstih.tyden':'upozorneni',
+  'upozorneni.predstih.dvatydny':'upozorneni',
+  'upozorneni.predstih.mesic':'upozorneni',
+  'upozorneni.predstih.dvamesice':'upozorneni',
+  'upozorneni.predstih.popis':'upozorneni',
+  'upozorneni.bez.zalohy':'upozorneni',
+  'upozorneni.bez.vozidla':'upozorneni',
+  'upozorneni.bez.vozidla.odkaz':'upozorneni',
   'upozorneni.zpravy.stitek':'upozorneni',
   'upozorneni.zpravy.nadpis':'upozorneni',
   'upozorneni.zpravy.popis':'upozorneni',
@@ -1548,13 +1605,13 @@ const POLE_OBRAZOVKA = {
    poradi u polí, takže se texty a seznamy dají seřadit dohromady — telefony
    se ukážou hned pod štítkem Telefony, ne až pod všemi texty. */
 const SEZNAM_MISTO = {
-  urady:    {obrazovka:'vozidla', poradi:660},
-  nehoda:   {obrazovka:'nehoda', poradi:790},
-  recenze:  {obrazovka:'recenze', poradi:900},
-  postup:   {obrazovka:'postup', poradi:920},
-  tel:      {obrazovka:'kontakt', poradi:950},
-  mail:     {obrazovka:'kontakt', poradi:970},
-  pobocka:  {obrazovka:'kontakt', poradi:990}
+  urady:    {obrazovka:'vozidla', poradi:750},
+  nehoda:   {obrazovka:'nehoda', poradi:880},
+  recenze:  {obrazovka:'recenze', poradi:1170},
+  postup:   {obrazovka:'postup', poradi:1190},
+  tel:      {obrazovka:'kontakt', poradi:1220},
+  mail:     {obrazovka:'kontakt', poradi:1240},
+  pobocka:  {obrazovka:'kontakt', poradi:1260}
 };
 
 /* Obrazovky každé karty: nejdřív samotná karta, pak podobrazovky v pořadí
@@ -1672,13 +1729,21 @@ const LIMIT_POLE = {
   'onboard.cekani.znovu':120,
   'onboard.cekani.jiny':120,
   'prehled.body.nadpis':60,
+  'prehled.stav.bezpecno':120,
+  'prehled.stav.upozorneni':120,
+  'prehled.stav.riziko':120,
+  'prehled.stav.kriticky':120,
+  'prehled.stav.hranice':120,
   'prehled.body.jednotka':30,
+  'prehled.body.zbyva':120,
+  'prehled.body.zadny':120,
+  'prehled.body.varovani':120,
   'prehled.body.btn1':30,
   'prehled.vyzva.stitek':30,
-  'prehled.vyzva.nadpis8':120,
   'prehled.vyzva.nadpis12':120,
-  'prehled.vyzva.text8':400,
+  'prehled.vyzva.nadpis8':120,
   'prehled.vyzva.text12':400,
+  'prehled.vyzva.text8':400,
   'prehled.vyzva.btn1':30,
   'kontakt.telefon':40,
   'prehled.vyzva.btn2':30,
@@ -1704,6 +1769,7 @@ const LIMIT_POLE = {
   'pristup.plny.popis':400,
   'pristup.neprihlasen.btn':30,
   'pristup.omezeny.btn':30,
+  'obecne.zpet':120,
   'pomoc.body.nadpis':60,
   'pomoc.body.uvod':400,
   'pomoc.body.1.nadpis':60,
@@ -1768,6 +1834,21 @@ const LIMIT_POLE = {
   'pruvodce.oblasti.stitek':30,
   'clanek.zamceny.perex':120,
   'nadpis.oblasti':60,
+  'oblasti.caste.stitek':40,
+  'oblasti.caste.1.nadpis':60,
+  'oblasti.caste.znacka':120,
+  'oblasti.caste.1.sankce':120,
+  'oblasti.caste.2.nadpis':60,
+  'oblasti.caste.2.sankce':120,
+  'oblasti.caste.3.nadpis':60,
+  'oblasti.caste.3.sankce':120,
+  'oblasti.caste.4.nadpis':60,
+  'oblasti.caste.4.sankce':120,
+  'oblasti.kategorie.stitek':30,
+  'oblasti.kat.vybodovani':120,
+  'oblasti.kat.prestupky':120,
+  'oblasti.kat.trestne':120,
+  'oblasti.kat.l17':120,
   'clanek.zamek':120,
   'clanek.web.nadpis':60,
   'clanek.web.popis':160,
@@ -1785,6 +1866,8 @@ const LIMIT_POLE = {
   'sluzby.cena.popis':400,
   'sluzby.pruvodce.nadpis':60,
   'zpravy.nadpis':60,
+  'zpravy.prazdno':120,
+  'zpravy.prazdno.smazane':120,
   'zpravy.hero.stitek':50,
   'zpravy.hero.nadpis':60,
   'zpravy.hero.popis':160,
@@ -1861,6 +1944,13 @@ const LIMIT_POLE = {
   'profil.plocha.nadpis':60,
   'profil.plocha.popis':160,
   'profil.upozorneni.nadpis':60,
+  'profil.upozorneni.body':120,
+  'profil.upozorneni.stk':120,
+  'profil.upozorneni.pojisteni':120,
+  'profil.upozorneni.znamka':120,
+  'profil.upozorneni.zpravy':120,
+  'profil.upozorneni.vypnuto':120,
+  'profil.upozorneni.souhrn':120,
   'profil.vzhled.stitek':30,
   'profil.tema.auto':120,
   'profil.tema.svetly':120,
@@ -1896,16 +1986,36 @@ const LIMIT_POLE = {
   'upozorneni.body.stitek':30,
   'upozorneni.body.nadpis':60,
   'upozorneni.body.popis':160,
+  'upozorneni.prah.stitek':40,
   'upozorneni.prah.pozn':400,
   'upozorneni.vozidlo.stitek':30,
   'upozorneni.zaloha.nadpis':60,
   'upozorneni.zaloha.popis':400,
+  'upozorneni.push.stitek':40,
+  'upozorneni.push.nadpis':60,
+  'upozorneni.push.popis':160,
+  'upozorneni.push.prihlasit':120,
+  'upozorneni.stav.neumi':120,
+  'upozorneni.stav.naploche':120,
+  'upozorneni.stav.nenastaveno':120,
+  'upozorneni.stav.odmitnuto':120,
+  'upozorneni.stav.neprihlasen':120,
+  'upozorneni.stav.jine':120,
   'upozorneni.stk.nadpis':60,
   'upozorneni.stk.popis':160,
   'upozorneni.poj.nadpis':60,
   'upozorneni.poj.popis':160,
   'upozorneni.znamka.nadpis':60,
   'upozorneni.znamka.popis':160,
+  'upozorneni.predstih.stitek':30,
+  'upozorneni.predstih.tyden':120,
+  'upozorneni.predstih.dvatydny':120,
+  'upozorneni.predstih.mesic':120,
+  'upozorneni.predstih.dvamesice':120,
+  'upozorneni.predstih.popis':160,
+  'upozorneni.bez.zalohy':120,
+  'upozorneni.bez.vozidla':120,
+  'upozorneni.bez.vozidla.odkaz':120,
   'upozorneni.zpravy.stitek':30,
   'upozorneni.zpravy.nadpis':60,
   'upozorneni.zpravy.popis':160,
@@ -1930,6 +2040,11 @@ const LIMIT_POLE = {
 /* Vlastní bloky a co v tabulce přibylo později: rozumný strop, ať to nikdy
    nespadne na „bez omezení". */
 function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ? 400 : 200); }
+
+
+
+
+
 
 
 
@@ -2205,19 +2320,25 @@ function zamerBlok(id){
 }
 
 /* Kliknutí do náhledu otevře pole, které ten text mění. */
+/* O kartě rozhoduje záznam textu, **ne přítomnost prvku v dokumentu**.
+   Karty se totiž nezahazují, jen schovávají — jednou navštívená karta má
+   svá pole v dokumentu napořád. Hledat podle existence prvku proto vedlo
+   k tomu, že se zaměřilo pole ve schované kartě a nestalo se nic. */
 function zamerPole(klic){
-  let pole = $('tx-' + klic);
-  if(!pole){
-    /* Text patří jiné kartě — přepneme na ni a zkusíme to znovu. */
-    const t = texty.find(x => x.klic === klic);
-    const kam = klic.startsWith('kalk.') ? 'pruvodce' : (t && t.karta) || null;
-    if(kam && kam !== nahledKarta){ prepni(kam); pole = $('tx-' + klic); }
-  }
-  if(!pole){ hlaska('Tenhle text se mění jinde v administraci.'); return; }
-  const det = pole.closest('details');
-  if(det) det.open = true;
-  pole.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  pole.focus();
+  const t = texty.find(x => x.klic === klic);
+  const kam = klic.startsWith('kalk.') ? 'pruvodce' : (t && t.karta) || null;
+
+  const dokonci = () => {
+    const pole = $('tx-' + klic);
+    if(!pole){ hlaska('Tenhle text se mění jinde v administraci.'); return; }
+    const det = pole.closest('details');
+    if(det) det.open = true;
+    pole.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    pole.focus();
+  };
+
+  if(kam && kam !== nahledKarta){ prepni(kam, dokonci); return; }
+  dokonci();
 }
 
 /* Rám se může načíst dřív, než se spustí tenhle skript — pak by se hlášení
