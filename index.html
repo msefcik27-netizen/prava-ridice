@@ -1052,7 +1052,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 141<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 142<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -5772,7 +5772,10 @@ if(NAHLED){
     try { parent.postMessage({ pr: 'nahled', obrazovkaJe: id }, '*'); } catch(e) {}
   };
 
-  try { parent.postMessage({ pr: 'nahled', pripraveno: true }, '*'); } catch(e) {}
+  /* Číslo buildu se posílá s sebou: administrace pak pozná, že má v náhledu
+     starší aplikaci, než ke které má pole. Bez toho vypadá starý náhled úplně
+     stejně jako nový a chyba se hledá v kódu, který je v pořádku. */
+  try { parent.postMessage({ pr: 'nahled', pripraveno: true, build: '141' }, '*'); } catch(e) {}
 }
 
 if('serviceWorker' in navigator && !NAHLED){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(()=>{}); }

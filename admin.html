@@ -330,6 +330,8 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 .tel-rada{display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%}
 .tel-rada > span{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
   color:var(--muted);margin-right:2px;flex:0 0 auto}
+/* Hlášení, že náhled běží na jiné verzi aplikace než administrace. */
+.nahled-neshoda{color:var(--err);font-weight:700;text-transform:none;letter-spacing:0;font-size:12px;}
 .tel-jako{margin-top:0}
 .tel-jako button{padding:5px 9px;font-size:12px}
 .krok{display:flex;align-items:center;gap:9px;margin:22px 0 12px;font-weight:800;font-size:15px;color:var(--ink)}
@@ -415,7 +417,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 140</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 141</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -2227,7 +2229,19 @@ function nahledJakoNastav(kdo, automaticky){
 function kresliOvladaceNahledu(){
   const el = $('telOvladace'); if(!el) return;
   const nadpis = $('telNadpis');
-  if(nadpis) nadpis.textContent = 'Náhled — ' + (NAZEV_KARTY[nahledKarta] || '');
+  if(nadpis){
+    nadpis.textContent = 'Náhled — ' + (NAZEV_KARTY[nahledKarta] || '');
+    /* Rozejde-li se verze aplikace v náhledu s verzí administrace, řekne se
+       to nahlas. Právě tehdy začnou pole vypadat nefunkčně, i když nejsou —
+       text v náhledu jen ještě nemá značku, na kterou by šlo klepnout. */
+    if(nahledBuild && nahledBuild !== BUILD_ADMIN){
+      const p = document.createElement('span');
+      p.className = 'nahled-neshoda';
+      p.textContent = ' · aplikace v náhledu je build ' + nahledBuild +
+        ', administrace ' + BUILD_ADMIN + ' — nahrajte index.html';
+      nadpis.appendChild(p);
+    }
+  }
   /* Řada s obrazovkami tu byla, ale mátla — vypadala jako druhá sada záložek
      a hlavně byla zbytečná: náhled se sám přepne na tu obrazovku, kde je pole
      nebo sekce, kterou právě upravujete. Zůstává jen volba, komu se ukazuje. */
@@ -2249,6 +2263,9 @@ function kresliOvladaceNahledu(){
 /* Vzhled náhledu. Aplikace je ve výchozím stavu světlá — tmavý režim si zapíná
    uživatel v Profilu. Náhled se dřív řídil nastavením počítače, takže s tmavými
    Windows vypadal tmavě, i když tak aplikaci nikdo nevidí. */
+/* Build aplikace, kterou právě ukazuje náhled. Hlásí ho sama při načtení. */
+let nahledBuild = null;
+const BUILD_ADMIN = '142';
 let nahledTema = 'svetly';
 function nahledTemaNastav(k){
   nahledTema = k;
@@ -2362,6 +2379,8 @@ window.addEventListener('message', ev => {
   const z = ev.data || {};
   if(z.pr !== 'nahled') return;
   if(z.pripraveno){
+    nahledBuild = z.build || null;
+    kresliOvladaceNahledu();
     posliNahled({ tema: nahledTema });
     /* Připomenout i velikost: náhled se překresluje a bez toho by se po
        každém načtení vrátil na základní. */
