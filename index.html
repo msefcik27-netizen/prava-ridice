@@ -2,7 +2,9 @@
 <html lang="cs">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<!-- Bez `maximum-scale` a `user-scalable=no`: zákaz přiblížení je u aplikace,
+     kterou čtou i lidé se špatným viděním na blízko, bariéra bez užitku. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#F6F7F8" media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content="#0D1424" media="(prefers-color-scheme: dark)" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -119,6 +121,19 @@
 @media (prefers-color-scheme: dark){ :root:not([data-tema="svetly"]){color-scheme:dark;} }
 :root[data-tema="svetly"]{color-scheme:light;}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+/* ===== VELIKOST PÍSMA =====
+   Všechny velikosti v aplikaci jsou v `rem`, tedy násobky téhle jedné
+   hodnoty. Procenta schválně, ne pixely: procento se počítá z výchozí
+   velikosti prohlížeče, takže když si ji někdo zvětší v nastavení
+   telefonu nebo prohlížeče, aplikace ho poslechne. Pevný pixel by ho
+   umlčel — přesně to byl původní problém.
+
+   Základ je 112,5 % (18 px), tedy o 12,5 % víc než dřív. Uživatel si může
+   přidat v Profilu; `data-pismo` nastavuje nactiPismo() ještě před
+   vykreslením, aby stránka neposkočila. */
+html{font-size:112.5%;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+html[data-pismo="vetsi"]{font-size:125%;}
+html[data-pismo="nejvetsi"]{font-size:137.5%;}
 html,body{margin:0;padding:0;}
 html,body{height:100%;}
 body{
@@ -158,18 +173,18 @@ body{
 
 /* Typography */
 h1,h2,h3,h4{margin:0;line-height:1.15;}
-.eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
-.title-xl{font-size:40px;font-weight:800;letter-spacing:-.02em;}
-.title-lg{font-size:22px;font-weight:800;letter-spacing:-.02em;}
-.title-md{font-size:20px;font-weight:700;}
+.eyebrow{font-size:0.6875rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.title-xl{font-size:2.5rem;font-weight:800;letter-spacing:-.02em;}
+.title-lg{font-size:1.375rem;font-weight:800;letter-spacing:-.02em;}
+.title-md{font-size:1.25rem;font-weight:700;}
 .muted{color:var(--muted);}
-.small{font-size:13px;}
+.small{font-size:0.8125rem;}
 
 /* Buttons */
 /* Dotykový cíl aspoň 44 px na výšku (WCAG 2.5.5) — menší tlačítko se na telefonu
    trefuje špatně, zvlášť za jízdy nebo ve stresu po nehodě. */
 .btn{min-height:44px;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
-  border:none;border-radius:16px;padding:17px 18px;font-size:16px;font-weight:700;
+  border:none;border-radius:16px;padding:17px 18px;font-size:1rem;font-weight:700;
   font-family:inherit;cursor:pointer;transition:transform .06s ease,opacity .2s;}
 .btn:active{transform:scale(.985);}
 .btn-peach{background:var(--peach);color:var(--on-peach);}
@@ -177,13 +192,13 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .btn-outline{background:transparent;border:1.5px solid rgba(255,255,255,.35);color:#fff;}
 .btn-outline-dark{background:var(--card);border:1.5px solid var(--line);color:var(--ink);}
 .btn-ghost{background:var(--peach-100);color:#5c3a1e;}
-.btn-sm{padding:13px 16px;font-size:15px;border-radius:14px;}
+.btn-sm{padding:13px 16px;font-size:0.9375rem;border-radius:14px;}
 
 /* Cards */
 .card{background:var(--card);border-radius:var(--radius);padding:13px 14px;box-shadow:var(--shadow);}
 .card+.card{margin-top:10px;}
 .pill{display:inline-flex;align-items:center;gap:6px;background:var(--peach-100);color:var(--accent-ink);
-  font-size:12px;font-weight:700;padding:6px 11px;border-radius:999px;}
+  font-size:0.75rem;font-weight:700;padding:6px 11px;border-radius:999px;}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--orange);display:inline-block;}
 
 /* ============ ONBOARDING ============ */
@@ -195,10 +210,10 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
   display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 24px) 26px calc(env(safe-area-inset-bottom) + 24px);overflow:hidden;}
 #onboard .road{position:absolute;right:-40px;top:120px;width:340px;opacity:.10;pointer-events:none;}
 #onboard .logo{width:96px;height:96px;border:3.5px solid #fff;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:800;margin-top:70px;}
+  display:flex;align-items:center;justify-content:center;font-size:3.25rem;font-weight:800;margin-top:70px;}
 #onboard .spacer{flex:1;}
-.ob-eyebrow{font-size:13px;font-weight:700;letter-spacing:.18em;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:16px;}
-#onboard p{color:rgba(255,255,255,.82);font-size:18px;line-height:1.5;margin:18px 0 0;}
+.ob-eyebrow{font-size:0.8125rem;font-weight:700;letter-spacing:.18em;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:16px;}
+#onboard p{color:rgba(255,255,255,.82);font-size:1.125rem;line-height:1.5;margin:18px 0 0;}
 .ob-actions{display:flex;flex-direction:column;gap:12px;margin-top:26px;}
 
 /* ============ STATUS / POINTS CARD ============ */
@@ -207,20 +222,20 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .status-head .hi{display:flex;align-items:center;gap:12px;}
 .shield{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.12);
   display:flex;align-items:center;justify-content:center;}
-.risk-pill{background:var(--cream);color:var(--accent-ink);font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;
+.risk-pill{background:var(--cream);color:var(--accent-ink);font-size:0.75rem;font-weight:700;padding:6px 12px;border-radius:999px;
   display:inline-flex;align-items:center;gap:7px;}
 .counter{display:flex;align-items:center;justify-content:center;gap:22px;margin:6px 0 0;}
-.counter .num{font-size:46px;font-weight:800;line-height:1;letter-spacing:-.03em;}
-.counter .sub{display:block;text-align:center;font-size:12px;color:rgba(255,255,255,.7);margin-top:2px;}
+.counter .num{font-size:2.875rem;font-weight:800;line-height:1;letter-spacing:-.03em;}
+.counter .sub{display:block;text-align:center;font-size:0.75rem;color:rgba(255,255,255,.7);margin-top:2px;}
 .round-btn{width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.12);
-  color:#fff;font-size:22px;font-weight:400;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  color:#fff;font-size:1.375rem;font-weight:400;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .round-btn:active{background:rgba(255,255,255,.22);}
 .progress{height:7px;border-radius:999px;background:rgba(255,255,255,.15);overflow:hidden;margin:9px 0 8px;}
 .progress > i{display:block;height:100%;border-radius:999px;background:var(--orange);transition:width .3s ease,background .3s;}
-.status-note{font-size:12.5px;color:rgba(255,255,255,.82);margin-bottom:10px;}
+.status-note{font-size:0.7812rem;color:rgba(255,255,255,.82);margin-bottom:10px;}
 .status-actions{display:flex;gap:8px;}
 .chip-btn{min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;flex:1;border:none;cursor:pointer;font-family:inherit;
-  padding:11px 8px;border-radius:13px;font-size:13px;font-weight:600;}
+  padding:11px 8px;border-radius:13px;font-size:0.8125rem;font-weight:600;}
 .chip-btn.light{background:var(--peach);color:var(--on-peach);}
 .chip-btn.outline{background:transparent;border:1.5px solid rgba(255,255,255,.28);color:#fff;}
 .chip-btn svg{flex:0 0 auto;}
@@ -234,19 +249,19 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .toggle.on{background:var(--turq-deep);}
 .toggle.on::after{left:25px;}
 .row-between{display:flex;align-items:center;justify-content:space-between;gap:14px;}
-.alert-line{background:var(--cream);border:1px solid var(--cream-line);border-radius:12px;padding:11px 13px;font-size:13px;color:var(--ink-soft);display:flex;gap:9px;margin-top:14px;}
+.alert-line{background:var(--cream);border:1px solid var(--cream-line);border-radius:12px;padding:11px 13px;font-size:0.8125rem;color:var(--ink-soft);display:flex;gap:9px;margin-top:14px;}
 .alert-line.warn{background:var(--peach-100);border-color:var(--peach-100);color:var(--accent-ink);}
 
 /* Konzultace inline card (12 points) */
 .consult-card{background:var(--cream);border:1px solid var(--cream-line);border-radius:16px;padding:11px 12px;}
 .consult-card .eyebrow{color:var(--accent-ink);}
-.consult-card h3{font-size:16px;margin-bottom:4px;}
-.consult-card p{font-size:12.5px;color:var(--accent-ink);margin:0 0 10px;line-height:1.4;}
+.consult-card h3{font-size:1rem;margin-bottom:4px;}
+.consult-card p{font-size:0.7812rem;color:var(--accent-ink);margin:0 0 10px;line-height:1.4;}
 .consult-actions{display:flex;gap:10px;}
 .consult-actions .btn{flex:1;}
 
 /* ============ LIST ITEMS (Služby, Profil, Guide results) ============ */
-.section-label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:4px 2px 8px;}
+.section-label{font-size:0.6875rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:4px 2px 8px;}
 .list-card{background:var(--card);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);}
 .list-item{display:flex;align-items:center;gap:12px;padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer;}
 .list-item:last-child{border-bottom:none;}
@@ -257,58 +272,58 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .li-icon.warn{background:rgba(242,169,59,.18);color:#A8741B;}
 
 .li-body{flex:1;min-width:0;}
-.li-body h4{font-size:14px;font-weight:700;margin-bottom:2px;}
-.li-body p{margin:0;font-size:12px;color:var(--muted);line-height:1.3;}
+.li-body h4{font-size:0.875rem;font-weight:700;margin-bottom:2px;}
+.li-body p{margin:0;font-size:0.75rem;color:var(--muted);line-height:1.3;}
 .chev{color:#c3c3bd;flex:0 0 auto;}
 
 /* ============ GUIDE ============ */
 .stat-card{background:var(--teal-800);color:#fff;border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;}
 .stat-card .ic{width:44px;height:44px;border-radius:12px;background:var(--peach-100);display:flex;align-items:center;justify-content:center;color:var(--accent-ink-2);flex:0 0 auto;}
-.stat-card .lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);}
-.stat-card .val{font-size:15px;font-weight:700;margin-top:2px;}
+.stat-card .lbl{font-size:0.6875rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);}
+.stat-card .val{font-size:0.9375rem;font-weight:700;margin-top:2px;}
 .police-card{background:var(--cream);border:1px solid var(--cream-line);border-top:5px solid var(--peach);border-radius:16px;padding:13px;cursor:pointer;color:var(--ink);}
 .pc-top{display:flex;gap:12px;align-items:flex-start;}
 .pc-badge{flex:0 0 auto;width:78px;height:auto;filter:drop-shadow(0 3px 8px rgba(10,66,80,.18));}
-.pc-lbl{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);line-height:1.3;}
-.pc-title{font-size:17px;font-weight:800;line-height:1.2;margin-top:5px;color:var(--teal-900);}
-.pc-desc{font-size:13px;line-height:1.5;color:var(--accent-ink);margin:9px 0 0;}
+.pc-lbl{font-size:0.6562rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);line-height:1.3;}
+.pc-title{font-size:1.0625rem;font-weight:800;line-height:1.2;margin-top:5px;color:var(--teal-900);}
+.pc-desc{font-size:0.8125rem;line-height:1.5;color:var(--accent-ink);margin:9px 0 0;}
 .pc-go{width:32px;height:32px;border-radius:50%;background:var(--teal-900);display:flex;align-items:center;justify-content:center;margin:8px 0 0 auto;}
 .police-card .ic{width:44px;height:44px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center;color:var(--accent-ink-2);flex:0 0 auto;}
-.police-card .lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);}
-.police-card h4{font-size:14.5px;margin:2px 0 2px;}
-.police-card p{margin:0;font-size:12px;color:var(--accent-ink);}
-.police-card p.pc-desc{font-size:13px;color:var(--accent-ink);}
+.police-card .lbl{font-size:0.6875rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-ink);}
+.police-card h4{font-size:0.9062rem;margin:2px 0 2px;}
+.police-card p{margin:0;font-size:0.75rem;color:var(--accent-ink);}
+.police-card p.pc-desc{font-size:0.8125rem;color:var(--accent-ink);}
 .oblast-temata{background:var(--bg);border-bottom:1px solid var(--line);}
 .search-box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 13px;margin-top:9px;box-shadow:var(--shadow);}
 .search-input{display:flex;align-items:center;gap:10px;}
-.search-input input{min-height:44px;border:none;outline:none;font-family:inherit;font-size:15px;width:100%;color:var(--ink);background:transparent;}
+.search-input input{min-height:44px;border:none;outline:none;font-family:inherit;font-size:0.9375rem;width:100%;color:var(--ink);background:transparent;}
 .chips{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap;}
-.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 11px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 11px;font-size:0.7812rem;font-weight:600;color:var(--ink-soft);cursor:pointer;}
 .chip.active{background:var(--teal-800);color:#fff;border-color:var(--teal-800);}
-.results-label{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:20px 2px 10px;}
-.empty{background:var(--card);border-radius:14px;padding:16px;color:var(--muted);font-size:14px;box-shadow:var(--shadow);}
+.results-label{font-size:0.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:20px 2px 10px;}
+.empty{background:var(--card);border-radius:14px;padding:16px;color:var(--muted);font-size:0.875rem;box-shadow:var(--shadow);}
 .topic{background:var(--card);border-radius:14px;padding:15px 16px;box-shadow:var(--shadow);margin-bottom:10px;cursor:pointer;}
-.topic h4{font-size:15px;margin-bottom:4px;}
-.topic .cat{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink-2);}
-.topic p{margin:6px 0 0;font-size:13px;color:var(--muted);line-height:1.4;}
+.topic h4{font-size:0.9375rem;margin-bottom:4px;}
+.topic .cat{font-size:0.6875rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink-2);}
+.topic p{margin:6px 0 0;font-size:0.8125rem;color:var(--muted);line-height:1.4;}
 
 /* ============ MESSAGES ============ */
 .msg-hero{background:var(--teal-800);color:#fff;border-radius:18px;padding:14px;}
 .msg-hero .eyebrow{color:rgba(255,255,255,.6);}
-.msg-hero h3{font-size:17px;margin:2px 0 3px;}
-.msg-hero p{margin:0 0 12px;font-size:12.5px;color:rgba(255,255,255,.75);}
+.msg-hero h3{font-size:1.0625rem;margin:2px 0 3px;}
+.msg-hero p{margin:0 0 12px;font-size:0.7812rem;color:rgba(255,255,255,.75);}
 .msg-hero .consult-actions .btn{flex:1;}
 .notice{background:var(--card);border-radius:14px;padding:12px 13px;box-shadow:var(--shadow);margin-top:8px;}
 .notice.dulezita{border-left:4px solid var(--orange);}
 .notice .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
-.notice h4{font-size:15px;display:flex;align-items:center;gap:8px;}
-.notice .date{font-size:12px;color:var(--muted);flex:0 0 auto;}
-.notice p{margin:8px 0 0;font-size:13.5px;color:var(--ink-soft);line-height:1.45;}
+.notice h4{font-size:0.9375rem;display:flex;align-items:center;gap:8px;}
+.notice .date{font-size:0.75rem;color:var(--muted);flex:0 0 auto;}
+.notice p{margin:8px 0 0;font-size:0.8438rem;color:var(--ink-soft);line-height:1.45;}
 .unread-dot{width:8px;height:8px;border-radius:50%;background:var(--peach-strong);display:inline-block;}
-.count-pill{background:var(--peach-100);color:var(--accent-ink);font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;}
+.count-pill{background:var(--peach-100);color:var(--accent-ink);font-size:0.75rem;font-weight:700;padding:6px 12px;border-radius:999px;}
 
 /* ============ PROFILE ============ */
-.ver{text-align:center;color:var(--muted);font-size:11px;margin-top:8px;}
+.ver{text-align:center;color:var(--muted);font-size:0.6875rem;margin-top:8px;}
 
 /* ============ BOTTOM NAV ============ */
 #nav{display:flex;background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(var(--nav-safe) + 4px);flex:0 0 auto;}
@@ -317,17 +332,17 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .nav-btn.active .ic{background:rgba(0,212,212,.16);}
 .nav-btn.active .ic svg{transform:translateY(-1px);}
 .nav-btn.active span{font-weight:800;}
-.nav-btn span{font-size:11px;font-weight:600;line-height:1;}
+.nav-btn span{font-size:0.6875rem;font-weight:600;line-height:1;}
 .nav-btn.active{color:var(--teal-800);}
 
 /* ============ SUB-SCREEN (konzultace, kalkulacka) ============ */
 .subhead{display:flex;align-items:center;gap:6px;padding:calc(env(safe-area-inset-top) + 12px) 12px 12px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;}
-.back-btn{min-height:44px;display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px 8px 10px;font-family:inherit;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;}
-.subhead .sh-title{font-weight:700;font-size:16px;flex:1;text-align:center;padding-right:70px;}
+.back-btn{min-height:44px;display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px 8px 10px;font-family:inherit;font-size:0.9375rem;font-weight:600;color:var(--ink);cursor:pointer;}
+.subhead .sh-title{font-weight:700;font-size:1rem;flex:1;text-align:center;padding-right:70px;}
 
 /* Form */
 .field{margin-bottom:18px;}
-.field label{display:block;font-size:14px;font-weight:600;margin-bottom:8px;}
+.field label{display:block;font-size:0.875rem;font-weight:600;margin-bottom:8px;}
 .field .req{color:var(--red);}
 /* Jedno pravidlo pro celou aplikaci: co je ve formulářovém poli, je přes
    celou šířku a vypadá stejně. Dřív byla šířka nastavená jen textovým
@@ -337,7 +352,7 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .field select,
 .field textarea{
   width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:14px;
-  padding:15px 16px;font-family:inherit;font-size:16px;
+  padding:15px 16px;font-family:inherit;font-size:1rem;
   background:var(--card);color:var(--ink);outline:none;}
 /* Vlastní šipka u výběru — systémová se na každém telefonu kreslí jinak
    a mění šířku pole. */
@@ -345,7 +360,7 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
   background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2377837f' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 15px center;}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal-700);}
-.field .hint{font-size:12.5px;color:var(--muted);margin-top:7px;}
+.field .hint{font-size:0.7812rem;color:var(--muted);margin-top:7px;}
 /* Chyba patří k poli, ne do proužku dole — ten zmizí dřív, než se člověk
    stihne podívat, co má opravit. */
 /* Kolečko v tlačítku po dobu odesílání. Zpětná vazba patří tam, kam se
@@ -356,14 +371,14 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 @keyframes tocse{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion: reduce){ .kolecko{animation-duration:2.4s} }
 
-.chyba-pole{display:none;font-size:12.5px;font-weight:600;color:var(--red);margin-top:7px;line-height:1.4;}
+.chyba-pole{display:none;font-size:0.7812rem;font-weight:600;color:var(--red);margin-top:7px;line-height:1.4;}
 .chyba-pole.vidno{display:block;}
 .field.spatne input,.field.spatne textarea,.field.spatne select{border-color:var(--red);}
 .field textarea{min-height:120px;resize:vertical;}
-.attach{border:1px dashed var(--line);border-radius:14px;padding:15px;display:flex;align-items:center;gap:10px;color:var(--ink-soft);font-weight:600;font-size:15px;cursor:pointer;background:var(--card);}
+.attach{border:1px dashed var(--line);border-radius:14px;padding:15px;display:flex;align-items:center;gap:10px;color:var(--ink-soft);font-weight:600;font-size:0.9375rem;cursor:pointer;background:var(--card);}
 .attach-row{display:flex;gap:10px;}
-.attach-row .attach{flex:1;justify-content:center;font-size:14px;}
-.consent{display:flex;gap:11px;align-items:flex-start;flex-wrap:wrap;font-size:13px;color:var(--ink-soft);margin:6px 0 18px;line-height:1.45;}
+.attach-row .attach{flex:1;justify-content:center;font-size:0.875rem;}
+.consent{display:flex;gap:11px;align-items:flex-start;flex-wrap:wrap;font-size:0.8125rem;color:var(--ink-soft);margin:6px 0 18px;line-height:1.45;}
 .check::before{content:"";position:absolute;left:-11px;right:-11px;top:-11px;bottom:-11px;}
 .check:focus-visible{outline:2px solid var(--turq-deep);outline-offset:3px;}
 .check{position:relative;width:22px;height:22px;border-radius:7px;border:1.5px solid #c7c6c0;flex:0 0 auto;cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--card);margin-top:1px;}
@@ -375,49 +390,49 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .steps{display:flex;gap:6px;margin:4px 0 14px;}
 .steps i{flex:1;height:4px;border-radius:999px;background:var(--line);}
 .steps i.done{background:var(--teal-800);}
-.step-label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
-.q{font-size:20px;font-weight:700;line-height:1.3;margin:8px 0 18px;}
+.step-label{font-size:0.6875rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+.q{font-size:1.25rem;font-weight:700;line-height:1.3;margin:8px 0 18px;}
 .seg{display:flex;background:var(--line);border-radius:14px;padding:4px;margin-bottom:16px;}
-.seg button{flex:1;border:none;background:none;font-family:inherit;font-size:15px;font-weight:600;padding:11px;border-radius:11px;color:var(--ink-soft);cursor:pointer;}
+.seg button{flex:1;border:none;background:none;font-family:inherit;font-size:0.9375rem;font-weight:600;padding:11px;border-radius:11px;color:var(--ink-soft);cursor:pointer;}
 .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08);}
 .stepper{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 10px;margin-bottom:6px;}
-.stepper .val{font-size:22px;font-weight:700;text-align:center;flex:1;cursor:pointer;}
-.stepper .val small{font-size:14px;color:var(--muted);font-weight:600;margin-left:3px;}
-.step-min{width:46px;height:46px;border-radius:12px;border:none;background:var(--peach-100);color:var(--accent-ink);font-size:24px;cursor:pointer;}
-.field-label-sm{font-size:13px;font-weight:600;margin:14px 0 8px;color:var(--ink-soft);}
+.stepper .val{font-size:1.375rem;font-weight:700;text-align:center;flex:1;cursor:pointer;}
+.stepper .val small{font-size:0.875rem;color:var(--muted);font-weight:600;margin-left:3px;}
+.step-min{width:46px;height:46px;border-radius:12px;border:none;background:var(--peach-100);color:var(--accent-ink);font-size:1.5rem;cursor:pointer;}
+.field-label-sm{font-size:0.8125rem;font-weight:600;margin:14px 0 8px;color:var(--ink-soft);}
 .drink-search{position:relative;}
 .drink-list{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-top:6px;max-height:190px;overflow-y:auto;box-shadow:var(--shadow);}
-.drink-opt{padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;font-size:14px;display:flex;justify-content:space-between;}
+.drink-opt{padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;font-size:0.875rem;display:flex;justify-content:space-between;}
 .drink-opt:last-child{border-bottom:none;}
 .drink-opt:active{background:var(--card);}
 .drink-opt small{color:var(--muted);}
 .added{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px;}
 .added .info{flex:1;}
-.added .info h5{margin:0;font-size:14px;font-weight:700;}
-.added .info small{color:var(--muted);font-size:12px;}
-.added .qbtn{width:34px;height:34px;border-radius:10px;border:none;background:var(--peach-100);color:var(--accent-ink);font-size:18px;cursor:pointer;}
+.added .info h5{margin:0;font-size:0.875rem;font-weight:700;}
+.added .info small{color:var(--muted);font-size:0.75rem;}
+.added .qbtn{width:34px;height:34px;border-radius:10px;border:none;background:var(--peach-100);color:var(--accent-ink);font-size:1.125rem;cursor:pointer;}
 .added .qty{min-width:22px;text-align:center;font-weight:700;}
-.added .rm{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;}
+.added .rm{background:none;border:none;color:var(--muted);font-size:1.125rem;cursor:pointer;padding:4px;}
 .result{border-radius:16px;padding:18px;margin-top:16px;}
 .result.ok{background:var(--green-bg);}
 .result.mid{background:var(--peach-100);}
 .result.bad{background:var(--peach-100);}
-.result .big{font-size:34px;font-weight:800;letter-spacing:-.02em;}
+.result .big{font-size:2.125rem;font-weight:800;letter-spacing:-.02em;}
 .result.ok .big{color:var(--green);}
 .result.mid .big{color:var(--orange);}
 .result.bad .big{color:var(--red);}
-.result h4{font-size:16px;margin:4px 0 8px;}
-.result p{margin:0;font-size:13px;color:var(--ink-soft);line-height:1.45;}
-.disclaimer{display:flex;gap:9px;font-size:12px;color:var(--muted);margin-top:14px;line-height:1.45;}
-.choice{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;cursor:pointer;font-size:15px;font-weight:600;box-shadow:var(--shadow);}
+.result h4{font-size:1rem;margin:4px 0 8px;}
+.result p{margin:0;font-size:0.8125rem;color:var(--ink-soft);line-height:1.45;}
+.disclaimer{display:flex;gap:9px;font-size:0.75rem;color:var(--muted);margin-top:14px;line-height:1.45;}
+.choice{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;cursor:pointer;font-size:0.9375rem;font-weight:600;box-shadow:var(--shadow);}
 .choice:active{background:var(--card);}
-.prefill{background:var(--green-bg);border:1px solid var(--green-bg);border-radius:12px;padding:12px 14px;font-size:13px;color:#2f6a52;display:flex;gap:9px;margin-bottom:14px;}
+.prefill{background:var(--green-bg);border:1px solid var(--green-bg);border-radius:12px;padding:12px 14px;font-size:0.8125rem;color:#2f6a52;display:flex;gap:9px;margin-bottom:14px;}
 
 .sticky-cta{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(243,242,239,0),var(--bg) 30%);padding:14px 18px calc(env(safe-area-inset-bottom) + 16px);}
 
 /* Toast */
 #toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%) translateY(20px);
-  background:#12312f;color:#fff;padding:13px 20px;border-radius:14px;font-size:14px;font-weight:600;
+  background:#12312f;color:#fff;padding:13px 20px;border-radius:14px;font-size:0.875rem;font-weight:600;
   opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:88%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.3);}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
@@ -448,57 +463,59 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 /* ===== ÚZKÉ DISPLEJE (zvětšené zobrazení iPhonu, ≤360 px) — vše se vejde bez scrollu ===== */
 @media(max-width:360px){
   .pad{padding:9px 10px 12px;}
-  .title-lg{font-size:19px;}
-  .eyebrow{font-size:10px;margin-bottom:4px;}
+  .title-lg{font-size:1.1875rem;}
+  .eyebrow{font-size:0.625rem;margin-bottom:4px;}
   .card{padding:10px 12px;border-radius:16px;}
   .card+.card{margin-top:8px;}
   .status-card{padding:11px 12px 10px;border-radius:16px;}
   .counter{gap:18px;margin:4px 0 0;}
-  .counter .num{font-size:38px;}
-  .round-btn{width:38px;height:38px;font-size:19px;}
-  .counter .sub{font-size:11px;}
+  .counter .num{font-size:2.375rem;}
+  .round-btn{width:38px;height:38px;font-size:1.1875rem;}
+  .counter .sub{font-size:0.6875rem;}
   .progress{margin:7px 0 6px;height:6px;}
-  .status-note{font-size:11.5px;margin-bottom:8px;}
-  .chip-btn{padding:9px 6px;font-size:12px;border-radius:11px;gap:6px;}
-  .risk-pill{font-size:11px;padding:5px 9px;}
+  .status-note{font-size:0.7188rem;margin-bottom:8px;}
+  .chip-btn{padding:9px 6px;font-size:0.75rem;border-radius:11px;gap:6px;}
+  .risk-pill{font-size:0.6875rem;padding:5px 9px;}
   .shield{width:36px;height:36px;border-radius:10px;}
   .consult-card{padding:9px 10px;border-radius:14px;}
-  .consult-card h3{font-size:14.5px;}
-  .consult-card p{font-size:11.5px;margin:0 0 8px;}
-  .btn-sm{padding:10px 12px;font-size:13px;}
+  .consult-card h3{font-size:0.9062rem;}
+  .consult-card p{font-size:0.7188rem;margin:0 0 8px;}
+  .btn-sm{padding:10px 12px;font-size:0.8125rem;}
   .list-card{border-radius:14px;}
   .list-item{padding:7px 10px;gap:10px;}
   .li-icon{width:30px;height:30px;border-radius:9px;}
-  .li-body h4{font-size:13px;}
-  .li-body p{font-size:11px;}
-  .section-label{font-size:10px;margin:3px 2px 6px;}
+  .li-body h4{font-size:0.8125rem;}
+  .li-body p{font-size:0.6875rem;}
+  .section-label{font-size:0.625rem;margin:3px 2px 6px;}
   .stat-card{padding:9px 11px;border-radius:13px;}
-  .stat-card .val{font-size:13px;}
-  .stat-card .lbl{font-size:10px;}
+  .stat-card .val{font-size:0.8125rem;}
+  .stat-card .lbl{font-size:0.625rem;}
   .police-card{padding:9px 11px;border-radius:13px;margin-top:7px;}
-  .police-card h4{font-size:13px;}
-  .police-card p{font-size:11px;}
-  .police-card .lbl{font-size:10px;}
+  .police-card h4{font-size:0.8125rem;}
+  .police-card p{font-size:0.6875rem;}
+  .police-card .lbl{font-size:0.625rem;}
   .search-box{padding:8px 11px;margin-top:7px;border-radius:12px;}
-  .search-input input{font-size:13px;}
+  /* Nesmí klesnout pod 16 px po přepočtu: Safari by při klepnutí do pole
+     přiblížilo stránku. 0.9375rem × 18 px = 16,9 px. */
+  .search-input input{font-size:0.9375rem;}
   .chips{margin-top:7px;gap:5px;}
-  .chip{padding:5px 9px;font-size:11.5px;}
+  .chip{padding:5px 9px;font-size:0.7188rem;}
   .msg-hero{padding:11px;border-radius:14px;}
-  .msg-hero h3{font-size:15px;}
-  .msg-hero p{font-size:11.5px;margin-bottom:9px;}
+  .msg-hero h3{font-size:0.9375rem;}
+  .msg-hero p{font-size:0.7188rem;margin-bottom:9px;}
   .notice{padding:9px 11px;border-radius:12px;}
-  .notice h4{font-size:13px;}
-  .notice p{font-size:12px;}
-  .count-pill{font-size:11px;padding:5px 9px;}
+  .notice h4{font-size:0.8125rem;}
+  .notice p{font-size:0.75rem;}
+  .count-pill{font-size:0.6875rem;padding:5px 9px;}
   .toggle{width:44px;height:26px;}
   .toggle::after{width:20px;height:20px;}
   .toggle.on::after{left:21px;}
-  .alert-line{padding:8px 10px;font-size:11px;margin-top:9px;}
-  .title-md{font-size:15px;}
-  .ver{font-size:10px;margin-top:6px;}
+  .alert-line{padding:8px 10px;font-size:0.6875rem;margin-top:9px;}
+  .title-md{font-size:0.9375rem;}
+  .ver{font-size:0.625rem;margin-top:6px;}
   #nav{padding:4px 4px calc(var(--nav-safe) + 3px);}
   .nav-btn svg{width:24px;height:24px;}
-  .nav-btn span{font-size:10px;}
+  .nav-btn span{font-size:0.625rem;}
   .nav-btn .ic{width:50px;height:28px;}
 }
 
@@ -522,18 +539,18 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 .ob-dots i.on{background:var(--peach);width:22px;}
 #obBody{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .ob-coderow{display:flex;gap:8px;}
-.ob-coderow .pole-input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:15px;outline:none;box-sizing:border-box;}
+.ob-coderow .pole-input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);color:var(--ink);font-family:inherit;font-size:0.9375rem;outline:none;box-sizing:border-box;}
 /* Pole pro e-mail v Profilu — dřív bylo bez vlastního stylu, takže ho
    prohlížeč vykreslil drobné. Rozměr odpovídá ostatním polím v aplikaci. */
 .pole-input{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;
-  padding:14px 15px;background:var(--card);color:var(--ink);font-family:inherit;font-size:16px;
+  padding:14px 15px;background:var(--card);color:var(--ink);font-family:inherit;font-size:1rem;
   line-height:1.3;outline:none;-webkit-appearance:none;}
 .pole-input::placeholder{color:var(--muted);opacity:.75;}
 .pole-input:focus{border-color:var(--turq-deep);box-shadow:0 0 0 3px rgba(0,212,212,.16);}
-.ob-chyba{display:none;background:rgba(229,72,77,.16);border:1px solid rgba(229,72,77,.4);color:#FFD9DA;border-radius:11px;padding:10px 13px;font-size:13px;margin-top:12px;line-height:1.4;}
+.ob-chyba{display:none;background:rgba(229,72,77,.16);border:1px solid rgba(229,72,77,.4);color:#FFD9DA;border-radius:11px;padding:10px 13px;font-size:0.8125rem;margin-top:12px;line-height:1.4;}
 .ob-code{flex:1;text-align:left;}
-.ob-coderow button{flex:0 0 auto;padding:0 18px;border-radius:14px;border:none;background:var(--peach);color:var(--accent-ink);font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;}
-.ob-free{background:none;border:none;color:rgba(255,255,255,.85);font-family:inherit;font-size:15px;font-weight:700;text-decoration:underline;padding:12px;cursor:pointer;width:100%;}
+.ob-coderow button{flex:0 0 auto;padding:0 18px;border-radius:14px;border:none;background:var(--peach);color:var(--accent-ink);font-family:inherit;font-weight:800;font-size:0.9375rem;cursor:pointer;}
+.ob-free{background:none;border:none;color:rgba(255,255,255,.85);font-family:inherit;font-size:0.9375rem;font-weight:700;text-decoration:underline;padding:12px;cursor:pointer;width:100%;}
 #obBody .ob-fill{flex:1;}
 /* `min-height` místo `height`: co se vejde, chová se jako dřív (rozpěry
    `ob-fill` roztáhnou obsah přes celou výšku). Co se nevejde — malý
@@ -541,13 +558,13 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
    a dá se odrolovat, místo aby se useklo. */
 .ob-step{display:flex;flex-direction:column;min-height:100%;}
 .ob-note{background:rgba(255,255,255,.09);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-top:12px;}
-.ob-note .tx{font-size:13px;color:rgba(255,255,255,.88);line-height:1.4;}
+.ob-note .tx{font-size:0.8125rem;color:rgba(255,255,255,.88);line-height:1.4;}
 .ob-count{display:flex;align-items:center;justify-content:center;gap:22px;margin:6px 0 2px;}
-.ob-count .num{font-size:52px;font-weight:800;line-height:1;}
+.ob-count .num{font-size:3.25rem;font-weight:800;line-height:1;}
 /* Šedý text v poli pro kód je věta, ne kód — nesmí mít rozpal ani velikost
    číslic, jinak se do pole nevejde a vypadá jako rozsypaný kód. */
-#obKodEmail::placeholder{letter-spacing:0;font-size:14px;font-weight:600;opacity:.6;}
-.ob-code{width:100%;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;font-family:inherit;font-size:16px;color:#fff;outline:none;text-align:center;letter-spacing:.06em;}
+#obKodEmail::placeholder{letter-spacing:0;font-size:0.875rem;font-weight:600;opacity:.6;}
+.ob-code{width:100%;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;font-family:inherit;font-size:1rem;color:#fff;outline:none;text-align:center;letter-spacing:.06em;}
 .ob-code::placeholder{color:rgba(255,255,255,.45);letter-spacing:0;}
 
 /* Install sheet (bottom sheet with guide) */
@@ -557,22 +574,23 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
   padding:10px 20px calc(env(safe-area-inset-bottom) + 22px);transform:translateY(105%);transition:transform .28s cubic-bezier(.32,.72,.33,1);display:none;}
 #sheet.show{transform:none;}
 #sheet .grab{width:44px;height:5px;border-radius:99px;background:var(--line);margin:6px auto 14px;}
-#sheet h3{font-size:19px;font-weight:800;margin-bottom:4px;}
-#sheet .sheet-sub{font-size:13.5px;color:var(--muted);margin:0 0 16px;line-height:1.45;}
+#sheet h3{font-size:1.1875rem;font-weight:800;margin-bottom:4px;}
+#sheet .sheet-sub{font-size:0.8438rem;color:var(--muted);margin:0 0 16px;line-height:1.45;}
 .step-row{display:flex;gap:13px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);}
 .step-row:last-of-type{border-bottom:none;}
-.step-num{width:30px;height:30px;border-radius:50%;background:var(--peach-100);color:var(--accent-ink);font-weight:800;font-size:14px;
+.step-num{width:30px;height:30px;border-radius:50%;background:var(--peach-100);color:var(--accent-ink);font-weight:800;font-size:0.875rem;
   display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:1px;}
-.step-row .tx{font-size:14.5px;line-height:1.45;color:var(--ink);}
+.step-row .tx{font-size:0.9062rem;line-height:1.45;color:var(--ink);}
 .step-row .tx b{font-weight:700;}
 .step-row .tx svg{vertical-align:-3px;margin:0 2px;}
 .sheet-close{margin-top:16px;}
+/* Stejný pruh voleb používá vzhled i velikost písma. */
 .tema-volby{display:flex;gap:6px;background:var(--bg);border-radius:12px;padding:4px;}
 .tema-volby button{min-height:44px;flex:1;border:0;background:transparent;color:var(--muted);font-family:inherit;
-  font-size:13px;font-weight:700;padding:9px 6px;border-radius:9px;cursor:pointer;transition:.16s;}
+  font-size:0.8125rem;font-weight:700;padding:9px 6px;border-radius:9px;cursor:pointer;transition:.16s;}
 .tema-volby button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12);}
 .zamek-znacka{display:inline-block;vertical-align:middle;background:rgba(242,169,59,.2);color:var(--orange);
-  font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:6px;margin-left:6px;
+  font-size:0.625rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:6px;margin-left:6px;
   white-space:nowrap;}
 .zamek-znacka.castecne{background:rgba(0,212,212,.16);color:var(--turq-deep);}
 @media (prefers-color-scheme: dark){ :root:not([data-tema="svetly"]) .zamek-znacka.castecne{color:var(--turq);} }
@@ -581,9 +599,9 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 .pristup-pruh.omezeny{background:var(--peach-100);color:var(--accent-ink);}
 .pristup-pruh.plny{background:rgba(0,212,212,.14);color:var(--turq-deep);}
 .pristup-pruh .pp-text{flex:1;min-width:0;}
-.pristup-pruh .pp-text b{display:block;font-size:14px;font-weight:800;line-height:1.2;}
-.pristup-pruh .pp-text span{display:block;font-size:12px;line-height:1.35;opacity:.85;margin-top:1px;}
-.pristup-pruh .pp-btn{width:auto;flex:0 0 auto;padding:8px 12px;font-size:12.5px;}
+.pristup-pruh .pp-text b{display:block;font-size:0.875rem;font-weight:800;line-height:1.2;}
+.pristup-pruh .pp-text span{display:block;font-size:0.75rem;line-height:1.35;opacity:.85;margin-top:1px;}
+.pristup-pruh .pp-btn{width:auto;flex:0 0 auto;padding:8px 12px;font-size:0.7812rem;}
 @media (prefers-color-scheme: dark){ :root:not([data-tema="svetly"]) .pristup-pruh.plny{color:var(--turq);} }
 :root[data-tema="tmavy"] .pristup-pruh.plny{color:var(--turq);}
 /* ============ GARÁŽ ============ */
@@ -593,33 +611,33 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 .gsekce > summary .gi{width:34px;height:34px;border-radius:11px;background:var(--peach-100);color:var(--accent-ink);
   display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
 .gsekce > summary .gt{flex:1;min-width:0;}
-.gsekce > summary .gt b{display:block;font-size:15px;font-weight:800;color:var(--ink);}
-.gsekce > summary .gt span{display:block;font-size:12.5px;color:var(--muted);margin-top:1px;line-height:1.35;}
+.gsekce > summary .gt b{display:block;font-size:0.9375rem;font-weight:800;color:var(--ink);}
+.gsekce > summary .gt span{display:block;font-size:0.7812rem;color:var(--muted);margin-top:1px;line-height:1.35;}
 .gsekce > summary .gs{flex:0 0 auto;color:var(--muted);transition:transform .18s;}
 .gsekce[open] > summary .gs{transform:rotate(90deg);}
 .gsekce .gtelo{padding:0 15px 15px;}
 .g-polozka{border:1px solid var(--line);border-radius:13px;padding:12px 13px;margin-bottom:9px;}
 .g-polozka .g-hlava{display:flex;align-items:flex-start;gap:10px;}
-.g-polozka .g-hlava b{flex:1;min-width:0;font-size:15px;font-weight:800;}
-.g-polozka .g-smaz{background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:0 0 0 6px;line-height:1;}
+.g-polozka .g-hlava b{flex:1;min-width:0;font-size:0.9375rem;font-weight:800;}
+.g-polozka .g-smaz{background:none;border:0;color:var(--muted);font-size:1rem;cursor:pointer;padding:0 0 0 6px;line-height:1;}
 .g-polozka .g-upr{flex:0 0 auto;background:var(--bg);border:1px solid var(--line);color:var(--ink);
-  border-radius:8px;padding:5px 11px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;}
-.g-radka{font-size:13px;color:var(--ink-soft);line-height:1.5;margin-top:4px;}
-.g-stitek{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  border-radius:8px;padding:5px 11px;font-size:0.7812rem;font-weight:700;font-family:inherit;cursor:pointer;}
+.g-radka{font-size:0.8125rem;color:var(--ink-soft);line-height:1.5;margin-top:4px;}
+.g-stitek{display:inline-block;font-size:0.6875rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
   padding:3px 8px;border-radius:7px;margin-top:7px;}
 .g-form .field{margin-bottom:10px;}
 .g-form input,.g-form select,.g-form textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);
-  border-radius:12px;padding:13px 14px;font-family:inherit;font-size:16px;background:var(--card);color:var(--ink);}
+  border-radius:12px;padding:13px 14px;font-family:inherit;font-size:1rem;background:var(--card);color:var(--ink);}
 .g-form textarea{min-height:74px;resize:vertical;}
 .g-souhrn{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px;}
 .g-souhrn .kus{flex:1 1 130px;border-radius:14px;padding:11px 13px;background:var(--card);border:1px solid var(--line);}
-.g-souhrn .kus b{display:block;font-size:19px;font-weight:800;line-height:1.15;}
-.g-souhrn .kus span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;letter-spacing:.03em;text-transform:uppercase;font-weight:700;}
+.g-souhrn .kus b{display:block;font-size:1.1875rem;font-weight:800;line-height:1.15;}
+.g-souhrn .kus span{display:block;font-size:0.7188rem;color:var(--muted);margin-top:2px;letter-spacing:.03em;text-transform:uppercase;font-weight:700;}
 #tiskArea{display:none;}
 @media print{
   body > *:not(#tiskArea){display:none !important;}
   #tiskArea{display:block !important;padding:24px;font:14px/1.55 system-ui,sans-serif;color:#000;}
-  #tiskArea h1{font-size:20px;margin:0 0 4px;}
+  #tiskArea h1{font-size:1.25rem;margin:0 0 4px;}
   #tiskArea table{width:100%;border-collapse:collapse;margin-top:14px;}
   #tiskArea td{padding:7px 4px;border-bottom:1px solid #ddd;vertical-align:top;}
   #tiskArea td:first-child{width:38%;font-weight:700;}
@@ -650,7 +668,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
   justify-content:center;background:rgba(255,255,255,.14);color:var(--bl-nadpis);margin-bottom:12px;}
 .b-bila .hero-ic,.b-kremova .hero-ic,.b-merunka .hero-ic,.b-tyrkys .hero-ic{background:rgba(0,0,0,.06);}
 .blok-hero h3{font-size:calc(var(--bl-px) + 7px);letter-spacing:-.01em;margin-bottom:8px;}
-.blok-hero .pill{display:inline-block;padding:5px 11px;border-radius:999px;font-size:11px;
+.blok-hero .pill{display:inline-block;padding:5px 11px;border-radius:999px;font-size:0.6875rem;
   font-weight:700;letter-spacing:.06em;text-transform:uppercase;
   background:rgba(255,255,255,.16);color:var(--bl-nadpis);}
 .b-bila .pill,.b-kremova .pill,.b-merunka .pill,.b-tyrkys .pill{background:rgba(0,0,0,.07);}
@@ -695,19 +713,19 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 
 /* Kalendář ve vlastním okně — česky a stejně na každém telefonu. */
 .kal-hlava{display:flex;align-items:center;gap:8px;margin:4px 0 10px}
-.kal-hlava .mesic{flex:1;text-align:center;font-weight:800;font-size:15px}
+.kal-hlava .mesic{flex:1;text-align:center;font-weight:800;font-size:0.9375rem}
 .kal-hlava button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);
-  background:var(--card);color:var(--ink);font-size:17px;line-height:1;cursor:pointer;font-family:inherit}
+  background:var(--card);color:var(--ink);font-size:1.0625rem;line-height:1;cursor:pointer;font-family:inherit}
 .kal-mrizka{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.kal-mrizka .den-zkr{font-size:11px;font-weight:700;color:var(--muted);text-align:center;padding:3px 0}
+.kal-mrizka .den-zkr{font-size:0.6875rem;font-weight:700;color:var(--muted);text-align:center;padding:3px 0}
 .kal-mrizka button{aspect-ratio:1;border:0;border-radius:10px;background:transparent;color:var(--ink);
-  font-size:14px;cursor:pointer;font-family:inherit}
+  font-size:0.875rem;cursor:pointer;font-family:inherit}
 .kal-mrizka button:disabled{color:transparent;cursor:default}
 .kal-mrizka button.dnes{box-shadow:inset 0 0 0 1.5px var(--line)}
 .kal-mrizka button.vybrany{background:var(--grad);color:#fff;font-weight:700}
 .kal-cas{display:flex;align-items:center;gap:8px;margin-top:12px}
-.kal-cas label{font-size:13px;font-weight:700;color:var(--muted);flex:0 0 auto}
-.kal-cas select{flex:1;padding:9px 10px;font-size:15px;font-family:inherit;
+.kal-cas label{font-size:0.8125rem;font-weight:700;color:var(--muted);flex:0 0 auto}
+.kal-cas select{flex:1;padding:9px 10px;font-size:0.9375rem;font-family:inherit;
   border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
 
 /* Vlastní okno — nahrazuje systémové confirm/prompt, které kreslí prohlížeč
@@ -720,35 +738,35 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
   width:100%;max-width:340px;box-shadow:0 18px 48px rgba(13,20,36,.32);
   transform:translateY(8px) scale(.98);transition:transform .16s}
 .okno-pozadi.vidno .okno{transform:none}
-.okno h3{margin:0 0 8px;font-size:16.5px;font-weight:800}
-.okno p{margin:0;font-size:14px;line-height:1.55;color:var(--ink-soft,#4a5560)}
-.okno input{width:100%;margin-top:12px;padding:11px 12px;font-size:15px;font-family:inherit;
+.okno h3{margin:0 0 8px;font-size:1.0312rem;font-weight:800}
+.okno p{margin:0;font-size:0.875rem;line-height:1.55;color:var(--ink-soft,#4a5560)}
+.okno input{width:100%;margin-top:12px;padding:11px 12px;font-size:0.9375rem;font-family:inherit;
   border:1px solid var(--line);border-radius:11px;background:var(--bg,#fff);color:var(--ink)}
 .okno-lista{display:flex;gap:9px;margin-top:16px}
 .okno-lista .btn{flex:1;justify-content:center}
 /* Potvrzení odeslané poptávky. Není to hlášení o úspěchu operace, je to
    odpověď kanceláře — proto znak, ne fajfka v proužku, a proto kroky. */
 .okno-odeslano{max-width:352px;text-align:center}
-.okno-odeslano h3{font-size:19px;margin:14px 0 6px}
+.okno-odeslano h3{font-size:1.1875rem;margin:14px 0 6px}
 .okno-odeslano p{text-align:center}
 .odeslano-znak{width:62px;height:62px;margin:2px auto 0;border-radius:50%;
   background:var(--rada-bg);color:var(--turq-deep);
   display:flex;align-items:center;justify-content:center}
 .odeslano-kroky{list-style:none;margin:16px 0 0;padding:0;text-align:left}
 .odeslano-kroky li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;
-  border-top:1px solid var(--line);font-size:13.5px;line-height:1.5}
+  border-top:1px solid var(--line);font-size:0.8438rem;line-height:1.5}
 .odeslano-kroky li:first-child{border-top:0;padding-top:2px}
 .odeslano-kroky .cislo{flex:0 0 auto;width:21px;height:21px;border-radius:50%;
-  background:var(--teal-900);color:#fff;font-size:11.5px;font-weight:800;
+  background:var(--teal-900);color:#fff;font-size:0.7188rem;font-weight:800;
   display:flex;align-items:center;justify-content:center;margin-top:1px}
 
 /* Seznam příloh. Ubrat přílohu musí jít stejně snadno jako ji přidat —
    vyfocené doklady bývají rozmazané a člověk to pozná až po focení. */
 .prilohy{display:flex;flex-direction:column;gap:6px;margin-top:9px}
 .priloha{display:flex;align-items:center;gap:9px;padding:8px 10px;
-  background:var(--bg);border:1px solid var(--line);border-radius:11px;font-size:12.5px}
+  background:var(--bg);border:1px solid var(--line);border-radius:11px;font-size:0.7812rem}
 .priloha .jmeno{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.priloha .velikost{flex:0 0 auto;color:var(--muted);font-size:11.5px}
+.priloha .velikost{flex:0 0 auto;color:var(--muted);font-size:0.7188rem}
 .priloha button{flex:0 0 auto;background:none;border:0;padding:4px;cursor:pointer;
   color:var(--muted);display:flex;line-height:0}
 .priloha button:active{color:var(--err)}
@@ -759,7 +777,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 
 .zamek-blok{display:flex;gap:10px;align-items:center;background:var(--cream);
   border:1px solid var(--cream-line);border-radius:12px;padding:13px 14px;
-  color:var(--accent-ink);font-size:13.5px;font-weight:600;}
+  color:var(--accent-ink);font-size:0.8438rem;font-weight:600;}
 .zamek-blok svg{flex:0 0 auto;}
 .eyebrow, .section-label, .lbl, .li-body h4, .li-body p, .sh-title,
 .stat-card .val, .notice .top h4 { overflow-wrap:anywhere; }
@@ -793,7 +811,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/></svg>
               </div>
               <div>
-                <div data-text="prehled.body.nadpis" style="font-size:19px;font-weight:800;">Vaše body řidiče</div>
+                <div data-text="prehled.body.nadpis" style="font-size:1.1875rem;font-weight:800;">Vaše body řidiče</div>
               </div>
             </div>
             <span class="risk-pill" id="riskPill"><span class="dot"></span> Bez rizika</span>
@@ -836,7 +854,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           <div class="row-between">
             <div>
               <div class="eyebrow" style="margin-bottom:4px;" data-text="prehled.notif.stitek">Upozornění podle bodů řidiče</div>
-              <div class="title-md" style="font-size:17px;" data-text="prehled.notif.nadpis">Včasná výstraha před 12 body řidiče</div>
+              <div class="title-md" style="font-size:1.0625rem;" data-text="prehled.notif.nadpis">Včasná výstraha před 12 body řidiče</div>
             </div>
             <div class="toggle on" role="switch" tabindex="0" aria-checked="true" id="notifToggle" onclick="toggleNotif()" onkeydown="klavesaPrepinac(event, this)"></div>
           </div>
@@ -850,7 +868,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
              nezjistí, že na plochu přidaná není — a odložitelné. -->
         <div class="card" style="margin-top:10px;display:none;" id="plochaCard">
           <div class="eyebrow" style="margin-bottom:4px;" data-text="prehled.plocha.stitek">Běží v prohlížeči</div>
-          <div class="title-md" style="font-size:17px;" data-text="prehled.plocha.nadpis">Přidejte si appku na plochu</div>
+          <div class="title-md" style="font-size:1.0625rem;" data-text="prehled.plocha.nadpis">Přidejte si appku na plochu</div>
           <p class="small muted" style="margin:5px 0 0;line-height:1.45;" data-text="prehled.plocha.popis">Otevře se jedním klepnutím, funguje i bez signálu a teprve pak vám můžou chodit upozornění.</p>
           <div class="ob-actions" style="margin-top:11px;">
             <button class="btn btn-peach btn-sm" data-text="prehled.plocha.btn" onclick="openInstallSheet()">Přidat na plochu</button>
@@ -913,7 +931,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
       <div class="pad safe-top">
         <div class="eyebrow" data-text="pruvodce.stitek">Právní průvodce</div>
         <h1 class="title-lg" style="margin-bottom:6px;" data-text="pruvodce.nadpis">Dopravní právo srozumitelně</h1>
-        <p class="muted" style="line-height:1.4;margin:0 0 10px;font-size:12.5px;" data-text="pruvodce.popis">Co vám hrozí, jak postupovat a kdy se ozvat. Obsah aktualizujeme průběžně.</p>
+        <p class="muted" style="line-height:1.4;margin:0 0 10px;font-size:0.7812rem;" data-text="pruvodce.popis">Co vám hrozí, jak postupovat a kdy se ozvat. Obsah aktualizujeme průběžně.</p>
         <div class="stat-card" onclick="openOblasti()">
           <div class="ic">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/></svg>
@@ -992,7 +1010,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           <div class="row-between">
             <div>
               <div class="eyebrow" style="margin-bottom:6px;" data-text="profil.predplatne.stitek">Předplatné</div>
-              <div class="title-md" style="font-size:17px;" id="planTitle">Zdarma (beta)</div>
+              <div class="title-md" style="font-size:1.0625rem;" id="planTitle">Zdarma (beta)</div>
             </div>
             <button class="btn btn-peach btn-sm" id="planBtn" style="width:auto;padding:10px 16px;" onclick="go('predplatne')" data-text="profil.plan.btn">Aktivovat</button>
           </div>
@@ -1022,10 +1040,19 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
             <button type="button" data-tema="tmavy"  onclick="nastavTema('tmavy')" data-text="profil.tema.tmavy">Tmavý</button>
           </div>
         </div>
+        <div class="section-label" data-text="profil.pismo.stitek" style="margin-top:8px;">Velikost písma</div>
+        <div class="card" style="padding:12px 13px;">
+          <div class="tema-volby" id="pismoVolby">
+            <button type="button" data-pismo="normalni"  onclick="nastavPismo('normalni')" data-text="profil.pismo.normalni">Normální</button>
+            <button type="button" data-pismo="vetsi"     onclick="nastavPismo('vetsi')" data-text="profil.pismo.vetsi">Větší</button>
+            <button type="button" data-pismo="nejvetsi"  onclick="nastavPismo('nejvetsi')" data-text="profil.pismo.nejvetsi">Největší</button>
+          </div>
+          <p class="hint" style="margin:9px 2px 0;" data-text="profil.pismo.popis">Zvětší text v celé aplikaci. Nastavení zůstane v tomto telefonu.</p>
+        </div>
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 138<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 139<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1053,7 +1080,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
       <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>Zpět</button><div class="sh-title" role="heading" aria-level="1"></div></div>
       <div class="pad">
         <h1 class="title-lg" style="margin-bottom:4px;" data-text="formular.nadpis">Napište nám</h1>
-        <p class="muted" style="margin:0 0 14px;font-size:13.5px;line-height:1.5;" data-text="formular.podnadpis">Ozveme se vám neprodleně. Posouzení je zdarma a nezávazné.</p>
+        <p class="muted" style="margin:0 0 14px;font-size:0.8438rem;line-height:1.5;" data-text="formular.podnadpis">Ozveme se vám neprodleně. Posouzení je zdarma a nezávazné.</p>
         <div class="field">
           <label data-text="formular.jmeno">Jméno</label>
           <input type="text" id="fName" autocapitalize="words" data-ph="formular.ph.jmeno" placeholder="Jan Novák" />
@@ -1161,8 +1188,8 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
       <div class="pad">
         <div class="card" style="background:var(--teal-800);color:#fff;">
           <div class="eyebrow" style="color:rgba(255,255,255,.6);" data-text="predplatne.stitek">Práva řidiče Premium</div>
-          <div style="font-size:26px;font-weight:800;margin:6px 0;" data-text="predplatne.nazev">Jednorázový nákup</div>
-          <p style="color:rgba(255,255,255,.8);font-size:14px;line-height:1.5;margin:0 0 4px;" data-text="predplatne.popis">Zaplatíte jednou, přístup máte navždy — celý průvodce, kalkulačky a prioritní konzultace. Jednorázově 999 Kč.</p>
+          <div style="font-size:1.625rem;font-weight:800;margin:6px 0;" data-text="predplatne.nazev">Jednorázový nákup</div>
+          <p style="color:rgba(255,255,255,.8);font-size:0.875rem;line-height:1.5;margin:0 0 4px;" data-text="predplatne.popis">Zaplatíte jednou, přístup máte navždy — celý průvodce, kalkulačky a prioritní konzultace. Jednorázově 999 Kč.</p>
         </div>
         <div class="field" style="margin-top:18px;">
           <label data-text="predplatne.kod.label">Promo kód</label>
@@ -1761,12 +1788,12 @@ function openService(id){
         txt('sluzby.zamek.btn','Získat PREMIUM přístup')+'</button>':'')+
     (x.zamceno ? '' :
       ((x.hrozi&&x.hrozi.length?'<div class="section-label" data-text="sluzby.hrozi.stitek" style="margin-top:14px;">'+txt('sluzby.hrozi.stitek','Co vám hrozí')+'</div>'+
-        '<div class="card" data-sluzba="'+(x.sid||x.id)+':hrozi">'+x.hrozi.map(h=>'<div style="display:flex;gap:9px;padding:5px 0;"><span style="color:var(--orange);font-weight:800;">•</span><span style="font-size:13.5px;line-height:1.45;color:var(--ink-soft);">'+h+'</span></div>').join('')+'</div>':'')+
+        '<div class="card" data-sluzba="'+(x.sid||x.id)+':hrozi">'+x.hrozi.map(h=>'<div style="display:flex;gap:9px;padding:5px 0;"><span style="color:var(--orange);font-weight:800;">•</span><span style="font-size:0.8438rem;line-height:1.45;color:var(--ink-soft);">'+h+'</span></div>').join('')+'</div>':'')+
        ((x.pomoc&&x.pomoc.length)?'<div class="section-label" data-text="sluzby.pomoc.stitek" style="margin-top:14px;">'+txt('sluzby.pomoc.stitek','Jak pomůžeme')+'</div>'+
-        '<div class="card" data-sluzba="'+(x.sid||x.id)+':pomoc">'+x.pomoc.map(h=>'<div style="display:flex;gap:9px;padding:5px 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;margin-top:2px;"><path d="M20 6L9 17l-5-5"/></svg><span style="font-size:13.5px;line-height:1.45;color:var(--ink-soft);">'+h+'</span></div>').join('')+'</div>':'')))+
+        '<div class="card" data-sluzba="'+(x.sid||x.id)+':pomoc">'+x.pomoc.map(h=>'<div style="display:flex;gap:9px;padding:5px 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;margin-top:2px;"><path d="M20 6L9 17l-5-5"/></svg><span style="font-size:0.8438rem;line-height:1.45;color:var(--ink-soft);">'+h+'</span></div>').join('')+'</div>':'')))+
     '<div class="card" style="margin-top:12px;background:var(--cream);border:1px solid var(--cream-line);">'+
       '<div class="eyebrow" data-text="sluzby.cena.stitek" style="color:#a5713f;margin-bottom:4px;">'+txt('sluzby.cena.stitek','Pevná cena')+'</div>'+
-      '<div class="title-md" data-text="sluzby.cena.nadpis" style="font-size:16px;">'+txt('sluzby.cena.nadpis','Zastupování už od 10 000 Kč')+'</div>'+
+      '<div class="title-md" data-text="sluzby.cena.nadpis" style="font-size:1rem;">'+txt('sluzby.cena.nadpis','Zastupování už od 10 000 Kč')+'</div>'+
       '<p class="small" data-text="sluzby.cena.popis" style="margin:6px 0 0;color:#6b5a44;line-height:1.45;">'+txt('sluzby.cena.popis','Cenu znáte předem a nemění se podle náročnosti případu. Konzultace je zdarma, obhajoba po celé ČR.')+'</p></div>'+
     (x.tpc?'<div class="list-card" style="margin-top:12px;"><div class="list-item" onclick="openTopic(\''+x.tpc[0]+'\',\''+x.tpc[1].replace(/'/g,"\\'")+'\')">'+
       '<div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>'+
@@ -1809,7 +1836,7 @@ function renderGuideOblasti(){
         ? '<div class="oblast-temata">'+(temata.length
             ? temata.map(t=>'<div class="list-item" style="padding-left:24px;border-bottom:none;" '+
                 'onclick="event.stopPropagation();openTopic(\''+o.id+'\',\''+t.t.replace(/'/g,"\\'")+'\')">'+
-                '<div class="li-body"><h4 style="font-size:13.5px;">'+t.t+znackaPristupu(!!(t.vip ?? t.zamceno))+'</h4>'+
+                '<div class="li-body"><h4 style="font-size:0.8438rem;">'+t.t+znackaPristupu(!!(t.vip ?? t.zamceno))+'</h4>'+
                 /* U zamčeného tématu se popisek neukazuje. Bývá to celá
                    odpověď („10 let praxe, 5 let bez zákazu, nula bodů") —
                    ukázat ho znamená rozdat placený obsah v seznamu. */
@@ -1886,7 +1913,7 @@ function renderOblasti(){
              tématu se popisek neukazuje, protože u krátkých témat je to celá
              odpověď. Do buildu 125 se tu ukazoval — bez štítku, takže to ani
              nevypadalo jako placený obsah. */
-          (arts.length?arts.map(t=>'<div class="list-item" style="padding-left:26px;border-bottom:none;" onclick="event.stopPropagation();openTopic(\''+t.oblastId+'\',\''+t.t.replace(/'/g,"\\'")+'\')"><div class="li-body"><h4 style="font-size:13.5px;">'+t.t+znackaPristupu(!!(t.vip ?? t.zamceno))+'</h4><p>'+(t.zamceno ? txt('clanek.zamceny.perex','Odemkne PREMIUM přístup.') : t.d)+'</p></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>').join('')
+          (arts.length?arts.map(t=>'<div class="list-item" style="padding-left:26px;border-bottom:none;" onclick="event.stopPropagation();openTopic(\''+t.oblastId+'\',\''+t.t.replace(/'/g,"\\'")+'\')"><div class="li-body"><h4 style="font-size:0.8438rem;">'+t.t+znackaPristupu(!!(t.vip ?? t.zamceno))+'</h4><p>'+(t.zamceno ? txt('clanek.zamceny.perex','Odemkne PREMIUM přístup.') : t.d)+'</p></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>').join('')
             :'<div style="padding:12px 26px;"><p class="small muted" style="margin:0 0 8px;line-height:1.5;">Obsah pro tuto oblast připravujeme. Potřebujete poradit hned?</p><button class="btn btn-dark btn-sm" onclick="event.stopPropagation();go(\'konzultace\')">Konzultace zdarma</button></div>')+
         '</div>':'');
     }).join('')+'</div>';
@@ -1916,9 +1943,9 @@ function openTopic(oblastId,title){
   const t=o.topics.find(x=>x.t===title);
   document.getElementById('topicBody').innerHTML=`
     <div class="card" style="margin-bottom:12px;">
-      <div class="cat" data-clanek="kategorie" style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink-2);margin-bottom:6px;">${[o.n, t.c].filter((x,i,p) => x && p.indexOf(x) === i).join(' · ')}</div>
+      <div class="cat" data-clanek="kategorie" style="font-size:0.6875rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink-2);margin-bottom:6px;">${[o.n, t.c].filter((x,i,p) => x && p.indexOf(x) === i).join(' · ')}</div>
       <h2 class="title-md" data-clanek="nadpis" style="margin-bottom:10px;">${t.t}${znackaPristupu(!!(t.vip ?? t.zamceno), castecneZamceny(t))}</h2>
-      ${(t.d && !t.zamceno) ? `<p data-clanek="perex" style="margin:0 0 10px;line-height:1.5;font-size:13px;color:var(--muted);">${t.d}</p>` : ''}
+      ${(t.d && !t.zamceno) ? `<p data-clanek="perex" style="margin:0 0 10px;line-height:1.5;font-size:0.8125rem;color:var(--muted);">${t.d}</p>` : ''}
       ${t.zamceno
         ? `<div class="zamek-blok">
              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.4" y="10.4" width="15.2" height="9.6" rx="2.4"/><path d="M8 10.4V7.8a4 4 0 0 1 8 0v2.6"/></svg>
@@ -2046,7 +2073,7 @@ function renderZpravy(){
   const zpr = vsechnyZpravy();
   if(!zpr.length){
     const bylySmazane = smazaneZpravy().length > 0;
-    cil.innerHTML = `<div class="card" style="text-align:center;color:var(--muted);font-size:13.5px;">
+    cil.innerHTML = `<div class="card" style="text-align:center;color:var(--muted);font-size:0.8438rem;">
         Žádná oznámení.
         ${bylySmazane ? `<div><button class="btn btn-outline-dark btn-sm" style="margin-top:10px" onclick="obnovZpravy()">Zobrazit smazaná</button></div>` : ''}
       </div>`;
@@ -2058,7 +2085,7 @@ function renderZpravy(){
         <h4${z.klice&&z.klice.nadpis?` data-text="${z.klice.nadpis}"`:''}>${z.dulezita?'<span class="unread-dot"></span> ':''}${z.nadpis}</h4>
         <span class="date">${z.datum ? formatDatum(z.datum) : ''}
           ${z.dulezita ? '' : `<button onclick="smazZpravu('${z.id}')" title="Odstranit"
-             style="background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 0 2px 8px;">✕</button>`}
+             style="background:none;border:none;color:var(--muted);font-size:0.9375rem;cursor:pointer;padding:2px 0 2px 8px;">✕</button>`}
         </span>
       </div>
       ${z.telo ? `<p${z.klice&&z.klice.telo?` data-text="${z.klice.telo}"`:''}>${z.telo}</p>` : ''}
@@ -2270,7 +2297,7 @@ function openRecenze(){
 function openPostup(){
   document.getElementById('postupBody').innerHTML=
    seznam('postup', STEPS7.map(s=>({nadpis:s[0], text:s[1]})))
-     .map((st,i)=>`<div class="step-row"${znackaSeznamu(st)}><div class="step-num">${i+1}</div><div class="tx"><b>${st.nadpis}</b><br/><span style="color:var(--muted);font-size:13px;">${st.text}</span></div></div>`).join('')+
+     .map((st,i)=>`<div class="step-row"${znackaSeznamu(st)}><div class="step-num">${i+1}</div><div class="tx"><b>${st.nadpis}</b><br/><span style="color:var(--muted);font-size:0.8125rem;">${st.text}</span></div></div>`).join('')+
    `<button class="btn btn-dark" style="margin-top:16px;" onclick="go('konzultace')">Konzultace zdarma</button>`;
   go('postup');
 }
@@ -2351,7 +2378,7 @@ function oknoOdeslano(neprosly){
   const varovani = (neprosly && neprosly.length)
     ? '<div style="margin-top:14px;padding:11px 12px;border-radius:11px;text-align:left;'+
         'background:var(--pozor-bg);border:1px solid var(--pozor-line);color:var(--pozor-ink);'+
-        'font-size:12.5px;line-height:1.5">'+
+        'font-size:0.7812rem;line-height:1.5">'+
         '<b style="color:var(--pozor-nadpis)">'+
         (neprosly.length === 1 ? 'Přílohu se nepodařilo připojit'
                                : neprosly.length+' přílohy se nepodařilo připojit')+':</b> '+
@@ -2677,7 +2704,7 @@ function renderCalcG(){
     const nadpis=txt('kalk.'+node+'.nadpis', o.t);
     const telo=txt('kalk.'+node+'.text', o.x);
     B.innerHTML='<div class="result '+cls+'">'+
-      '<h4 style="font-size:18px;" data-text="kalk.'+node+'.nadpis">'+nadpis+'</h4>'+
+      '<h4 style="font-size:1.125rem;" data-text="kalk.'+node+'.nadpis">'+nadpis+'</h4>'+
       '<p style="white-space:pre-line;margin-top:8px;" data-text="kalk.'+node+'.text">'+telo+'</p></div>'+outBtns(o);
     return;
   }
@@ -3325,7 +3352,7 @@ function renderAccount(){
   if(!authUser && authStav !== 'neprihlasen'){
     const vypadek = authStav === 'nedostupne';
     box.innerHTML='<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:6px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
-      '<div class="title-md" data-text="'+(vypadek?'profil.ucet.vypadek':'profil.ucet.overuji')+'" style="font-size:16px;margin-bottom:4px;">'+
+      '<div class="title-md" data-text="'+(vypadek?'profil.ucet.vypadek':'profil.ucet.overuji')+'" style="font-size:1rem;margin-bottom:4px;">'+
         (vypadek ? txt('profil.ucet.vypadek','Přihlášení se nepodařilo ověřit')
                  : txt('profil.ucet.overuji','Ověřuji přihlášení…'))+'</div>'+
       '<div class="small muted" data-text="'+(vypadek?'profil.ucet.vypadek.popis':'profil.ucet.overuji.popis')+'">'+
@@ -3341,7 +3368,7 @@ function renderAccount(){
   if(authUser){
     box.innerHTML='<div class="row-between"><div style="min-width:0;">'+
       '<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:4px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
-      '<div class="title-md" style="font-size:16px;overflow:hidden;text-overflow:ellipsis;">'+authName()+'</div>'+
+      '<div class="title-md" style="font-size:1rem;overflow:hidden;text-overflow:ellipsis;">'+authName()+'</div>'+
       '<div data-text="profil.ucet.zaloha" class="small muted" style="margin-top:2px;">'+txt('profil.ucet.zaloha','Body řidiče a nastavení se zálohují')+'</div></div>'+
       '<button data-text="profil.ucet.odhlasit" class="btn btn-outline-dark btn-sm" style="width:auto;padding:10px 14px;" onclick="authSignOut()">'+txt('profil.ucet.odhlasit','Odhlásit')+'</button></div>'+
       /* Právo na přístup k údajům a na výmaz. Schovávat to do drobného písma
@@ -3350,7 +3377,7 @@ function renderAccount(){
         '<div class="row-between" style="gap:10px;flex-wrap:wrap;">'+
           '<button data-text="profil.data.stahnout" class="btn btn-outline-dark btn-sm" style="width:auto;padding:9px 13px;" onclick="stahniMojeData()">'+
             txt('profil.data.stahnout','Stáhnout moje data')+'</button>'+
-          '<button data-text="profil.data.zrusit" class="ob-free" style="width:auto;color:var(--err);padding:9px 4px;font-size:13.5px;" onclick="zrusUcet()">'+
+          '<button data-text="profil.data.zrusit" class="ob-free" style="width:auto;color:var(--err);padding:9px 4px;font-size:0.8438rem;" onclick="zrusUcet()">'+
             txt('profil.data.zrusit','Zrušit účet')+'</button>'+
         '</div>'+
         '<p data-text="profil.data.popis" class="small muted" style="margin:8px 0 0;line-height:1.45;">'+
@@ -3363,7 +3390,7 @@ function renderAccount(){
       /* Text obsahuje tučnou adresu, takže se nedá dosadit jako holý text —
          značka je proto data-zdroj, podle které ho pozná i náhled. */
       box.innerHTML='<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:6px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
-        '<div data-text="profil.ucet.kod.nadpis" class="title-md" style="font-size:16px;margin-bottom:4px;">'+
+        '<div data-text="profil.ucet.kod.nadpis" class="title-md" style="font-size:1rem;margin-bottom:4px;">'+
           txt('profil.ucet.kod.nadpis','Otevřete si e-mail')+'</div>'+
         '<div data-zdroj="text:profil.ucet.kod.popis" class="small muted" style="margin-bottom:10px;line-height:1.45;">'+
           txt('profil.ucet.kod.popis','Poslali jsme ho na {email}. Je v něm odkaz i číselný kód — stačí jedno z toho. Když čtete poštu na počítači, opište sem kód.',
@@ -3385,7 +3412,7 @@ function renderAccount(){
     }
     let posledni=''; try{ posledni = localStorage.getItem('pr-ucet-email')||''; }catch(e){}
     box.innerHTML='<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:6px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
-      '<div data-text="profil.ucet.neprihlasen" class="title-md" style="font-size:16px;margin-bottom:4px;">'+txt('profil.ucet.neprihlasen','Nepřihlášeno')+'</div>'+
+      '<div data-text="profil.ucet.neprihlasen" class="title-md" style="font-size:1rem;margin-bottom:4px;">'+txt('profil.ucet.neprihlasen','Nepřihlášeno')+'</div>'+
       '<div data-text="profil.ucet.nepr" class="small muted" style="margin-bottom:10px;">'+txt('profil.ucet.nepr','Přihlášením se vám vrátí body řidiče, nastavení i PREMIUM přístup — třeba po přechodu na nový telefon.')+'</div>'+
       '<input data-ph="profil.ucet.ph" class="pole-input" id="uctEmail" aria-label="Váš e-mail" type="email" inputmode="email" autocomplete="email" '+
         'autocapitalize="off" spellcheck="false" placeholder="'+txt('profil.ucet.ph','vas@email.cz')+'" '+
@@ -3617,10 +3644,10 @@ function obCekani(){
   B.innerHTML = '<div class="ob-step"><div class="ob-fill"></div>'+
     '<div style="text-align:center;">'+
     '<svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#F4B59D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:14px;"><rect x="2.6" y="4.8" width="18.8" height="14.4" rx="2.4"/><path d="M3.4 6.6l8.6 6 8.6-6"/></svg>'+
-    '<h1 class="title-lg" data-text="onboard.cekani.nadpis" style="font-size:24px;">'+txt('onboard.cekani.nadpis','Otevřete si e-mail')+'</h1>'+
+    '<h1 class="title-lg" data-text="onboard.cekani.nadpis" style="font-size:1.5rem;">'+txt('onboard.cekani.nadpis','Otevřete si e-mail')+'</h1>'+
     /* Text obsahuje tučnou adresu, takže se nedá jen dosadit jako holý text —
        značka je proto data-zdroj, podle které ho náhled pozná taky. */
-    '<p data-zdroj="text:onboard.cekani.popis" style="font-size:14px;margin-top:10px;">'+
+    '<p data-zdroj="text:onboard.cekani.popis" style="font-size:0.875rem;margin-top:10px;">'+
       txt('onboard.cekani.popis','Poslali jsme e-mail na {email}. Je v něm odkaz i číselný kód — stačí jedno z toho.',
           {email: '<b>'+(ob.email||'')+'</b>'})+'</p></div>'+
     '<div class="ob-fill"></div>'+
@@ -3630,13 +3657,13 @@ function obCekani(){
       txt('onboard.cekani.kod.label','Kód z e-mailu')+'</div>'+
     '<input class="ob-code" id="obKodEmail" inputmode="numeric" autocomplete="one-time-code" maxlength="10" '+
       'data-ph="onboard.cekani.kod.ph" placeholder="'+txt('onboard.cekani.kod.ph','opište kód z e-mailu')+'" '+
-      'style="letter-spacing:.28em;font-size:22px;font-weight:700;" onkeydown="if(event.key===\'Enter\')obOverKod()" />'+
-    '<p data-text="onboard.cekani.kod.pozn" style="font-size:12.5px;opacity:.72;margin-top:9px;">'+
+      'style="letter-spacing:.28em;font-size:1.375rem;font-weight:700;" onkeydown="if(event.key===\'Enter\')obOverKod()" />'+
+    '<p data-text="onboard.cekani.kod.pozn" style="font-size:0.7812rem;opacity:.72;margin-top:9px;">'+
       txt('onboard.cekani.kod.pozn','Odkaz v e-mailu přihlásí jen to zařízení, na kterém ho otevřete. Když čtete poštu na počítači, opište sem kód.')+'</p>'+
     '<div id="obChybaKod" class="ob-chyba"></div>'+
     '<button class="btn btn-peach" id="obKodBtn" data-text="onboard.cekani.kod.btn" style="margin-top:12px;" onclick="obOverKod()">'+
       txt('onboard.cekani.kod.btn','Potvrdit')+'</button>'+
-    '<p data-text="onboard.cekani.spam" style="font-size:12.5px;opacity:.72;margin-top:14px;text-align:center;">'+
+    '<p data-text="onboard.cekani.spam" style="font-size:0.7812rem;opacity:.72;margin-top:14px;text-align:center;">'+
       txt('onboard.cekani.spam','Nepřišel? Podívejte se do spamu — první zpráva tam občas spadne.')+'</p>'+
     '<button class="btn btn-outline" data-text="onboard.cekani.znovu" style="margin-top:10px;" onclick="obZnovu()">'+txt('onboard.cekani.znovu','Poslat znovu')+'</button>'+
     '<button class="ob-free" data-text="onboard.cekani.jiny" style="margin-top:4px;" onclick="obZpetNaEmail()">'+txt('onboard.cekani.jiny','Zadat jiný e-mail')+'</button></div>';
@@ -3748,7 +3775,7 @@ function renderOb(){
       /* Pole zůstává v obrazovce i skryté, jen se nezobrazuje — administrace
          ho tak najde a Nela ho může upravit, aniž by musela mít telefon
          v tom správném stavu. */
-      '<p data-text="onboard.uvod.plocha.pozn" style="font-size:12px;opacity:.7;text-align:center;margin-top:8px;line-height:1.4;'+
+      '<p data-text="onboard.uvod.plocha.pozn" style="font-size:0.75rem;opacity:.7;text-align:center;margin-top:8px;line-height:1.4;'+
         (isStandalone() ? 'display:none;' : '')+'">'+
         txt('onboard.uvod.plocha.pozn','Přidejte si ji radši hned teď. Aplikace na ploše má vlastní úložiště, takže po pozdějším přidání se budete přihlašovat znovu.')+'</p>'+
       '<button class="ob-free" data-text="onboard.uvod.prihlasit" style="margin-top:6px;" onclick="obNaPrihlaseni()">'+
@@ -3760,9 +3787,9 @@ function renderOb(){
   if(ob.step===1){
     B.innerHTML='<div class="ob-step"><div style="height:26px;"></div>'+
       '<div class="ob-eyebrow" data-text="onboard.body.stitek">'+txt('onboard.body.stitek','Proč sledovat body řidiče')+'</div>'+
-      '<h1 class="title-lg" data-text="onboard.body.nadpis" style="font-size:30px;">'+txt('onboard.body.nadpis','Vybodování se dá předejít.')+'</h1>'+
-      '<p data-text="onboard.body.text1" style="font-size:15.5px;">'+txt('onboard.body.text1','Po nasbírání 12 bodů řidiče přijdete o řidičský průkaz na 12 měsíců. Body řidiče lze ověřit jen u úřadu, takže mnoho řidičů je zná až ve chvíli, kdy je pozdě.')+'</p>'+
-      '<p data-text="onboard.body.text2" style="font-size:15.5px;margin-top:12px;">'+txt('onboard.body.text2','Aplikace vám pomůže držet přehled. Když si zaznamenáte aktuální stav, uvidíte varování na kartě Zprávy — typicky už při 9 bodech řidiče — abyste měli čas reagovat.')+'</p>'+
+      '<h1 class="title-lg" data-text="onboard.body.nadpis" style="font-size:1.875rem;">'+txt('onboard.body.nadpis','Vybodování se dá předejít.')+'</h1>'+
+      '<p data-text="onboard.body.text1" style="font-size:0.9688rem;">'+txt('onboard.body.text1','Po nasbírání 12 bodů řidiče přijdete o řidičský průkaz na 12 měsíců. Body řidiče lze ověřit jen u úřadu, takže mnoho řidičů je zná až ve chvíli, kdy je pozdě.')+'</p>'+
+      '<p data-text="onboard.body.text2" style="font-size:0.9688rem;margin-top:12px;">'+txt('onboard.body.text2','Aplikace vám pomůže držet přehled. Když si zaznamenáte aktuální stav, uvidíte varování na kartě Zprávy — typicky už při 9 bodech řidiče — abyste měli čas reagovat.')+'</p>'+
       '<div class="ob-fill"></div>'+
       '<div class="ob-actions"><button class="btn btn-peach" data-text="onboard.body.btn" onclick="obGo(1)">'+txt('onboard.body.btn','Pokračovat')+'</button></div></div>';
     return;
@@ -3770,11 +3797,11 @@ function renderOb(){
   if(ob.step===2){
     B.innerHTML='<div class="ob-step"><div style="height:26px;"></div>'+
       '<div class="ob-eyebrow" data-text="onboard.stav.stitek">'+txt('onboard.stav.stitek','Aktuální stav')+'</div>'+
-      '<h1 class="title-lg" data-text="onboard.stav.nadpis" style="font-size:30px;">'+txt('onboard.stav.nadpis','Kolik máte aktuálně bodů řidiče?')+'</h1>'+
-      '<p data-text="onboard.stav.popis" style="font-size:15px;">'+txt('onboard.stav.popis','Nastavte stav z karty řidiče. Můžete vyplnit i později v profilu.')+'</p>'+
+      '<h1 class="title-lg" data-text="onboard.stav.nadpis" style="font-size:1.875rem;">'+txt('onboard.stav.nadpis','Kolik máte aktuálně bodů řidiče?')+'</h1>'+
+      '<p data-text="onboard.stav.popis" style="font-size:0.9375rem;">'+txt('onboard.stav.popis','Nastavte stav z karty řidiče. Můžete vyplnit i později v profilu.')+'</p>'+
       '<div class="ob-fill"></div>'+
       '<div class="ob-count"><button class="round-btn" onclick="obPoints(-1)">−</button><div class="num">'+ob.points+'</div><button class="round-btn" onclick="obPoints(1)">+</button></div>'+
-      '<div data-text="onboard.stav.jednotka" style="text-align:center;font-size:13px;color:rgba(255,255,255,.7);margin-bottom:14px;">'+txt('onboard.stav.jednotka','z 12 bodů řidiče')+'</div>'+
+      '<div data-text="onboard.stav.jednotka" style="text-align:center;font-size:0.8125rem;color:rgba(255,255,255,.7);margin-bottom:14px;">'+txt('onboard.stav.jednotka','z 12 bodů řidiče')+'</div>'+
       '<div class="ob-note" onclick="ob.notif=!ob.notif;renderOb()"><div class="toggle '+(ob.notif?'on':'')+'" role="switch" tabindex="0" aria-checked="true" style="pointer-events:none;" onkeydown="klavesaPrepinac(event, this)"></div><div class="tx" data-text="onboard.stav.notif">'+txt('onboard.stav.notif','Chci dostávat upozornění, když se přiblížím k 12 bodům řidiče.')+'</div></div>'+
       '<div class="ob-fill"></div>'+
       '<div class="ob-actions"><button class="btn btn-peach" data-text="onboard.stav.btn" onclick="obFinish(true)">'+txt('onboard.stav.btn','Dokončit')+'</button>'+
@@ -3783,13 +3810,13 @@ function renderOb(){
   }
   B.innerHTML='<div class="ob-step"><div style="height:18px;"></div>'+
     '<div class="ob-eyebrow" data-text="onboard.reg.stitek">'+txt('onboard.reg.stitek','Registrace')+'</div>'+
-    '<h1 class="title-lg" data-text="onboard.reg.nadpis" style="font-size:25px;">'+txt('onboard.reg.nadpis','Ještě váš e-mail a jsme hotovi.')+'</h1>'+
-    '<p data-text="onboard.reg.popis" style="font-size:13.5px;margin-top:9px;">'+txt('onboard.reg.popis','Pošleme na něj potvrzovací odkaz. Slouží k zálohování bodů řidiče, zprávám od advokáta a k aktivaci PREMIUM přístupu.')+'</p>'+
+    '<h1 class="title-lg" data-text="onboard.reg.nadpis" style="font-size:1.5625rem;">'+txt('onboard.reg.nadpis','Ještě váš e-mail a jsme hotovi.')+'</h1>'+
+    '<p data-text="onboard.reg.popis" style="font-size:0.8438rem;margin-top:9px;">'+txt('onboard.reg.popis','Pošleme na něj potvrzovací odkaz. Slouží k zálohování bodů řidiče, zprávám od advokáta a k aktivaci PREMIUM přístupu.')+'</p>'+
     /* Aplikace spuštěná z plochy poprvé: buď je člověk opravdu nový, nebo
        ji používal v prohlížeči a přišel o přihlášení. Rozeznat to nejde,
        proto se to řekne jako podmínka — novému to nevadí, druhému to ušetří
        hledání, proč je jeho přístup pryč. */
-    '<p data-text="onboard.reg.zplochy" style="font-size:12.5px;opacity:.75;margin-top:8px;line-height:1.45;'+
+    '<p data-text="onboard.reg.zplochy" style="font-size:0.7812rem;opacity:.75;margin-top:8px;line-height:1.45;'+
       (isStandalone() ? '' : 'display:none;')+'">'+
       txt('onboard.reg.zplochy','Používali jste aplikaci v prohlížeči? Přihlaste se stejným e-mailem — přístup i firemní kód se vrátí.')+'</p>'+
     '<div class="ob-fill"></div>'+
@@ -3801,12 +3828,12 @@ function renderOb(){
     '<input class="ob-code" id="obCodeInput" autocapitalize="characters" data-ph="onboard.reg.kod.ph" placeholder="'+txt('onboard.reg.kod.ph','např. FIRMA-4K2A')+'" value="'+(ob.kod||'')+'" />'+
     /* Když kód přišel z QR kartičky, řekne se to — jinak by vypadal jako
        něco, co si tam uživatel omylem napsal sám. */
-    '<p data-text="onboard.reg.kod.zqr" style="font-size:12.5px;color:var(--turq-deep);margin-top:6px;'+
+    '<p data-text="onboard.reg.kod.zqr" style="font-size:0.7812rem;color:var(--turq-deep);margin-top:6px;'+
       (ob.kodZQr ? '' : 'display:none;')+'">'+
       txt('onboard.reg.kod.zqr','Kód jsme doplnili z vaší kartičky. Stačí zadat e-mail.')+'</p>'+
     '<div id="obChyba" class="ob-chyba"></div>'+
     '<button class="btn btn-peach" data-text="onboard.reg.btn" style="margin-top:14px;" id="obOdeslat" onclick="obRegistrace()">'+txt('onboard.reg.btn','Pokračovat')+'</button>'+
-    '<p data-text="onboard.reg.souhlas" style="font-size:11.5px;opacity:.72;margin-top:9px;text-align:center;">'+
+    '<p data-text="onboard.reg.souhlas" style="font-size:0.7188rem;opacity:.72;margin-top:9px;text-align:center;">'+
       txt('onboard.reg.souhlas','Odesláním souhlasíte se zpracováním osobních údajů.')+'</p></div>';
 
 }
@@ -3949,6 +3976,33 @@ function nastavTema(t){
   try{ localStorage.setItem('pr-tema',t); }catch(e){}
   pouzijTema(t);
 }
+
+/* ===== VELIKOST PÍSMA =====
+   Tři stupně nad základem: normální (112,5 %), větší (125 %), největší
+   (137,5 %). „Dost velké" není jedno číslo — co stačí jednomu, nestačí
+   jeho otci. */
+function nactiPismo(){
+  /* V náhledu vždy základní velikost. Jinak by administrace ukazovala
+     aplikaci zvětšenou podle toho, co si kdysi nastavil ten, kdo ji
+     otevřel — a vypadalo by to, že tak ji vidí klient. Stejné pravidlo
+     jako u tmavého režimu. */
+  if(/[?&]nahled=1/.test(location.search)){
+    document.documentElement.removeAttribute('data-pismo'); return;
+  }
+  let p='normalni';
+  try{ p = localStorage.getItem('pr-pismo') || 'normalni'; }catch(e){}
+  pouzijPismo(p);
+}
+function pouzijPismo(p){
+  const h=document.documentElement;
+  if(p==='normalni') h.removeAttribute('data-pismo'); else h.setAttribute('data-pismo',p);
+  document.querySelectorAll('#pismoVolby button').forEach(b=>
+    b.classList.toggle('on', b.dataset.pismo===p));
+}
+function nastavPismo(p){
+  try{ localStorage.setItem('pr-pismo',p); }catch(e){}
+  pouzijPismo(p);
+}
 function openUpozorneni(){ renderUpozorneni(); go('upozorneni'); }
 function toggleNotifCfg(k){ const c=getNotifCfg(); c[k]=!c[k]; setNotifCfg(c); renderUpozorneni(); }
 /* Po vykreslení obrazovky se doplní stav odběru. */
@@ -3962,7 +4016,7 @@ function setPrah(v){ const c=getNotifCfg(); c.prah=+v; setNotifCfg(c); renderUpo
 function saveNotifMail(){ const c=getNotifCfg(); c.email=(document.getElementById('nEmail').value||'').trim(); setNotifCfg(c); toast(c.email?'E-mail uložen.':'E-mail smazán.'); }
 function setPredstih(v){ const c=getNotifCfg(); c.predstih=+v; setNotifCfg(c); renderUpozorneni(); if(authUser)pushProfile(); }
 function sw(k,t,d,on,kt,kd){ const zn = x => x ? ' data-text="'+x+'"' : '';
-  return '<div class="card"><div class="row-between"><div style="min-width:0;padding-right:10px;"><div class="title-md"'+zn(kt)+' style="font-size:15.5px;">'+t+'</div><div class="small muted"'+zn(kd)+' style="margin-top:3px;line-height:1.4;">'+d+'</div></div><div class="toggle '+(on?'on':'')+'" role="switch" tabindex="0" aria-checked="true" onclick="toggleNotifCfg(\''+k+'\')" onkeydown="klavesaPrepinac(event, this)"></div></div></div>'; }
+  return '<div class="card"><div class="row-between"><div style="min-width:0;padding-right:10px;"><div class="title-md"'+zn(kt)+' style="font-size:0.9688rem;">'+t+'</div><div class="small muted"'+zn(kd)+' style="margin-top:3px;line-height:1.4;">'+d+'</div></div><div class="toggle '+(on?'on':'')+'" role="switch" tabindex="0" aria-checked="true" onclick="toggleNotifCfg(\''+k+'\')" onkeydown="klavesaPrepinac(event, this)"></div></div></div>'; }
 /* Karta se dokresluje zvlášť: stav odběru se zjišťuje ze service workeru,
    což trvá, a obrazovka nemá čekat. */
 async function kresliPushKartu(){
@@ -3976,7 +4030,7 @@ async function kresliPushKartu(){
   el.innerHTML =
     '<div class="section-label" style="margin-top:14px;">Upozornění do telefonu</div>' +
     '<div class="card"><div class="row-between" style="align-items:center;gap:12px;">' +
-      '<div class="title-md" style="font-size:16px;flex:1;min-width:0;">Zprávy z kanceláře i do zamčeného telefonu</div>' +
+      '<div class="title-md" style="font-size:1rem;flex:1;min-width:0;">Zprávy z kanceláře i do zamčeného telefonu</div>' +
       (nedostupne ? '' :
         '<div class="toggle ' + (zapnuto ? 'on' : '') + '" role="switch" tabindex="0" aria-checked="' +
         (zapnuto ? 'true' : 'false') + '" aria-label="Upozornění do telefonu" ' +
@@ -4006,7 +4060,7 @@ function renderUpozorneni(){
     /* Souhlas se zálohou. Bez něj termíny fungují, ale upozornění dorazí až
        při otevření aplikace — proto je hned nad přepínači termínů. */
     '<div class="card" style="margin-bottom:8px;"><div class="row-between" style="align-items:center;gap:12px;">'+
-      '<div class="title-md" style="font-size:16px;flex:1;min-width:0;" data-text="upozorneni.zaloha.nadpis">'+
+      '<div class="title-md" style="font-size:1rem;flex:1;min-width:0;" data-text="upozorneni.zaloha.nadpis">'+
         txt('upozorneni.zaloha.nadpis','Zálohovat vozidla a termíny')+'</div>'+
       '<div class="toggle '+(maZalohu()?'on':'')+'" role="switch" tabindex="0" aria-checked="'+(maZalohu()?'true':'false')+'" '+
         'aria-label="Zálohovat vozidla a termíny" onclick="prepniZalohu()" onkeydown="klavesaPrepinac(event, this)"></div>'+
@@ -4334,7 +4388,7 @@ function openNehoda(){
     ['Hrozí vám postih?','Nepodepisujte nic, čím si nejste jistí, a ozvěte se nám — konzultace je zdarma.']];
   document.getElementById('nehodaBody').innerHTML=
     seznam('nehoda', KROKY.map(k=>({nadpis:k[0], text:k[1]})))
-    .map((k,i)=>`<div class="step-row"${znackaSeznamu(k)}><div class="step-num">${i+1}</div><div class="tx"><b>${k.nadpis}</b><br/><span style="color:var(--muted);font-size:13px;line-height:1.45;">${k.text}</span></div></div>`).join('')+
+    .map((k,i)=>`<div class="step-row"${znackaSeznamu(k)}><div class="step-num">${i+1}</div><div class="tx"><b>${k.nadpis}</b><br/><span style="color:var(--muted);font-size:0.8125rem;line-height:1.45;">${k.text}</span></div></div>`).join('')+
     `<button data-text="nehoda.bouracka" class="btn btn-ghost" style="margin-top:14px;" onclick="openExt(odk('odkaz.bouracka','https://www.bouracka.cz/'))">${txt('nehoda.bouracka','Otevřít Bouračka.cz — záznam o nehodě')}</button>
     <div class="section-label" style="margin-top:14px;">Vaše asistence a pojišťovna</div>
     <div class="list-card">${kontakty}</div>
@@ -4577,7 +4631,7 @@ function renderVozidla(){
             ? (doSplatnosti < 0 ? ' — <b style="color:var(--red)">po splatnosti</b>' : ' — zbývá ' + doSplatnosti + ' ' + plural(doSplatnosti,'den','dny','dní')) : '') + '</div>' : '') +
         '<span class="g-stitek" style="background:' + s[3] + ';color:' + s[2] + '">' + s[1] + '</span>' +
         '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;">' +
-          '<select onchange="zmenStavPokuty(\'' + p.id + '\', this.value)" style="flex:1 1 130px;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-family:inherit;font-size:13.5px;background:var(--card);color:var(--ink);">' +
+          '<select onchange="zmenStavPokuty(\'' + p.id + '\', this.value)" style="flex:1 1 130px;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-family:inherit;font-size:0.8438rem;background:var(--card);color:var(--ink);">' +
             STAVY_POKUT.map(x => '<option value="' + x[0] + '"' + (p.stav === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select>' +
           '<button data-text="garaz.pokuta.advokat" class="btn btn-outline-dark btn-sm" style="flex:1 1 130px;width:auto;" onclick="pokutaKAdvokatovi(\'' + p.id + '\')">' +
             txt('garaz.pokuta.advokat','Nechat prověřit') + '</button>' +
@@ -4732,11 +4786,11 @@ async function kresliDoklady(klic, kam){
   el.innerHTML = rada.map(d =>
     '<div class="row-between" style="align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);">'+
       '<div style="min-width:0;flex:1;">'+
-        '<div style="font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escT(d.nazev)+'</div>'+
+        '<div style="font-size:0.8438rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escT(d.nazev)+'</div>'+
         '<div class="small muted">'+Math.max(1, Math.round(d.velikost/1024))+' kB · jen v telefonu</div>'+
       '</div>'+
-      '<button class="btn btn-outline-dark btn-sm" style="width:auto;padding:6px 10px;font-size:12.5px;" onclick="otevriDoklad(\''+d.id+'\')">Otevřít</button>'+
-      '<button class="ob-free" style="width:auto;color:var(--err);padding:6px;font-size:12.5px;" onclick="odeberDoklad(\''+d.id+'\',\''+escT(klic)+'\',\''+escT(kam||'')+'\')">Smazat</button>'+
+      '<button class="btn btn-outline-dark btn-sm" style="width:auto;padding:6px 10px;font-size:0.7812rem;" onclick="otevriDoklad(\''+d.id+'\')">Otevřít</button>'+
+      '<button class="ob-free" style="width:auto;color:var(--err);padding:6px;font-size:0.7812rem;" onclick="odeberDoklad(\''+d.id+'\',\''+escT(klic)+'\',\''+escT(kam||'')+'\')">Smazat</button>'+
     '</div>').join('');
 }
 
@@ -5282,8 +5336,8 @@ async function nactiObsah(){
            předává datovým atributem, ne textem v kódu. */
         cil.innerHTML = bloky.map(t=>`
           <div class="card" data-blok="${escT(t.klic)}" style="margin-top:10px;">
-            ${t.popis ? `<h3 style="margin:0 0 6px;font-size:15px;font-weight:800;">${escT(t.popis)}</h3>` : ''}
-            <p style="margin:0;font-size:13.5px;line-height:1.55;color:var(--ink-soft);white-space:pre-line;">${escT(t.hodnota)}</p>
+            ${t.popis ? `<h3 style="margin:0 0 6px;font-size:0.9375rem;font-weight:800;">${escT(t.popis)}</h3>` : ''}
+            <p style="margin:0;font-size:0.8438rem;line-height:1.55;color:var(--ink-soft);white-space:pre-line;">${escT(t.hodnota)}</p>
             ${t.odkaz ? `<button class="btn btn-outline-dark btn-sm" style="margin-top:10px"
                 data-odkaz="${escT(t.odkaz)}" data-nove="${t.nove_okno !== false ? '1' : ''}"
                 onclick="openExt(this.dataset.odkaz, !!this.dataset.nove)">${escT(t.odkaz_text || 'Otevřít')}</button>` : ''}
@@ -5327,6 +5381,7 @@ async function nactiObsah(){
 
 loadState();
 nactiTema();
+nactiPismo();
 fitNavSafe();
 setTimeout(nactiObsah, 60);
 setTimeout(ohlasInstalaci, 900);

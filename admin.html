@@ -415,7 +415,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 136</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 137</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -1481,6 +1481,11 @@ const POLE_OBRAZOVKA = {
   'profil.tema.auto':'profil',
   'profil.tema.svetly':'profil',
   'profil.tema.tmavy':'profil',
+  'profil.pismo.stitek':'profil',
+  'profil.pismo.normalni':'profil',
+  'profil.pismo.vetsi':'profil',
+  'profil.pismo.nejvetsi':'profil',
+  'profil.pismo.popis':'profil',
   'profil.odkazy.stitek':'profil',
   'profil.odkaz.recenze.nadpis':'profil',
   'profil.odkaz.recenze.popis':'profil',
@@ -1545,11 +1550,11 @@ const POLE_OBRAZOVKA = {
 const SEZNAM_MISTO = {
   urady:    {obrazovka:'vozidla', poradi:660},
   nehoda:   {obrazovka:'nehoda', poradi:790},
-  recenze:  {obrazovka:'recenze', poradi:850},
-  postup:   {obrazovka:'postup', poradi:870},
-  tel:      {obrazovka:'kontakt', poradi:900},
-  mail:     {obrazovka:'kontakt', poradi:920},
-  pobocka:  {obrazovka:'kontakt', poradi:940}
+  recenze:  {obrazovka:'recenze', poradi:900},
+  postup:   {obrazovka:'postup', poradi:920},
+  tel:      {obrazovka:'kontakt', poradi:950},
+  mail:     {obrazovka:'kontakt', poradi:970},
+  pobocka:  {obrazovka:'kontakt', poradi:990}
 };
 
 /* Obrazovky každé karty: nejdřív samotná karta, pak podobrazovky v pořadí
@@ -1860,6 +1865,11 @@ const LIMIT_POLE = {
   'profil.tema.auto':120,
   'profil.tema.svetly':120,
   'profil.tema.tmavy':120,
+  'profil.pismo.stitek':30,
+  'profil.pismo.normalni':120,
+  'profil.pismo.vetsi':120,
+  'profil.pismo.nejvetsi':120,
+  'profil.pismo.popis':160,
   'profil.odkazy.stitek':30,
   'profil.odkaz.recenze.nadpis':60,
   'profil.odkaz.recenze.popis':160,
@@ -1920,6 +1930,8 @@ const LIMIT_POLE = {
 /* Vlastní bloky a co v tabulce přibylo později: rozumný strop, ať to nikdy
    nespadne na „bez omezení". */
 function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ? 400 : 200); }
+
+
 
 
 
