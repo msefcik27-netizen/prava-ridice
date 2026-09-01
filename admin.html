@@ -332,6 +332,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
   color:var(--muted);margin-right:2px;flex:0 0 auto}
 /* Hlášení, že náhled běží na jiné verzi aplikace než administrace. */
 .nahled-neshoda{color:var(--err);font-weight:700;text-transform:none;letter-spacing:0;font-size:12px;}
+.nahled-info{color:var(--muted);font-weight:600;text-transform:none;letter-spacing:0;font-size:12px;}
 .tel-jako{margin-top:0}
 .tel-jako button{padding:5px 9px;font-size:12px}
 .krok{display:flex;align-items:center;gap:9px;margin:22px 0 12px;font-weight:800;font-size:15px;color:var(--ink)}
@@ -417,7 +418,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 143</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 144</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -2074,6 +2075,7 @@ function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ?
 
 
 
+
 /* Jméno obrazovky se bere z aplikace — z pole, které ten nadpis drží.
    Když ho Nela přejmenuje, přejmenuje se i sekce v administraci. */
 function hodnotaPole(klic){
@@ -2235,11 +2237,24 @@ function kresliOvladaceNahledu(){
     /* Rozejde-li se verze aplikace v náhledu s verzí administrace, řekne se
        to nahlas. Právě tehdy začnou pole vypadat nefunkčně, i když nejsou —
        text v náhledu jen ještě nemá značku, na kterou by šlo klepnout. */
-    if(nahledBuild && nahledBuild !== BUILD_ADMIN){
+    /* Co v náhledu opravdu běží: verze aplikace a odkud má obsah. Obojí
+       hlásí sama aplikace, takže je to stav, ne domněnka. */
+    const muj = budeAdmin();
+    const info = [];
+    if(nahledBuild) info.push('aplikace build ' + nahledBuild);
+    if(nahledZdroj) info.push('obsah: ' + nahledZdroj);
+    if(info.length){
+      const s = document.createElement('span');
+      s.className = 'nahled-info';
+      s.textContent = ' · ' + info.join(' · ');
+      nadpis.appendChild(s);
+    }
+    /* Když se některé číslo nepodaří přečíst, radši se nehlásí nic.
+       Falešný poplach by obsluhu poslal nahrávat soubory dokola. */
+    if(nahledBuild && muj && nahledBuild !== muj){
       const p = document.createElement('span');
       p.className = 'nahled-neshoda';
-      p.textContent = ' · aplikace v náhledu je build ' + nahledBuild +
-        ', administrace ' + BUILD_ADMIN + ' — nahrajte index.html';
+      p.textContent = ' · administrace je ' + muj + ' — nahrajte index.html a sw.js';
       nadpis.appendChild(p);
     }
   }
@@ -2266,7 +2281,13 @@ function kresliOvladaceNahledu(){
    Windows vypadal tmavě, i když tak aplikaci nikdo nevidí. */
 /* Build aplikace, kterou právě ukazuje náhled. Hlásí ho sama při načtení. */
 let nahledBuild = null;
-const BUILD_ADMIN = '143';
+let nahledZdroj = null;
+/* Vlastní build se čte z hlavičky — z jediného místa, kde je vidět. */
+function budeAdmin(){
+  const el = document.querySelector('.verze');
+  const m = ((el && el.textContent) || '').match(/build\s*(\d+)/);
+  return m ? m[1] : null;
+}
 let nahledTema = 'svetly';
 function nahledTemaNastav(k){
   nahledTema = k;
@@ -2381,6 +2402,7 @@ window.addEventListener('message', ev => {
   if(z.pr !== 'nahled') return;
   if(z.pripraveno){
     nahledBuild = z.build || null;
+    nahledZdroj = z.zdroj || null;
     kresliOvladaceNahledu();
     posliNahled({ tema: nahledTema });
     /* Připomenout i velikost: náhled se překresluje a bez toho by se po
@@ -2395,6 +2417,12 @@ window.addEventListener('message', ev => {
     kresliOvladaceNahledu();
   }
   /* Klepnutí na spodní lištu v náhledu přepne i záložku administrace. */
+  /* Zdroj obsahu se v aplikaci pozná až po stažení — přijde tedy zvlášť,
+     později než ohlášení připravenosti. */
+  if(z.zdroj && !z.pripraveno){
+    nahledZdroj = z.zdroj; nahledBuild = z.build || nahledBuild;
+    kresliOvladaceNahledu();
+  }
   if(z.karta && z.karta !== nahledKarta && KARTY.includes(z.karta)) prepni(z.karta);
   /* Aplikace se přepnula sama — jen si poznamenáme kde jsme, ať se to
      zbytečně nepřekresluje dokola. */

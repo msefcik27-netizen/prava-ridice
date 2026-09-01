@@ -1052,7 +1052,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 143<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 144<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -5300,6 +5300,20 @@ function zdrojObsahu(odkud){
   obsahZDatabaze = odkud === 'databáze';
   const el = document.getElementById('zdrojObsahu');
   if(el) el.textContent = ' · obsah: ' + odkud;
+  /* Zdroj obsahu se pozná až po stažení, tedy později než ohlášení
+     připravenosti. Administraci se proto pošle znovu — jinak by v hlavičce
+     zůstalo, co platilo první vteřinu po startu. */
+  try { if(window.parent !== window) parent.postMessage(
+    Object.assign({ pr: 'nahled' }, popisVerze()), '*'); } catch(e) {}
+}
+
+/* Verze aplikace tak, jak ji ukazuje Profil. Jediný zdroj pravdy je ten
+   řádek — druhý výskyt čísla by se s ním dřív nebo později rozešel. */
+function popisVerze(){
+  const v = (document.querySelector('.ver') || {}).textContent || '';
+  const b = v.match(/build\s+(\d+)/);
+  const z = v.match(/obsah:\s*([^·]+)/);
+  return { build: b ? b[1] : null, zdroj: z ? z[1].trim() : null };
 }
 
 /* Obsah se po přihlášení načítá znovu, teď už jménem uživatele. Dvě stahování
@@ -5783,7 +5797,10 @@ if(NAHLED){
   /* Číslo buildu se posílá s sebou: administrace pak pozná, že má v náhledu
      starší aplikaci, než ke které má pole. Bez toho vypadá starý náhled úplně
      stejně jako nový a chyba se hledá v kódu, který je v pořádku. */
-  try { parent.postMessage({ pr: 'nahled', pripraveno: true, build: '141' }, '*'); } catch(e) {}
+  /* Číslo buildu i zdroj obsahu se čtou z řádku o verzi v Profilu — tedy
+     z toho, co je vidět na obrazovce. Opsané do konstanty by se při zvýšení
+     verze neposunulo a aplikace by o sobě tvrdila starší build, než je. */
+  try { parent.postMessage(Object.assign({ pr: 'nahled', pripraveno: true }, popisVerze()), '*'); } catch(e) {}
 }
 
 if('serviceWorker' in navigator && !NAHLED){ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).catch(()=>{}); }
