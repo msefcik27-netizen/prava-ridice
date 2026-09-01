@@ -417,7 +417,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 141</span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 143</span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -1305,10 +1305,10 @@ const POLE_OBRAZOVKA = {
   'prehled.body.varovani':'prehled',
   'prehled.body.btn1':'prehled',
   'prehled.vyzva.stitek':'prehled',
-  'prehled.vyzva.nadpis12':'prehled',
   'prehled.vyzva.nadpis8':'prehled',
-  'prehled.vyzva.text12':'prehled',
+  'prehled.vyzva.nadpis12':'prehled',
   'prehled.vyzva.text8':'prehled',
+  'prehled.vyzva.text12':'prehled',
   'prehled.vyzva.btn1':'prehled',
   'kontakt.telefon':'prehled',
   'prehled.vyzva.btn2':'prehled',
@@ -1742,10 +1742,10 @@ const LIMIT_POLE = {
   'prehled.body.varovani':120,
   'prehled.body.btn1':30,
   'prehled.vyzva.stitek':30,
-  'prehled.vyzva.nadpis12':120,
   'prehled.vyzva.nadpis8':120,
-  'prehled.vyzva.text12':400,
+  'prehled.vyzva.nadpis12':120,
   'prehled.vyzva.text8':400,
+  'prehled.vyzva.text12':400,
   'prehled.vyzva.btn1':30,
   'kontakt.telefon':40,
   'prehled.vyzva.btn2':30,
@@ -2073,6 +2073,7 @@ function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ?
 
 
 
+
 /* Jméno obrazovky se bere z aplikace — z pole, které ten nadpis drží.
    Když ho Nela přejmenuje, přejmenuje se i sekce v administraci. */
 function hodnotaPole(klic){
@@ -2265,7 +2266,7 @@ function kresliOvladaceNahledu(){
    Windows vypadal tmavě, i když tak aplikaci nikdo nevidí. */
 /* Build aplikace, kterou právě ukazuje náhled. Hlásí ho sama při načtení. */
 let nahledBuild = null;
-const BUILD_ADMIN = '142';
+const BUILD_ADMIN = '143';
 let nahledTema = 'svetly';
 function nahledTemaNastav(k){
   nahledTema = k;

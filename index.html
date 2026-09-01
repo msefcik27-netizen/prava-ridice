@@ -1052,7 +1052,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 142<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 143<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1387,10 +1387,18 @@ const vsechnaTemata = () => GUIDE.flatMap(o => o.topics.map(t => ({...t, oblast:
    Pořadí je závazné — hledá se první pásmo, do kterého se počet bodů vejde. */
 /* Názvy stavů jsou editovatelné — je to sdělení řidiči, ne technický kód.
    Barvy zůstávají v kódu: ty se řídí manuálem, ne obsahem. */
+/* Hranice pásem podle zadání kanceláře z 29. 8. 2026:
+     0–3 Bezpečno · 4–5 Upozornění · 6–7 Riziko · 8–11 Kritický stav
+   Dvanáct zůstává samostatně — tam už se oprávnění odebírá, to není
+   „kritický stav", to je konec.
+
+   Pásma sedí s dvěma věcmi jinde v aplikaci: varování o šestibodovém
+   přestupku (6–7 bodů) je přesně „Riziko" a výzva ke kontaktu kanceláře
+   (od 8 bodů) naskakuje přesně tam, kde odznak zčervená. */
 const STAVY_BODU = [
   {max:3,  klic:'prehled.stav.bezpecno', nazev:'Bezpečno',        barva:'var(--turq)',   pozadi:'rgba(0,212,212,.16)',  text:'var(--turq-deep)'},
-  {max:7,  klic:'prehled.stav.upozorneni', nazev:'Upozornění',    barva:'var(--turq)',   pozadi:'rgba(0,212,212,.16)',  text:'var(--turq-deep)'},
-  {max:10, klic:'prehled.stav.riziko', nazev:'Riziko',            barva:'var(--orange)', pozadi:'rgba(242,169,59,.18)', text:'#8A5A12'},
+  {max:5,  klic:'prehled.stav.upozorneni', nazev:'Upozornění',    barva:'var(--turq)',   pozadi:'rgba(0,212,212,.16)',  text:'var(--turq-deep)'},
+  {max:7,  klic:'prehled.stav.riziko', nazev:'Riziko',            barva:'var(--orange)', pozadi:'rgba(242,169,59,.18)', text:'#8A5A12'},
   {max:11, klic:'prehled.stav.kriticky', nazev:'Kritický stav',   barva:'var(--red)',    pozadi:'rgba(229,72,77,.16)',  text:'#A32B2F'},
   {max:12, klic:'prehled.stav.hranice', nazev:'Hranice vyřazení', barva:'var(--red)',    pozadi:'rgba(229,72,77,.16)',  text:'#A32B2F'}
 ];
@@ -1743,8 +1751,8 @@ function renderPoints(){
   // progress + color
   const bar=document.getElementById('ptBar');
   bar.style.width=(p/12*100)+'%';
-  // Stavy bodů podle barevného manuálu:
-  //   0–3 Bezpečno · 4–7 Upozornění · 8–10 Riziko · 11 Kritický stav · 12 Hranice vyřazení
+  // Stavy bodů: 0–3 Bezpečno · 4–5 Upozornění · 6–7 Riziko ·
+  //              8–11 Kritický stav · 12 Hranice vyřazení
   const stav = STAVY_BODU.find(s => p <= s.max) || STAVY_BODU[STAVY_BODU.length-1];
   bar.style.background = stav.barva;
   const pill = document.getElementById('riskPill');
