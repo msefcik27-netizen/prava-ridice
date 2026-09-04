@@ -944,13 +944,6 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="eyebrow" data-text="pruvodce.stitek">Právní průvodce</div>
         <h1 class="title-lg" style="margin-bottom:6px;" data-text="pruvodce.nadpis">Dopravní právo srozumitelně</h1>
         <p class="muted" style="line-height:1.4;margin:0 0 10px;font-size:0.7812rem;" data-text="pruvodce.popis">Co vám hrozí, jak postupovat a kdy se ozvat. Obsah aktualizujeme průběžně.</p>
-        <div class="stat-card" onclick="openOblasti()">
-          <div class="ic">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/></svg>
-          </div>
-          <div style="flex:1;"><div class="lbl" data-text="pruvodce.pruh.stitek">Vždy aktuální</div><div class="val" data-text="pruvodce.pruh.nadpis">Právní témata podle oblastí</div></div>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
-        </div>
         <div class="police-card" onclick="openCalc()">
           <div class="pc-top">
             <img class="pc-badge" src="badge-kalkulacka.png" alt="Jediná svého druhu" />
@@ -1064,7 +1057,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 146<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 147<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1138,18 +1131,6 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
     <div class="screen" id="s-calc">
       <div class="subhead"><button class="back-btn" onclick="calcBack()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg><span data-text="obecne.zpet">Zpět</span></button><div class="sh-title" role="heading" aria-level="1" data-text="nadpis.kalkulacka">Alkohol za volantem</div></div>
       <div class="pad" id="calcBody"></div>
-    </div>
-
-    <!-- SUB: OBLASTI -->
-    <div class="screen" id="s-oblasti">
-      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg><span data-text="obecne.zpet">Zpět</span></button><div class="sh-title" role="heading" aria-level="1" data-text="nadpis.oblasti">Právní témata</div></div>
-      <div class="pad" id="oblastiBody"></div>
-    </div>
-
-    <!-- SUB: OBLAST -->
-    <div class="screen" id="s-oblast">
-      <div class="subhead"><button class="back-btn" onclick="backAuto()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg><span data-text="obecne.zpet">Zpět</span></button><div class="sh-title" role="heading" aria-level="1" id="oblastTitle">Oblast</div></div>
-      <div class="pad" id="oblastBody"></div>
     </div>
 
     <!-- SUB: ČLÁNEK -->
@@ -1915,62 +1896,6 @@ function renderGuide(){
 }
 
 /* ============ OBLASTI A ČLÁNKY ============ */
-/* `key` je vazba na obsah v databázi a **needituje se** — přejmenováním by
-   se kategorie odpojila od svých článků. Editovatelný je jen `n`, tedy to,
-   co je vidět. */
-const CAT_ORDER=[
- {n:'Vybodování',key:'Vybodování',ic:'card',klic:'oblasti.kat.vybodovani'},
- {n:'Přestupky',key:'Přestupky',ic:'gauge',klic:'oblasti.kat.prestupky'},
- {n:'Trestné činy',key:'Trestné činy',ic:'ban',klic:'oblasti.kat.trestne'},
- {n:'Řízení od 17 let',key:'Od 17 let',ic:'card',klic:'oblasti.kat.l17'}];
-/* Výše pokut, délky zákazů a hranice promile. **Mění se novelami**, takže
-   musí být v administraci — jinak by je při změně zákona nemohl opravit
-   nikdo z kanceláře a aplikace by pod jejím jménem uváděla neplatné údaje.
-   `o` a `a` jsou vazby na článek, ty se needitují. */
-const CASTE=[
- {t:'Alkohol 0,31–0,99 ‰',s:'pokuta 7 000–25 000 Kč · 6 b. · zákaz 6–18 měs.',o:'alkohol',a:'0,31–0,99 ‰ — přestupek',
-  kt:'oblasti.caste.1.nadpis',ks:'oblasti.caste.1.sankce'},
- {t:'Alkohol od 1,00 ‰',s:'trestný čin · zákaz 1–10 let · 6 b. · záznam v rejstříku',o:'alkohol',a:'Od 1,00 ‰ — trestný čin',
-  kt:'oblasti.caste.2.nadpis',ks:'oblasti.caste.2.sankce'},
- {t:'Drogy — přestupek',s:'pokuta 7 000–25 000 Kč · 6 b. · zákaz 6–18 měs.',o:'drogy',a:'Pozitivní test na drogy',
-  kt:'oblasti.caste.3.nadpis',ks:'oblasti.caste.3.sankce'},
- {t:'Odmítnutí testu',s:'pokuta 25 000–75 000 Kč · 6 b. · zákaz 18–36 měs.',o:'drogy',a:'Odmítnutí testu na alkohol nebo drogy',
-  kt:'oblasti.caste.4.nadpis',ks:'oblasti.caste.4.sankce'}];
-let openCat=null;
-function toggleCat(i){ openCat = openCat===i?null:i; renderOblasti(); }
-function renderOblasti(){
-  document.getElementById('oblastiBody').innerHTML=
-    '<div class="section-label" data-text="oblasti.caste.stitek">'+escT(txt('oblasti.caste.stitek','Nejčastější přestupky'))+'</div>'+
-    CASTE.map(x=>'<div class="topic" style="margin-bottom:8px;" onclick="openTopic(\''+x.o+'\',\''+x.a.replace(/'/g,"\\'")+'\')">'+
-      '<div class="row-between" style="align-items:flex-start;"><h4 style="flex:1;" data-text="'+x.kt+'">'+escT(txt(x.kt,x.t))+'</h4>'+
-      '<span class="pill" style="flex:0 0 auto;" data-text="oblasti.caste.znacka">'+escT(txt('oblasti.caste.znacka','Sankce'))+'</span></div>'+
-      '<p style="margin-top:5px;" data-text="'+x.ks+'">'+escT(txt(x.ks,x.s))+'</p></div>').join('')+
-    '<div class="section-label" style="margin-top:14px;" data-text="oblasti.kategorie.stitek">'+escT(txt('oblasti.kategorie.stitek','Kategorie'))+'</div>'+
-    '<div class="list-card">'+CAT_ORDER.map((cat,i)=>{
-      const arts = cat.key ? vsechnaTemata().filter(t=>t.c===cat.key) : [];
-      const open = openCat===i;
-      return '<div class="list-item" onclick="toggleCat('+i+')">'+
-        '<div class="li-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+SVC_ICONS[cat.ic]+'</svg></div>'+
-        '<div class="li-body"><h4 data-text="'+cat.klic+'">'+escT(txt(cat.klic,cat.n))+'</h4></div>'+
-        '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transform:rotate('+(open?'90':'0')+'deg);transition:.2s;"><path d="M9 6l6 6-6 6"/></svg></div>'+
-        (open?'<div style="background:#faf9f6;border-bottom:1px solid var(--line);">'+
-          /* Tady platí totéž co v seznamu oblastí a ve vyhledávání: u zamčeného
-             tématu se popisek neukazuje, protože u krátkých témat je to celá
-             odpověď. Do buildu 125 se tu ukazoval — bez štítku, takže to ani
-             nevypadalo jako placený obsah. */
-          (arts.length?arts.map(t=>'<div class="list-item" style="padding-left:26px;border-bottom:none;" onclick="event.stopPropagation();openTopic(\''+t.oblastId+'\',\''+t.t.replace(/'/g,"\\'")+'\')"><div class="li-body"><h4 style="font-size:0.8438rem;">'+t.t+znackaPristupu(!!(t.vip ?? t.zamceno))+'</h4><p>'+(t.zamceno ? txt('clanek.zamceny.perex','Odemkne PREMIUM přístup.') : t.d)+'</p></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>').join('')
-            :'<div style="padding:12px 26px;"><p class="small muted" style="margin:0 0 8px;line-height:1.5;">Obsah pro tuto oblast připravujeme. Potřebujete poradit hned?</p><button class="btn btn-dark btn-sm" onclick="event.stopPropagation();go(\'konzultace\')">Konzultace zdarma</button></div>')+
-        '</div>':'');
-    }).join('')+'</div>';
-}
-function openOblasti(){ openCat=null; renderOblasti(); go('oblasti'); }
-function openOblast(id){
-  const o=GUIDE.find(x=>x.id===id);
-  document.getElementById('oblastTitle').textContent=o.n;
-  document.getElementById('oblastBody').innerHTML=o.topics.map(t=>
-    `<div class="topic" onclick="openTopic('${id}','${t.t.replace(/'/g,"\\'")}')"><div class="cat">${t.c}</div><h4>${t.t}</h4><p>${t.d}</p></div>`).join('');
-  go('oblast');
-}
 /* Odemčený článek bez textu znamená, že obsah nedorazil z databáze — placené
    články jsou ve vestavěném znění záměrně bez těla. Prázdná obrazovka by
    vypadala jako porucha, proto se to řekne. */
@@ -5753,7 +5678,7 @@ if(NAHLED){
         const stavitele = {
           calc: openCalc, upozorneni: openUpozorneni, vozidla: openVozidla,
           nehoda: openNehoda, kontakt: openKontakt, postup: openPostup,
-          recenze: openRecenze, oblasti: openOblasti,
+          recenze: openRecenze,
           /* Spodní lišta není obrazovka — ukáže se na Přehledu. */
           nav: () => tab('prehled'),
           /* Úvodní obrazovky: každý krok je v administraci samostatná

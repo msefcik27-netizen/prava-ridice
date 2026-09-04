@@ -421,7 +421,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 146</span><span class="verze" id="verzeApp"></span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 147</span><span class="verze" id="verzeApp"></span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -1393,8 +1393,6 @@ const POLE_OBRAZOVKA = {
   'pruvodce.stitek':'pruvodce',
   'pruvodce.nadpis':'pruvodce',
   'pruvodce.popis':'pruvodce',
-  'pruvodce.pruh.stitek':'pruvodce',
-  'pruvodce.pruh.nadpis':'pruvodce',
   'pruvodce.kalk.stitek':'pruvodce',
   'pruvodce.kalk.nadpis':'pruvodce',
   'pruvodce.kalk.popis':'pruvodce',
@@ -1402,22 +1400,6 @@ const POLE_OBRAZOVKA = {
   'pruvodce.vysledky':'pruvodce',
   'pruvodce.oblasti.stitek':'pruvodce',
   'clanek.zamceny.perex':'pruvodce',
-  'nadpis.oblasti':'oblasti',
-  'oblasti.caste.stitek':'oblasti',
-  'oblasti.caste.1.nadpis':'oblasti',
-  'oblasti.caste.znacka':'oblasti',
-  'oblasti.caste.1.sankce':'oblasti',
-  'oblasti.caste.2.nadpis':'oblasti',
-  'oblasti.caste.2.sankce':'oblasti',
-  'oblasti.caste.3.nadpis':'oblasti',
-  'oblasti.caste.3.sankce':'oblasti',
-  'oblasti.caste.4.nadpis':'oblasti',
-  'oblasti.caste.4.sankce':'oblasti',
-  'oblasti.kategorie.stitek':'oblasti',
-  'oblasti.kat.vybodovani':'oblasti',
-  'oblasti.kat.prestupky':'oblasti',
-  'oblasti.kat.trestne':'oblasti',
-  'oblasti.kat.l17':'oblasti',
   'clanek.zamek':'topic',
   'clanek.web.nadpis':'topic',
   'clanek.web.popis':'topic',
@@ -1625,7 +1607,7 @@ const SEZNAM_MISTO = {
 const OBRAZOVKY_KARTY = {
   uvod:     ['uvod', 'uvod-body', 'uvod-stav', 'uvod-reg', 'uvod-cekani'],
   prehled:  ['prehled', 'points-help', 'vozidla', 'nehoda', 'nav'],
-  pruvodce: ['pruvodce', 'oblasti', 'topic', 'calc'],
+  pruvodce: ['pruvodce', 'topic', 'calc'],
   sluzby:   ['sluzby', 'service-detail'],
   zpravy:   ['zpravy', 'konzultace'],
   profil:   ['profil', 'predplatne', 'upozorneni', 'recenze', 'postup', 'kontakt']
@@ -1643,7 +1625,6 @@ const NAZEV_OBRAZOVKY = {
   'vozidla': ['Vozidla a STK', 'Otevře se z Přehledu řádkem „Vozidla a STK".'],
   'nehoda': ['Co dělat po nehodě', 'Otevře se z Přehledu řádkem o dopravní nehodě.'],
   'pruvodce': ['Průvodce', ''],
-  'oblasti': ['Seznam oblastí', 'Nadpis obrazovky se seznamem oblastí. Které oblasti a články v ní jsou, se určuje nahoře v Oblastech a článcích.'],
   'topic': ['Uvnitř článku', 'Texty, které jsou v každém článku stejné — zámek u zamčené části, odkaz na web a tlačítka dole. Samotné články se upravují nahoře v Oblastech a článcích.'],
   'calc': ['Kalkulačka', 'Texty kolem kalkulačky. Sazby, hranice a texty výsledků jsou v samostatném panelu níž.'],
   'sluzby': ['Služby', ''],
@@ -1669,7 +1650,6 @@ const NAZEV_Z = {
   'points-help':'pomoc.body.nadpis',
   'vozidla':'nadpis.vozidla',
   'nehoda':'nadpis.nehoda',
-  'oblasti':'nadpis.oblasti',
   'calc':'nadpis.kalkulacka',
   'konzultace':'formular.nadpis',
   'predplatne':'nadpis.predplatne',
@@ -1682,7 +1662,6 @@ const OTEVIRA = {
   'points-help': ['prehled','prehled.body.btn1'],
   'vozidla': ['prehled','prehled.vozidla.nadpis'],
   'nehoda': ['prehled','prehled.nehoda.nadpis'],
-  'oblasti': ['pruvodce','pruvodce.pruh.nadpis'],
   'calc': ['pruvodce','pruvodce.kalk.nadpis'],
   'predplatne': ['profil','profil.plan.btn'],
   'upozorneni': ['profil','profil.upozorneni.nadpis'],
@@ -1830,8 +1809,6 @@ const LIMIT_POLE = {
   'pruvodce.stitek':30,
   'pruvodce.nadpis':60,
   'pruvodce.popis':400,
-  'pruvodce.pruh.stitek':30,
-  'pruvodce.pruh.nadpis':60,
   'pruvodce.kalk.stitek':40,
   'pruvodce.kalk.nadpis':60,
   'pruvodce.kalk.popis':400,
@@ -1839,22 +1816,6 @@ const LIMIT_POLE = {
   'pruvodce.vysledky':120,
   'pruvodce.oblasti.stitek':30,
   'clanek.zamceny.perex':120,
-  'nadpis.oblasti':60,
-  'oblasti.caste.stitek':40,
-  'oblasti.caste.1.nadpis':60,
-  'oblasti.caste.znacka':120,
-  'oblasti.caste.1.sankce':120,
-  'oblasti.caste.2.nadpis':60,
-  'oblasti.caste.2.sankce':120,
-  'oblasti.caste.3.nadpis':60,
-  'oblasti.caste.3.sankce':120,
-  'oblasti.caste.4.nadpis':60,
-  'oblasti.caste.4.sankce':120,
-  'oblasti.kategorie.stitek':30,
-  'oblasti.kat.vybodovani':120,
-  'oblasti.kat.prestupky':120,
-  'oblasti.kat.trestne':120,
-  'oblasti.kat.l17':120,
   'clanek.zamek':120,
   'clanek.web.nadpis':60,
   'clanek.web.popis':160,
@@ -2046,6 +2007,7 @@ const LIMIT_POLE = {
 /* Vlastní bloky a co v tabulce přibylo později: rozumný strop, ať to nikdy
    nespadne na „bez omezení". */
 function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ? 400 : 200); }
+
 
 
 
