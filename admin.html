@@ -421,7 +421,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 148</span><span class="verze" id="verzeApp"></span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 150</span><span class="verze" id="verzeApp"></span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -2004,9 +2004,25 @@ const LIMIT_POLE = {
   'kontakt.pobocka.stitek':30,
   'kontakt.ico':120
 };
-/* Vlastní bloky a co v tabulce přibylo později: rozumný strop, ať to nikdy
-   nespadne na „bez omezení". */
-function limitPole(klic){ return LIMIT_POLE[klic] || (klic.startsWith('blok.') ? 400 : 200); }
+/* Strop jednoho pole. Vygenerovaná tabulka `LIMIT_POLE` pokrývá jen pole
+   z vestavěných znění; co přibylo rovnou do databáze (výsledky kalkulačky,
+   vlastní bloky) v ní není a spadlo by na náhradních 200 znaků.
+
+   Proto platí totéž pravidlo jako u položek seznamů: **nikdy míň, než co
+   v poli stojí teď, plus 40 znaků na dopsání.** Bez toho se text dá jen
+   mazat, ne opravit — `maxlength` delší hodnotu nezkrátí, ale nedovolí
+   přidat ani znak, takže to vypadá jako porouchaná klávesnice.
+
+   Základ se liší podle role: odstavec není štítek. */
+function limitPole(klic, hodnota, viceradkovy){
+  /* Výsledek kalkulačky není popisek, ale celá rada — co hrozí, co dělat,
+     co nepodepisovat. Nejdelší má dnes 847 znaků. Tisícovka je záměr, ne
+     dopočet z toho, co tam zrovna stojí. Nadpisy výsledků se nemění. */
+  const zaklad = LIMIT_POLE[klic] ||
+    (klic.startsWith('kalk.') && klic.endsWith('.text') ? 1000 :
+     (klic.startsWith('blok.') || viceradkovy ? 400 : 200));
+  return Math.max(zaklad, Math.ceil(((hodnota || '').length + 40) / 10) * 10);
+}
 
 
 
@@ -3480,7 +3496,7 @@ function prepocitejStitek(druh){
 function poleTextu(t){
   const vlastni = t.klic.startsWith('blok.');
   if(vlastni && !upravovane.has(t.klic)) return nahledBloku(t);
-  const max = limitPole(t.klic);
+  const max = limitPole(t.klic, t.hodnota, t.viceradkovy);
   const spolecne = `maxlength="${max}" oninput="poleZmeneno(this)" onfocus="naNahled('${t.klic}')"` +
     (t.viceradkovy ? '' : ' onkeydown="bezEnteru(event)"');
   return `
@@ -3539,7 +3555,9 @@ function poleZmeneno(el){
   const klic = el.id.replace(/^tx-/, '');
   const poc = $('poc-' + klic);
   if(poc){
-    const max = limitPole(klic);
+    /* Strop se čte z políčka, ne počítá znovu — jinak by rostl s každým
+       napsaným znakem a nebyl by to strop. */
+    const max = Number(el.getAttribute('maxlength')) || limitPole(klic, el.value);
     poc.textContent = el.value.length + ' / ' + max;
     poc.classList.toggle('u-konce', el.value.length >= max * 0.9);
   }
