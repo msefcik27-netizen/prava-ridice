@@ -1057,7 +1057,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 147<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 148<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1876,15 +1876,87 @@ function znackaOblasti(temata){
 
 function prepniOblast(i){ otevrenaOblast = (otevrenaOblast===i ? null : i); renderGuideOblasti(); }
 
+/* Porovnává se bez háčků a čárek a bez ohledu na velikost písmen. Kdo na
+   telefonu napíše „ridicak", musí najít „řidičák" — jinak je hledání
+   na mobilu k ničemu. Rozklad písmene na základ + znaménko zachovává délku
+   řetězce, takže pozice nálezu sedí i v původním textu s diakritikou. */
+function bezDiakritiky(s){
+  return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+/* Text bloku tak, jak ho čte hledání: nadpis, odstavec a buňky tabulky.
+   V tabulkách jsou částky a délky zákazů — právě to, na co se lidé ptají. */
+function textBloku(b){
+  const d = b.data || {};
+  const bunky = []
+    .concat(Array.isArray(d.zahlavi) ? d.zahlavi : [])
+    .concat((Array.isArray(d.radky) ? d.radky : []).flatMap(r => Array.isArray(r) ? r : [r]))
+    .concat(Array.isArray(d.polozky) ? d.polozky : []);
+  return [b.nadpis || '', b.text || ''].concat(bunky.map(x => String(x == null ? '' : x)))
+    .filter(Boolean).join(' · ');
+}
+
+/* Co se z článku smí prohledávat. Zamčený článek jen podle nadpisu; u článku
+   se zamčenými bloky jen ta část, kterou aplikace opravdu ukazuje — tedy
+   bloky před prvním zamčeným, přesně tam, kde končí vykresliBloky().
+   Kdyby se hledalo i v zamčeném textu, dal by se placený obsah obejít
+   zkoušením slov a čtením výsledků. */
+function textClanku(t){
+  if(t.zamceno) return '';
+  const rada = (t.bloky || []).slice().sort((a, b) => (a.poradi || 0) - (b.poradi || 0));
+  const casti = [];
+  for(const b of rada){
+    if(b.zamceno) break;
+    casti.push(textBloku(b));
+  }
+  if(!casti.length && t.b) casti.push(String(t.b).replace(/<[^>]*>/g, ' '));
+  return casti.join(' · ');
+}
+
+/* Úryvek kolem nálezu — místo prázdného odstavce, protože perex nemá vyplněný
+   ani jeden článek. Ořezává se po slovech, ať věta nekončí uprostřed. */
+function uryvek(text, dotaz, delka){
+  const kde = bezDiakritiky(text).indexOf(dotaz);
+  if(kde < 0) return '';
+  const sirka = delka || 130;
+  let od = Math.max(0, kde - Math.round((sirka - dotaz.length) / 2));
+  let doKonce = Math.min(text.length, od + sirka);
+  if(od > 0){ const m = text.indexOf(' ', od); if(m > -1 && m < kde) od = m + 1; }
+  if(doKonce < text.length){ const m = text.lastIndexOf(' ', doKonce); if(m > kde + dotaz.length) doKonce = m; }
+  return (od > 0 ? '… ' : '') + text.slice(od, doKonce).trim() + (doKonce < text.length ? ' …' : '');
+}
+
+/* Zvýraznění nalezeného slova. Text se nejdřív ošetří proti HTML a teprve
+   pak se do něj vkládá značka — obráceně by obsah z administrace mohl
+   rozbít stránku. */
+function zvyrazni(text, dotaz){
+  const bezpecny = escT(text);
+  const kde = bezDiakritiky(bezpecny).indexOf(dotaz);
+  if(kde < 0 || !dotaz) return bezpecny;
+  return bezpecny.slice(0, kde) + '<b>' + bezpecny.slice(kde, kde + dotaz.length) +
+         '</b>' + bezpecny.slice(kde + dotaz.length);
+}
+
 function renderGuide(){
-  const q=(document.getElementById('guideSearch').value||'').trim().toLowerCase();
+  const q=bezDiakritiky((document.getElementById('guideSearch').value||'').trim());
   const label=document.getElementById('guideResultsLabel');
   const box=document.getElementById('guideResults');
   renderGuideOblasti();
   if(!q){ label.style.display='none'; box.innerHTML=''; return; }
-  let res=vsechnaTemata().filter(t=>
-    t.t.toLowerCase().includes(q) || t.d.toLowerCase().includes(q) ||
-    t.oblast.toLowerCase().includes(q) || (t.c||'').toLowerCase().includes(q));
+  /* Ke každému nálezu se rovnou pamatuje, kde se našel — podle toho se pak
+     ukáže úryvek z textu, nebo se nechá popisek jako dosud. */
+  let res=vsechnaTemata().map(t=>{
+    const vNadpisu = bezDiakritiky(t.t).includes(q) ||
+                     bezDiakritiky(t.oblast).includes(q) ||
+                     bezDiakritiky(t.c||'').includes(q) ||
+                     bezDiakritiky(t.d||'').includes(q);
+    const telo = textClanku(t);
+    const vTextu = !!telo && bezDiakritiky(telo).includes(q);
+    return (vNadpisu || vTextu) ? Object.assign({}, t, {telo, vTextu, vNadpisu}) : null;
+  }).filter(Boolean);
+  /* Nejdřív to, co se jmenuje hledaným slovem — teprve pak to, co ho má
+     někde uvnitř. Jinak by nadpisový zásah utonul mezi zmínkami v textu. */
+  res.sort((a,b)=> (a.vNadpisu===b.vNadpisu) ? 0 : (a.vNadpisu ? -1 : 1));
   label.style.display='block'; label.textContent='Výsledky ('+res.length+')';
   if(res.length===0){
     box.innerHTML='<div class="empty">Nic neodpovídá zadání. Zkuste jiné slovo.</div>';
@@ -1892,7 +1964,17 @@ function renderGuide(){
   }
   /* Ve vyhledávání platí totéž co v seznamu: u zamčeného tématu se popisek
      neukazuje, jinak by stačilo hledat a číst výsledky. */
-  box.innerHTML=res.map(t=>`<div class="topic" onclick="openTopic('${t.oblastId}','${t.t.replace(/'/g,"\\'")}')"><div class="cat">${t.oblast}</div><h4>${t.t}${znackaPristupu(!!(t.vip ?? t.zamceno))}</h4><p>${t.zamceno ? txt('clanek.zamceny.perex','Odemkne PREMIUM přístup.') : t.d}</p></div>`).join('');
+  box.innerHTML=res.map(t=>{
+    /* U zamčeného článku se úryvek neukazuje — jinak by stačilo hledat
+       a číst výsledky. */
+    const popisek = t.zamceno
+      ? escT(txt('clanek.zamceny.perex','Odemkne PREMIUM přístup.'))
+      : (t.vTextu ? zvyrazni(uryvek(t.telo, q), q) : escT(t.d || ''));
+    return '<div class="topic" onclick="openTopic(\''+t.oblastId+'\',\''+t.t.replace(/'/g,"\\'")+'\')">'+
+      '<div class="cat">'+escT(t.oblast)+'</div>'+
+      '<h4>'+escT(t.t)+znackaPristupu(!!(t.vip ?? t.zamceno))+'</h4>'+
+      (popisek ? '<p>'+popisek+'</p>' : '')+'</div>';
+  }).join('');
 }
 
 /* ============ OBLASTI A ČLÁNKY ============ */
