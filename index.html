@@ -11,7 +11,19 @@
 <meta name="apple-touch-fullscreen" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Práva řidiče" />
-<link rel="manifest" href="manifest.webmanifest" />
+<!-- Samsung prohlížeč si pro přidání na plochu nechává na svém serveru vyrobit
+     malý android balíček a dává mu razítko starší verze Androidu; systém ho pak
+     zablokuje jako „nebezpečnou aplikaci". Razítko je Samsungovo, my na balíček
+     nesaháme. Bez manifestu ale prohlížeč nemá z čeho balíček vyrobit a instalaci
+     vůbec nenabídne — varování se neobjeví. Odkaz proto zůstává napevno (Chrome
+     ho vidí přesně jako dosud) a odebírá se jen v Samsung prohlížeči. -->
+<link rel="manifest" href="manifest.webmanifest" id="odkazManifest" />
+<script>
+if(/SamsungBrowser/i.test(navigator.userAgent)){
+  var _m = document.getElementById('odkazManifest');
+  if(_m && _m.parentNode) _m.parentNode.removeChild(_m);
+}
+</script>
 <link rel="apple-touch-icon" href="icon-192.png" />
 <title>Práva řidiče</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -1052,7 +1064,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 145<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 146<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1241,6 +1253,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
     <p class="sheet-sub" id="sheetSub">Děkujeme, že používáte Práva řidiče. S aplikací na ploše nás budete mít vždy po ruce — na celou obrazovku a s upozorněními na váš bodový stav.</p>
     <div id="sheetSteps"></div>
     <button class="btn btn-dark sheet-close" id="sheetAction" onclick="closeInstallSheet()">Rozumím</button>
+    <button class="btn btn-outline-dark" style="margin-top:8px;display:none;" id="sheetKopie" onclick="zkopirujOdkaz()">Zkopírovat odkaz</button>
     <button class="btn btn-outline-dark" style="margin-top:8px;" onclick="closeInstallSheet()">Později</button>
   </div>
 
@@ -5149,6 +5162,10 @@ window.addEventListener('appinstalled',()=>{ closeInstallSheet(); toast('Hotovo!
 function isIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); }
 function isIOSChrome(){ return isIOS() && /crios/i.test(navigator.userAgent); }
 function isAndroid(){ return /android/i.test(navigator.userAgent); }
+/* Samsung prohlížeč — jediný, ve kterém se na plochu přidat nedá (viz poznámka
+   u manifestu v hlavičce). Pozná se podle vlastního podpisu; Chrome na Samsung
+   telefonu ho nemá a chová se normálně. */
+function jeSamsung(){ return /SamsungBrowser/i.test(navigator.userAgent); }
 function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true; }
 function hideInstallUI(){ const b=document.getElementById('obInstallBtn'); if(b)b.style.display='none'; }
 
@@ -5199,10 +5216,77 @@ function renderSteps(steps){
   document.getElementById('sheetSteps').innerHTML=steps.map((s,i)=>
     `<div class="step-row"><div class="step-num">${i+1}</div><div class="tx">${s}</div></div>`).join('');
 }
+/* Původní podtitul panelu. V Samsung prohlížeči se nahrazuje vysvětlením,
+   proto se musí dát odkud vrátit. */
+const SHEET_SUB = (document.getElementById('sheetSub') || {}).textContent || '';
+
+/* Android má zvláštní tvar odkazu, kterým se dá jmenovitě říct, který prohlížeč
+   má stránku otevřít. Sestavení je zvlášť od samotného přechodu, aby se dalo
+   zkontrolovat — po přechodu už je pozdě se ptát, co se poslalo. */
+function adresaProChrome(){
+  const adresa = location.href.split('#')[0];
+  const bezSchematu = adresa.replace(/^https?:\/\//, '');
+  return 'intent://' + bezSchematu + '#Intent;scheme=https;package=com.android.chrome;end';
+}
+
+/* Přenese stránku do Chromu. */
+function otevriVChromu(){
+  try{ location.href = adresaProChrome(); }catch(e){}
+  /* Kdyby prohlížeč přechod odmítl, zůstaneme na stránce — pak se připomene
+     druhá cesta. Když se Chrome otevřel, je stránka na pozadí a nic se neukáže. */
+  setTimeout(function(){
+    if(!document.hidden) toast('Kdyby se Chrome neotevřel, použijte Zkopírovat odkaz.');
+  }, 1800);
+}
+
+function zkopirujOdkaz(){
+  const adresa = location.href.split('#')[0];
+  const hotovo = function(){ toast('Odkaz zkopírován — vložte ho v Chromu do adresního řádku.'); };
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(adresa).then(hotovo, function(){ zaloznaKopie(adresa, hotovo); });
+      return;
+    }
+  }catch(e){}
+  zaloznaKopie(adresa, hotovo);
+}
+
+/* Starší cesta pro prohlížeče bez schránky. Když selže i ta, aspoň se adresa
+   ukáže, ať je co opsat. */
+function zaloznaKopie(text, hotovo){
+  try{
+    const p = document.createElement('textarea');
+    p.value = text; p.setAttribute('readonly', '');
+    p.style.position = 'fixed'; p.style.opacity = '0';
+    document.body.appendChild(p);
+    p.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(p);
+    if(ok){ hotovo(); return; }
+  }catch(e){}
+  toast('Odkaz: ' + text);
+}
+
 function openInstallSheet(){
   if(isStandalone()){ toast('Appka už je nainstalovaná — spouštíte ji z plochy. ✓'); return; }
   const action=document.getElementById('sheetAction');
-  if(isAndroid()||deferredPrompt){
+  const sub=document.getElementById('sheetSub');
+  const kopie=document.getElementById('sheetKopie');
+  if(sub) sub.textContent = SHEET_SUB;
+  if(kopie) kopie.style.display = 'none';
+  if(jeSamsung()){
+    /* Samsung prohlížeč instalaci nabídnout nemůže, aniž by Android ukázal
+       varování — nabídne se tedy přechod do Chromu, kde proběhne normálně. */
+    if(sub) sub.textContent = 'Samsung prohlížeč zatím appku na plochu přidat neumí — Android by u ní ukázal varování. V Chromu to proběhne normálně a aplikace bude úplně stejná.';
+    renderSteps([
+      'Klepněte na <b>Otevřít v Chromu</b> — stránka se tam přenese.',
+      'Tam klepněte na menu '+MENU_ICON+' vpravo nahoře a zvolte <b>Přidat na plochu</b>.',
+      'Kdyby se Chrome neotevřel, použijte <b>Zkopírovat odkaz</b>.'
+    ]);
+    action.textContent='Otevřít v Chromu';
+    action.onclick=otevriVChromu;
+    if(kopie) kopie.style.display = 'block';
+  } else if(isAndroid()||deferredPrompt){
     // Android: velké tlačítko -> nativní instalační dialog
     renderSteps([]);
     action.textContent='Přidat na plochu';
