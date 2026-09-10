@@ -421,7 +421,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 150</span><span class="verze" id="verzeApp"></span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 151</span><span class="verze" id="verzeApp"></span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -1349,6 +1349,10 @@ const POLE_OBRAZOVKA = {
   'pomoc.body.3.nadpis':'points-help',
   'pomoc.body.3.popis':'points-help',
   'nadpis.vozidla':'vozidla',
+  'garaz.premium':'vozidla',
+  'garaz.zamek':'vozidla',
+  'garaz.zamek.btn':'vozidla',
+  'garaz.zamek.pozn':'vozidla',
   'garaz.souhrn.termin':'vozidla',
   'garaz.souhrn.pokuty':'vozidla',
   'garaz.vozidla.nadpis':'vozidla',
@@ -1798,6 +1802,10 @@ const LIMIT_POLE = {
   'garaz.nehody.pridat':30,
   'garaz.nehody.postup':30,
   'garaz.pozn':400,
+  'garaz.premium':4,
+  'garaz.zamek':200,
+  'garaz.zamek.btn':30,
+  'garaz.zamek.pozn':300,
   'nadpis.nehoda':60,
   'nehoda.bouracka':120,
   'odkaz.bouracka':300,
@@ -3496,6 +3504,27 @@ function prepocitejStitek(druh){
 function poleTextu(t){
   const vlastni = t.klic.startsWith('blok.');
   if(vlastni && !upravovane.has(t.klic)) return nahledBloku(t);
+  /* Garáž se dá celá schovat za PREMIUM. V databázi je to obyčejný text
+     (1 = zapnuto), aby kvůli jednomu přepínači nemusela vzniknout další
+     tabulka — psát do políčka jedničku by ale po nikom nebylo fér, tak je
+     tu přepínač. Skryté pole `tx-…` drží hodnotu, takže ukládání textů
+     i hlídání změn zůstávají beze změny. */
+  if(t.klic === 'garaz.premium'){
+    const zap = ['1','ano','true'].includes(String(t.hodnota || '').trim().toLowerCase());
+    return `
+  <div class="pole">
+    <div class="prepinac pristup ${zap ? 'zap' : ''}" id="prep-${t.klic}" onclick="prepniGaraz(this)">
+      <div class="txt"><b>${esc(t.popis)}</b>
+        <span>Zapnuto = Vozidla, termíny, pokuty a záznamy o nehodě uvidí jen ten,
+          kdo má <b>PREMIUM přístup</b>. Na Přehledu zůstane řádek se štítkem PREMIUM.
+          Co si lidé do Garáže uložili, se nemaže — mají to dál v telefonu.
+          <b>Co dělat po nehodě</b> zůstává volně přístupné z Přehledu.</span></div>
+      <div class="stav-pristup"></div>
+      <div class="knof"></div>
+    </div>
+    <input type="hidden" id="tx-${t.klic}" value="${zap ? '1' : ''}">
+  </div>`;
+  }
   const max = limitPole(t.klic, t.hodnota, t.viceradkovy);
   const spolecne = `maxlength="${max}" oninput="poleZmeneno(this)" onfocus="naNahled('${t.klic}')"` +
     (t.viceradkovy ? '' : ' onkeydown="bezEnteru(event)"');
@@ -3656,6 +3685,16 @@ function nahledBloku(t){
 }
 
 function prepniPristup(el){ el.classList.toggle('zap'); }
+
+/* Přepínač Garáže píše do skrytého pole, které pak uloží ulozTexty() spolu
+   se všemi ostatními texty. Náhled se překreslí hned, jako u psaní. */
+function prepniGaraz(el){
+  el.classList.toggle('zap');
+  const pole = $('tx-' + el.id.replace(/^prep-/, ''));
+  if(!pole) return;
+  pole.value = el.classList.contains('zap') ? '1' : '';
+  poleZmeneno(pole);
+}
 
 function upravBlok(klic){
   const t = texty.find(x => x.klic === klic); if(!t) return;
