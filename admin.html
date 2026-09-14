@@ -421,7 +421,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 152</span><span class="verze" id="verzeApp"></span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 153</span><span class="verze" id="verzeApp"></span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -4861,6 +4861,14 @@ function formularKlienta(k){
           <input type="date" id="k-platnost" value="${esc(k.platnost_do||'')}">
           <p class="napoveda">Prázdné = kódy platí bez omezení.</p></div>
       </div>
+      <div class="radky2">
+        <div><label>Kolik lidí smí kód uplatnit</label>
+          <input type="number" id="k-limit" min="1" max="100000" value="${esc(k.limit_uplatneni||1)}">
+          <p class="napoveda">Platí pro <b>každý</b> kód klienta. Běžně 1 — jeden kód,
+            jeden člověk. U společného kódu (třeba převod klientů) sem patří, kolik
+            lidí ho má dohromady uplatnit. Navýšit jde kdykoli, i když už se uplatňuje.</p></div>
+        <div></div>
+      </div>
       <label>Poznámka</label><textarea id="k-pozn" style="min-height:70px">${esc(k.poznamka||'')}</textarea>
       <div class="prepinac ${k.aktivni?'zap':''}" onclick="this.classList.toggle('zap')" id="k-aktivni">
         <div class="txt"><b>Aktivní klient</b><span>Vypnuto = všechny kódy klienta přestanou fungovat.</span></div>
@@ -4943,6 +4951,12 @@ async function ulozKlienta(id){
   const puvodni = (k.platnost_do || '').slice(0, 10);
   const zmenaKodu = {};
   if(platnost !== puvodni) zmenaKodu.platnost_do = platnost || null;
+  /* Limit se zapisuje stejnou opatrností jako platnost — jen při skutečné
+     změně. Pole ukazuje nejnižší limit napříč kódy klienta, takže kdo má
+     kódy různé, srovnal by je obyčejným uložením všechny na jedno číslo. */
+  const limit = parseInt($('k-limit').value, 10);
+  const puvodniLimit = parseInt(k.limit_uplatneni, 10) || 1;
+  if(limit && limit > 0 && limit !== puvodniLimit) zmenaKodu.limit_uplatneni = limit;
   if(!zmeny.aktivni) zmenaKodu.aktivni = false;
   if(Object.keys(zmenaKodu).length){
     const { error: chybaKodu } = await db.from('promo_kody').update(zmenaKodu).eq('klient_id', id);
