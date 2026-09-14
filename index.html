@@ -936,6 +936,8 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
     <div class="screen" id="s-sluzby">
       <div class="pad safe-top">
         <div class="pristup-pruh omezeny stav-pristupu"></div>
+        <div class="section-label" data-text="sluzby.odkazy.stitek">Odkazy</div>
+        <div class="list-card" id="sluzbyLinks"></div>
         <div class="section-label" data-text="sluzby.stitek">S čím vám pomůžeme</div>
         <div class="list-card" id="serviceList"></div>
         <div id="bloky-sluzby"></div>
@@ -1061,7 +1063,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 153<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 154<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1412,9 +1414,18 @@ function guideKategorie(){
 }
 /* Popisky se berou z administrace, akce zůstávají v kódu — kam řádek vede,
    není obsah, ale funkce aplikace. */
+/* V Profilu zůstává jen cesta na Služby. Ostatní odkazy se 14. 9. 2026
+   přesunuly na kartu Služby — patří k tomu, co firma nabízí, ne k nastavení
+   účtu. „Přehled služeb" se s nimi nestěhuje: na Službách by ukazoval sám
+   na sebe. */
 const PROFILE_LINKS = [
-  {k:'recenze', t:'Recenze klientů',  s:'5574+ vyřešených případů',        a:"openRecenze()"},
   {k:'sluzby',  t:'Přehled služeb',   s:'S čím vám pomůžeme',              a:"tab('sluzby')"},
+];
+
+/* Odkazy na kartě Služby — stejný tvar řádku, jen jiné místo. Texty se dál
+   berou z klíčů `profil.odkaz.*`, aby se v administraci nemusely psát znovu. */
+const SLUZBY_LINKS = [
+  {k:'recenze', t:'Recenze klientů',  s:'5574+ vyřešených případů',        a:"openRecenze()"},
   {k:'postup',  t:'Jak to probíhá',   s:'7 kroků spolupráce s pevnou cenou',a:"openPostup()"},
   {k:'kontakt', t:'Kontakt',          s:'Telefony, e-maily a pobočky',     a:"openKontakt()"},
   {k:'media',   t:'Média a rozhovory',s:'Otevře web pravaridice.cz',       a:"openExt(odk('odkaz.media','https://www.pravaridice.cz/'))",ext:true},
@@ -2236,7 +2247,13 @@ function markRead(){}
 
 /* ============ PROFIL ============ */
 function renderProfileLinks(){
-  document.getElementById('profileLinks').innerHTML = PROFILE_LINKS.map(l=>`
+  vykresliOdkazy('profileLinks', PROFILE_LINKS);
+  vykresliOdkazy('sluzbyLinks', SLUZBY_LINKS);
+}
+
+function vykresliOdkazy(kam, rada){
+  const cil = document.getElementById(kam); if(!cil) return;
+  cil.innerHTML = rada.map(l=>`
     <div class="list-item" onclick="${l.a}">
       <div class="li-icon">${l.ext
         ?'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>'
