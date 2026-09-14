@@ -204,6 +204,12 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .btn-outline{background:transparent;border:1.5px solid rgba(255,255,255,.35);color:#fff;}
 .btn-outline-dark{background:var(--card);border:1.5px solid var(--line);color:var(--ink);}
 .btn-ghost{background:var(--peach-100);color:#5c3a1e;}
+/* Pozadí je proměnná a v tmavém režimu se překlopí, barva textu ale byla
+   napsaná natvrdo — zůstal tmavě hnědý text na tmavě modrém podkladu,
+   kontrast 1,38 : 1 (norma žádá 4,5). Nahlášeno 14. 9. 2026 u tlačítka
+   „Otevřít web bouracka.cz". S --accent-ink je to 7,94 : 1. */
+@media (prefers-color-scheme: dark){ :root:not([data-tema="svetly"]) .btn-ghost{color:var(--accent-ink);} }
+:root[data-tema="tmavy"] .btn-ghost{color:var(--accent-ink);}
 .btn-sm{padding:13px 16px;font-size:0.9375rem;border-radius:14px;}
 
 /* Cards */
@@ -439,6 +445,10 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .choice{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;cursor:pointer;font-size:0.9375rem;font-weight:600;box-shadow:var(--shadow);}
 .choice:active{background:var(--card);}
 .prefill{background:var(--green-bg);border:1px solid var(--green-bg);border-radius:12px;padding:12px 14px;font-size:0.8125rem;color:#2f6a52;display:flex;gap:9px;margin-bottom:14px;}
+/* Tatáž chyba jako u .btn-ghost — natvrdo psaná zelená na pozadí, které se
+   v tmavém režimu ztmaví. Bylo 2,26 : 1, s --rada-nadpis je to 9,69 : 1. */
+@media (prefers-color-scheme: dark){ :root:not([data-tema="svetly"]) .prefill{color:var(--rada-nadpis);} }
+:root[data-tema="tmavy"] .prefill{color:var(--rada-nadpis);}
 
 .sticky-cta{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(243,242,239,0),var(--bg) 30%);padding:14px 18px calc(env(safe-area-inset-bottom) + 16px);}
 
@@ -1063,7 +1073,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 154<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 155<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
