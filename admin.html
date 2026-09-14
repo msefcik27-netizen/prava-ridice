@@ -421,7 +421,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 151</span><span class="verze" id="verzeApp"></span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 152</span><span class="verze" id="verzeApp"></span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -1806,6 +1806,9 @@ const LIMIT_POLE = {
   'garaz.zamek':200,
   'garaz.zamek.btn':30,
   'garaz.zamek.pozn':300,
+  'kalk.premium':4,
+  'kalk.zamek':200,
+  'kalk.zamek.btn':30,
   'nadpis.nehoda':60,
   'nehoda.bouracka':120,
   'odkaz.bouracka':300,
@@ -3499,6 +3502,25 @@ function prepocitejStitek(druh){
                                  seznamy: seznamyObrazovky(d.obrazovka) });
 }
 
+/* Klíče, které nejsou text, ale vypínač. V databázi je to obyčejný text
+   (1 = zapnuto), aby kvůli dvěma vypínačům nemusela vzniknout další tabulka —
+   psát do políčka jedničku by ale po nikom nebylo fér, tak je tu přepínač.
+   Hodnota u klíče je vysvětlení, které se pod přepínačem ukáže. */
+const PREPINACE_PRISTUPU = {
+  'garaz.premium':
+    'Zapnuto = Vozidla, termíny, pokuty a záznamy o nehodě uvidí jen ten, kdo má ' +
+    '<b>PREMIUM přístup</b>. Na Přehledu zůstane řádek se štítkem PREMIUM. ' +
+    'Co si lidé do Garáže uložili, se nemaže — mají to dál v telefonu. ' +
+    '<b>Co dělat po nehodě</b> zůstává volně přístupné z Přehledu.',
+  'kalk.premium':
+    'Zapnuto = kalkulačka alkoholu i drog a asistent při kontrole budou jen pro ' +
+    '<b>PREMIUM přístup</b>. Karta v Průvodci zůstane vidět se štítkem PREMIUM, ' +
+    'aby bylo poznat, co za přístup člověk dostane.'
+};
+function jeZapnuto(hodnota){
+  return ['1','ano','true'].includes(String(hodnota || '').trim().toLowerCase());
+}
+
 /* Jedno pole. onfocus přepne náhled na správnou obrazovku a text v něm zvýrazní,
    oninput pošle rozepsanou hodnotu — proto je náhled živý ještě před uložením. */
 function poleTextu(t){
@@ -3509,16 +3531,14 @@ function poleTextu(t){
      tabulka — psát do políčka jedničku by ale po nikom nebylo fér, tak je
      tu přepínač. Skryté pole `tx-…` drží hodnotu, takže ukládání textů
      i hlídání změn zůstávají beze změny. */
-  if(t.klic === 'garaz.premium'){
-    const zap = ['1','ano','true'].includes(String(t.hodnota || '').trim().toLowerCase());
+  if(PREPINACE_PRISTUPU[t.klic]){
+    const zap = jeZapnuto(t.hodnota);
     return `
   <div class="pole">
-    <div class="prepinac pristup ${zap ? 'zap' : ''}" id="prep-${t.klic}" onclick="prepniGaraz(this)">
+    <div class="prepinac pristup ${zap ? 'zap' : ''}" id="prep-${t.klic}"
+         onclick="prepniPristupPrepinac(this, '${t.klic}')">
       <div class="txt"><b>${esc(t.popis)}</b>
-        <span>Zapnuto = Vozidla, termíny, pokuty a záznamy o nehodě uvidí jen ten,
-          kdo má <b>PREMIUM přístup</b>. Na Přehledu zůstane řádek se štítkem PREMIUM.
-          Co si lidé do Garáže uložili, se nemaže — mají to dál v telefonu.
-          <b>Co dělat po nehodě</b> zůstává volně přístupné z Přehledu.</span></div>
+        <span>${PREPINACE_PRISTUPU[t.klic]}</span></div>
       <div class="stav-pristup"></div>
       <div class="knof"></div>
     </div>
@@ -3686,14 +3706,37 @@ function nahledBloku(t){
 
 function prepniPristup(el){ el.classList.toggle('zap'); }
 
-/* Přepínač Garáže píše do skrytého pole, které pak uloží ulozTexty() spolu
-   se všemi ostatními texty. Náhled se překreslí hned, jako u psaní. */
-function prepniGaraz(el){
-  el.classList.toggle('zap');
-  const pole = $('tx-' + el.id.replace(/^prep-/, ''));
-  if(!pole) return;
-  pole.value = el.classList.contains('zap') ? '1' : '';
-  poleZmeneno(pole);
+/* Přepínače přístupu se ukládají samy, hned při kliknutí — nečeká se na
+   tlačítko Uložit dole v sekci.
+
+   Proč: dřív psaly do skrytého pole a spoléhaly na společné hlídání změn.
+   Nela 14. 9. 2026 hlásila, že po přepnutí a uložení vyskočí „Nic se
+   nezměnilo." a volba se ztratí. Příčinu se nepodařilo zopakovat, ale
+   u jednoho vypínače je čekání na Uložit stejně zbytečný krok navíc —
+   tahle cesta ho odstraňuje celou. */
+async function prepniPristupPrepinac(el, klic){
+  const t = texty.find(x => x.klic === klic);
+  if(!t){ hlaska('Přepínač není v databázi — spusťte nahrat-build152.sql.', true); return; }
+  const zap = !el.classList.contains('zap');
+  const hodnota = zap ? '1' : '';
+
+  el.classList.toggle('zap', zap);
+  const pole = $('tx-' + klic);
+  if(pole) pole.value = hodnota;
+  nahledTexty();
+
+  const { error } = await db.from('texty')
+    .update({ hodnota, upravil: uzivatel.email }).eq('klic', klic);
+  if(error){
+    /* Zpátky, ať přepínač neukazuje něco jiného, než co je uložené. */
+    el.classList.toggle('zap', !zap);
+    if(pole) pole.value = zap ? '' : '1';
+    nahledTexty();
+    hlaska('Uložení selhalo: ' + error.message, true);
+    return;
+  }
+  t.hodnota = hodnota;
+  hlaska(zap ? 'Zapnuto a uloženo.' : 'Vypnuto a uloženo.');
 }
 
 function upravBlok(klic){

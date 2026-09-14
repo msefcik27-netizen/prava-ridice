@@ -953,7 +953,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
             <img class="pc-badge" src="badge-kalkulacka.png" alt="Jediná svého druhu" />
             <div style="flex:1;min-width:0;">
               <div class="pc-lbl" data-text="pruvodce.kalk.stitek">Interaktivní průvodce</div>
-              <div class="pc-title" data-text="pruvodce.kalk.nadpis">Kalkulačka a asistent při kontrole</div>
+              <div class="pc-title"><span data-text="pruvodce.kalk.nadpis">Kalkulačka a asistent při kontrole</span><span id="kalkZnacka"></span></div>
             </div>
           </div>
           <p class="pc-desc" data-text="pruvodce.kalk.popis">První právní asistent, který orientačně vyhodnotí riziko řízení po užití alkoholu nebo drog a ukáže, co řidiči reálně hrozí a jak postupovat dle jeho priorit.</p>
@@ -1061,7 +1061,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 151<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 152<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1689,27 +1689,43 @@ function vykresliBlok(b){
   }
 }
 
-/* Bloky se kreslí, dokud se nenarazí na zamčený. Tam se vykreslí zámek
-   a končí se — zeď má být jedna. Řetěz prázdných karet by vypadal jako
-   porucha, ne jako nabídka. */
+/* Každý blok se zamyká sám za sebe — volný blok pod placeným zůstane vidět.
+   Dřív se článek u prvního zamčeného bloku usekl a všechno pod ním zmizelo;
+   kdo si obsah skládal tak, že za placenou částí ještě něco volného je,
+   o ten zbytek přišel (nahlášeno 14. 9. 2026).
+   Tlačítko předplatného se dává jen k prvnímu zámku, ne ke každému —
+   pět stejných tlačítek pod sebou vypadá jako porucha, ne jako nabídka. */
 function vykresliBloky(pole){
   const rada = (pole || []).slice().sort((a,b) => (a.poradi||0) - (b.poradi||0));
-  let ven = '';
+  let ven = '', prvniZamek = true;
   for(const b of rada){
-    if(b.zamceno){ ven += zamekBloku(); break; }
-    ven += vykresliBlok(b);
+    if(b.zamceno){
+      ven += zamekBloku(b, prvniZamek);
+      prvniZamek = false;
+    } else {
+      ven += vykresliBlok(b);
+    }
   }
   return ven;
 }
 
-function zamekBloku(){
-  return '<div class="zamek-blok">' +
+/* Nadpis zamčeného bloku zůstává vidět, schová se jen jeho obsah — čtenář
+   tak pozná, o co přichází. Bloky bez nadpisu (odstavec, tabulka) ukážou
+   jen zámek. */
+function zamekBloku(b, sTlacitkem){
+  const nadpis = b && b.nadpis ? escT(b.nadpis) : '';
+  return (nadpis
+      ? '<div class="blok blok-mezinadpis b-bila v-normalni zamceny-nadpis"><h3>' + nadpis + '</h3></div>'
+      : '') +
+    '<div class="zamek-blok">' +
     '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
     '<rect x="4.4" y="10.4" width="15.2" height="9.6" rx="2.4"/><path d="M8 10.4V7.8a4 4 0 0 1 8 0v2.6"/></svg>' +
     '<span data-text="clanek.blok.zamek">' +
-      txt('clanek.blok.zamek','Pokračování je součástí PREMIUM přístupu.') + '</span></div>' +
-    '<button class="btn btn-dark btn-sm" style="margin:10px 0 4px" data-text="clanek.blok.zamek.btn" ' +
-      'onclick="go(\'predplatne\')">' + txt('clanek.blok.zamek.btn','Získat PREMIUM přístup') + '</button>';
+      txt('clanek.blok.zamek','Tato část je součástí PREMIUM přístupu.') + '</span></div>' +
+    (sTlacitkem
+      ? '<button class="btn btn-dark btn-sm" style="margin:10px 0 4px" data-text="clanek.blok.zamek.btn" ' +
+        'onclick="go(\'predplatne\')">' + txt('clanek.blok.zamek.btn','Získat PREMIUM přístup') + '</button>'
+      : '');
 }
 
 /* Má článek zamčené jen kusy? Pak se u nadpisu ukáže jiný štítek než
@@ -1950,7 +1966,7 @@ function textClanku(t){
   const rada = (t.bloky || []).slice().sort((a, b) => (a.poradi || 0) - (b.poradi || 0));
   const casti = [];
   for(const b of rada){
-    if(b.zamceno) break;
+    if(b.zamceno) continue;   /* zamčený se přeskočí, ale článek tu nekončí */
     casti.push(textBloku(b));
   }
   if(!casti.length && t.b) casti.push(String(t.b).replace(/<[^>]*>/g, ' '));
@@ -2771,6 +2787,20 @@ function chevIco(){ return '<svg width="18" height="18" viewBox="0 0 24 24" fill
 function renderCalcG(){
   const B=document.getElementById('calcBody');
   document.querySelector('#s-calc .sh-title').textContent = cg.mode==='alko'?'Alkohol za volantem':(cg.mode==='drogy'?'Drogy za volantem':'Zastavila vás policie?');
+  /* Zámek se kreslí tady, ne u vstupů — do kalkulačky se dá dostat z Průvodce,
+     z článku i ze Zpráv a každá z těch cest by si ho jinak musela hlídat sama. */
+  if(kalkZamcena()){
+    B.innerHTML =
+      '<div class="zamek-blok">' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+      '<rect x="4.4" y="10.4" width="15.2" height="9.6" rx="2.4"/><path d="M8 10.4V7.8a4 4 0 0 1 8 0v2.6"/></svg>' +
+      '<span data-text="kalk.zamek">' +
+        txt('kalk.zamek','Kalkulačka a asistent při kontrole jsou součástí PREMIUM přístupu.') +
+      '</span></div>' +
+      '<button data-text="kalk.zamek.btn" class="btn btn-dark btn-sm" style="margin-top:12px" onclick="go(\'predplatne\')">' +
+        txt('kalk.zamek.btn','Získat PREMIUM přístup') + '</button>';
+    return;
+  }
   if(!cg.mode){
     B.innerHTML='<div class="q">Co u vás policie řeší?</div>'+
       '<div class="choice" onclick="cg.mode=\'alko\';cg.node=\'A0\';renderCalcG()">Alkohol '+chevIco()+'</div>'+
@@ -4484,7 +4514,16 @@ function vehLabel(w){
   if(w.days<=30) return {t:w.n+' vyprší za '+w.days+' '+plural(w.days,'den','dny','dní'),c:'var(--orange)'};
   return {t:w.n+' platí ještě '+w.days+' dní',c:'var(--green)'};
 }
+/* Štítek PREMIUM u karty kalkulačky v Průvodci. Volá se z renderVehSub(),
+   aby nemusel viset na sedmi místech — obojí je štítek přístupu a překresluje
+   se ve stejnou chvíli. */
+function renderKalkZnacka(){
+  const el=document.getElementById('kalkZnacka'); if(!el) return;
+  el.innerHTML=znackaPristupu(kalkPremium());
+}
+
 function renderVehSub(){
+  try{ renderKalkZnacka(); }catch(e){}
   const el=document.getElementById('vehSub'); if(!el) return;
   znac('vehSub','prehled.vozidla.popis');
   /* Popis toho, co se pod řádkem skrývá, tu je vždycky — je editovatelný
@@ -4732,6 +4771,16 @@ function garazPremium(){
   return v === '1' || v === 'ano' || v === 'true';
 }
 function garazZamcena(){ return garazPremium() && !maPlnyPristup(); }
+
+/* Kalkulačka a asistent při kontrole — stejný přepínač jako u Garáže,
+   klíč `kalk.premium`. Zamyká se až obsah obrazovky, ne cesta k ní:
+   karta v Průvodci zůstane vidět i se štítkem PREMIUM, aby bylo poznat,
+   co za přístup člověk dostane. */
+function kalkPremium(){
+  const v = String(TXT['kalk.premium'] || '').trim().toLowerCase();
+  return v === '1' || v === 'ano' || v === 'true';
+}
+function kalkZamcena(){ return kalkPremium() && !maPlnyPristup(); }
 
 function renderVozidla(){
   const vs = getVehicles(), pk = getPokuty(), nh = getNehody();
@@ -5281,6 +5330,11 @@ function isAndroid(){ return /android/i.test(navigator.userAgent); }
    u manifestu v hlavičce). Pozná se podle vlastního podpisu; Chrome na Samsung
    telefonu ho nemá a chová se normálně. */
 function jeSamsung(){ return /SamsungBrowser/i.test(navigator.userAgent); }
+/* Firefox na Androidu neohlásí `beforeinstallprompt`, takže dřív spadl do
+   větve pro Android a dostal návod pro Chrome — s menu, které ve Firefoxu
+   není tam, kde píšeme (nahlášeno 14. 9. 2026). Přidat na plochu ale umí,
+   jen vlastní cestou. */
+function jeFirefoxAndroid(){ return /android/i.test(navigator.userAgent) && /firefox/i.test(navigator.userAgent); }
 function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true; }
 function hideInstallUI(){ const b=document.getElementById('obInstallBtn'); if(b)b.style.display='none'; }
 
@@ -5316,6 +5370,12 @@ function installSteps(){
     'Klepněte na ikonu <b>Sdílet</b> '+SHARE_ICON+' dole uprostřed lišty Safari.',
     'Sjeďte dolů a klepněte na '+PLUS_ICON+' <b>Přidat na plochu</b>.',
     'Vpravo nahoře potvrďte <b>Přidat</b>.'
+  ];
+  if(jeFirefoxAndroid()) return [
+    'Klepněte na menu '+MENU_ICON+' <b>⋮</b> ve Firefoxu — podle nastavení je '+
+      '<b>dole vpravo</b>, nebo nahoře vpravo.',
+    'Zvolte <b>Přidat na plochu</b> (v novějším Firefoxu <b>Instalovat</b>).',
+    'Potvrďte <b>Přidat</b>.'
   ];
   if(isAndroid()) return [
     'Klepněte na menu '+MENU_ICON+' <b>⋮</b> vpravo nahoře v Chromu.',
@@ -5400,6 +5460,15 @@ function openInstallSheet(){
     ]);
     action.textContent='Otevřít v Chromu';
     action.onclick=otevriVChromu;
+    if(kopie) kopie.style.display = 'block';
+  } else if(jeFirefoxAndroid()){
+    /* Firefox nikdy neohlásí `beforeinstallprompt`, takže velké tlačítko
+       „Přidat na plochu" by nic neudělalo a spadlo by na návod pro Chrome.
+       Místo toho rovnou správné kroky pro Firefox a možnost přejít do Chromu. */
+    if(sub) sub.textContent = 'Ve Firefoxu se appka přidává z menu — vypadá to trochu jinak než v Chromu. Kdyby to nešlo, můžete stránku přenést do Chromu a přidat ji tam.';
+    renderSteps(installSteps());
+    action.textContent='Rozumím';
+    action.onclick=closeInstallSheet;
     if(kopie) kopie.style.display = 'block';
   } else if(isAndroid()||deferredPrompt){
     // Android: velké tlačítko -> nativní instalační dialog
