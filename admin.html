@@ -421,7 +421,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 155</span><span class="verze" id="verzeApp"></span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 156</span><span class="verze" id="verzeApp"></span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -964,7 +964,7 @@ function editorClanku(){
         <div class="pole"><label>Odkaz na web</label>
           <input type="text" id="f-odkaz" value="${esc(c.odkaz)}"
             onfocus="naNahledClanku('odkaz')" oninput="nahledClanku()">
-          <p class="napoveda">Kam vede řádek „Celý článek na webu“ dole v článku.</p></div>
+          <p class="napoveda">Kam vede řádek „Celý článek na webu“ dole v článku. <b>Prázdné = řádek se v článku vůbec neukáže.</b></p></div>
 
         ${zamekShora}
         <div class="prepinac pristup ${c.placeny?'zap':''}" onclick="prepniPristup(this);nahledZamku();nahledClanku()" id="f-placeny">

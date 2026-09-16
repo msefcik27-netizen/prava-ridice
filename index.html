@@ -946,7 +946,6 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
     <div class="screen" id="s-sluzby">
       <div class="pad safe-top">
         <div class="pristup-pruh omezeny stav-pristupu"></div>
-        <div class="section-label" data-text="sluzby.odkazy.stitek">Odkazy</div>
         <div class="list-card" id="sluzbyLinks"></div>
         <div class="section-label" data-text="sluzby.stitek">S čím vám pomůžeme</div>
         <div class="list-card" id="serviceList"></div>
@@ -1073,7 +1072,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 155<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 156<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1435,10 +1434,11 @@ const PROFILE_LINKS = [
 /* Odkazy na kartě Služby — stejný tvar řádku, jen jiné místo. Texty se dál
    berou z klíčů `profil.odkaz.*`, aby se v administraci nemusely psát znovu. */
 const SLUZBY_LINKS = [
-  {k:'recenze', t:'Recenze klientů',  s:'5574+ vyřešených případů',        a:"openRecenze()"},
+  /* Pořadí podle Nely (16. 9. 2026): postup, recenze, média, kontakt. */
   {k:'postup',  t:'Jak to probíhá',   s:'7 kroků spolupráce s pevnou cenou',a:"openPostup()"},
-  {k:'kontakt', t:'Kontakt',          s:'Telefony, e-maily a pobočky',     a:"openKontakt()"},
+  {k:'recenze', t:'Recenze klientů',  s:'5574+ vyřešených případů',        a:"openRecenze()"},
   {k:'media',   t:'Média a rozhovory',s:'Otevře web pravaridice.cz',       a:"openExt(odk('odkaz.media','https://www.pravaridice.cz/'))",ext:true},
+  {k:'kontakt', t:'Kontakt',          s:'Telefony, e-maily a pobočky',     a:"openKontakt()"},
 ];
 /* ============ STATE ============ */
 let state = {tab:'prehled', screen:'prehled', points:6, notif:true, unread:1, fileName:'', promoOk:false, guideChip:null,
@@ -2111,13 +2111,13 @@ function openTopic(oblastId,title){
              'Text tohoto článku se nepodařilo načíst. Zkuste aplikaci otevřít znovu s připojením k internetu.')}</span></div>`
         : `<div data-clanek="${(t.bloky && t.bloky.length) ? 'bloky' : 'telo'}">` +
           ((t.bloky && t.bloky.length) ? vykresliBloky(t.bloky) : vykresliTelo(t.b)) + '</div>')}
-    <div class="list-card">
+    ${t.u ? `<div class="list-card">
       <div class="list-item" data-clanek="odkaz" data-odkaz="${escT(t.u)}" onclick="openExt(this.dataset.odkaz)">
         <div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></div>
         <div class="li-body"><h4 data-text="clanek.web.nadpis">${txt('clanek.web.nadpis','Celý článek na webu')}</h4><p data-text="clanek.web.popis">${txt('clanek.web.popis','pravaridice.cz — vždy aktuální znění')}</p></div>
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
       </div>
-    </div>
+    </div>` : ''}
     <div class="clanek-lista">
       <button data-text="clanek.btn.napsat" class="btn btn-outline-dark btn-sm" onclick="go('konzultace')">${txt('clanek.btn.napsat','Napsat')}</button>
       <button data-text="clanek.btn.volat" class="btn btn-dark btn-sm" onclick="callUs()">${txt('clanek.btn.volat','Zavolat')}</button>
@@ -5682,7 +5682,10 @@ async function nactiObsah(){
         t: c.nadpis, c: c.kategorie || o.nazev, d: c.perex || '',
         /* `vip` je úroveň obsahu a nikdy se nemaže. `zamceno` je jen to,
            jestli mě dovnitř pustí — to se získáním přístupu mění. */
-        b: c.telo || '', u: c.odkaz || WEB, zamceno: !!c.zamceno, vip: !!c.zamceno,
+        b: c.telo || '',
+        /* Bez vyplněného odkazu žádný odkaz — dřív se dosadila titulní stránka webu
+           a lidé klikali na „Celý článek na webu", který na webu nebyl (Nela 16. 9. 2026). */
+        u: (c.odkaz || '').trim(), zamceno: !!c.zamceno, vip: !!c.zamceno,
         bloky: (bloky || []).filter(b => b.clanek_id === c.id)
       }))
     })).filter(o => o.topics.length);
@@ -5836,7 +5839,7 @@ function nahledClanku(d){
   const o = { n: d.oblast || 'Oblast', topics: [] };
   const t = {
     t: d.nadpis || 'Bez názvu', c: d.kategorie || '', d: d.perex || '',
-    b: d.telo || '', u: d.odkaz || WEB, zamceno: !!d.zamceno, vip: !!d.zamceno,
+    b: d.telo || '', u: (d.odkaz || '').trim(), zamceno: !!d.zamceno   /* stejně jako v aplikaci */, vip: !!d.zamceno,
     bloky: d.bloky || []
   };
   o.topics.push(t);
