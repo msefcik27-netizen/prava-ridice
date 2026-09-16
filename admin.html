@@ -421,7 +421,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 156</span><span class="verze" id="verzeApp"></span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 157</span><span class="verze" id="verzeApp"></span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -1147,6 +1147,8 @@ function naNahledSluzby(cast){
   /* Jen si poznamenáme, kde náhled je. Otevírat sekci textů by ho poslalo
      zpátky na seznam služeb — detail konkrétní služby otevře až zpráva níž. */
   nahledObrazovkaAkt = 'service-detail';
+  if(cast === 'hrozi' || cast === 'pomoc'){ if(nahledJako !== 'plny') nahledJakoNastav('plny', true); }
+  else if(nahledJako !== nahledJakoRucni) nahledJakoNastav(nahledJakoRucni, true);
   posliNahled({ sluzba: vybranaSluzba });
   posliNahled({ zvyrazniSluzbu: vybranaSluzba + ':' + cast });
 }
@@ -1405,6 +1407,9 @@ const POLE_OBRAZOVKA = {
   'pruvodce.oblasti.stitek':'pruvodce',
   'clanek.zamceny.perex':'pruvodce',
   'clanek.zamek':'topic',
+  'clanek.blok.zamek':'topic',
+  'clanek.zamek.btn':'topic',        // bez těchto dvou řádků vznikla sekce „clanek"
+  'clanek.blok.zamek.btn':'topic',
   'clanek.web.nadpis':'topic',
   'clanek.web.popis':'topic',
   'clanek.btn.napsat':'topic',
@@ -1414,6 +1419,7 @@ const POLE_OBRAZOVKA = {
   'kalk.btn.sodhadem':'calc',
   'sluzby.stitek':'sluzby',
   'sluzby.zamek':'service-detail',
+  'sluzby.zamek.btn':'service-detail',
   'sluzby.hrozi.stitek':'service-detail',
   'sluzby.pomoc.stitek':'service-detail',
   'sluzby.cena.stitek':'service-detail',
@@ -1828,6 +1834,9 @@ const LIMIT_POLE = {
   'pruvodce.oblasti.stitek':30,
   'clanek.zamceny.perex':120,
   'clanek.zamek':120,
+  'clanek.blok.zamek':120,
+  'clanek.zamek.btn':30,
+  'clanek.blok.zamek.btn':30,
   'clanek.web.nadpis':60,
   'clanek.web.popis':160,
   'clanek.btn.napsat':30,
@@ -1837,6 +1846,7 @@ const LIMIT_POLE = {
   'kalk.btn.sodhadem':30,
   'sluzby.stitek':30,
   'sluzby.zamek':120,
+  'sluzby.zamek.btn':30,
   'sluzby.hrozi.stitek':30,
   'sluzby.pomoc.stitek':30,
   'sluzby.cena.stitek':30,
@@ -2176,7 +2186,12 @@ function zvyrazniSekce(obrazovka, neotviret){
   let prvni = null;
   sekce.forEach(d => {
     const patri = chtene.has(d.dataset.skupina);
-    if(!neotviret) d.open = patri;
+    /* Značka místo spoléhání na `synchronizuji`: událost toggle přijde až po
+       setTimeout níž a sekceOtevrena by pak poslala zvýraznění prvního textu. */
+    if(!neotviret && d.open !== patri){
+      if(patri) d.dataset.otevrenoKodem = '1';
+      d.open = patri;
+    }
     /* Zvýrazní se jen první — víc rámečků naráz je zmatek, ne pomoc. */
     d.classList.toggle('sekce-aktivni', patri && !prvni);
     if(patri && !prvni) prvni = d;
@@ -2188,7 +2203,21 @@ function zvyrazniSekce(obrazovka, neotviret){
   setTimeout(() => { synchronizuji = false; }, 0);
 }
 
+/* Sekce rozbalená kódem (proklik z náhledu) není ruční rozbalení. Bez téhle
+   značky poslala sekceOtevrena do náhledu zvýraznění PRVNÍHO textu sekce
+   a přebila tím text, na který se v náhledu kliklo (audit 16. 9. 2026). */
+function otevriSekci(det){
+  /* I všechny nadřazené — sekce bývají vnořené a ručně „otevřená" vnější
+     by poslala zvýraznění svého prvního textu. */
+  for(let d = det; d; d = d.parentElement ? d.parentElement.closest('details') : null){
+    if(d.open) continue;
+    d.dataset.otevrenoKodem = '1';
+    d.open = true;
+  }
+}
+
 function sekceOtevrena(el){
+  if(el.dataset.otevrenoKodem){ delete el.dataset.otevrenoKodem; return; }
   if(synchronizuji || !el.open) return;
   const t = texty.find(x => x.karta === nahledKarta && skupinaKlice(x.klic) === el.dataset.skupina);
   if(!t) return;
@@ -2342,6 +2371,10 @@ function zamerBlok(id){
   bloky.forEach(x => { if(x.clanek_id === b.clanek_id) x._otevreny = (x.id === id); });
   kresliBloky();
   const karta = document.querySelector('.bl-karta[data-blok="' + id + '"]');
+  /* Karta leží ve sbalené sekci „Obsah článku" — do pole ve sbalené sekci
+     nejde dát fokus, proklik pak nic neotevřel. Rozbalit všechny nadřazené. */
+  for(let d = karta && karta.parentElement; d; d = d.parentElement)
+    if(d.tagName === 'DETAILS') d.open = true;
   if(karta){
     karta.scrollIntoView({block: 'center', behavior: 'smooth'});
     karta.classList.add('bl-zvyrazneno');
@@ -2364,8 +2397,7 @@ function zamerPole(klic){
   const dokonci = () => {
     const pole = $('tx-' + klic);
     if(!pole){ hlaska('Tenhle text se mění jinde v administraci.'); return; }
-    const det = pole.closest('details');
-    if(det) det.open = true;
+    otevriSekci(pole.closest('details'));
     pole.scrollIntoView({ block: 'center', behavior: 'smooth' });
     pole.focus();
   };
@@ -2804,6 +2836,7 @@ function zamerOblast(id){
 function naNahledClanku(cast){
   if(nahledKarta !== 'pruvodce') return;
   nahledObrazovkaAkt = 'clanek';
+  posliNahled({ situace: ['kategorie', 'perex', 'odkaz'].includes(cast) ? { ukazat: cast } : {} });
   nahledClanku();
   posliNahled({ zvyrazniClanek: cast });
 }
@@ -2817,9 +2850,10 @@ function zamerClanek(cast){
      zaměření pole nebylo vidět. */
   if(pole){ const det = pole.closest('details'); if(det) det.open = true; }
   if(cast === 'bloky'){
-    const sekce = $('bl-sekce'); if(sekce) sekce.open = true;
-    const prvni = document.querySelector('#bl-seznam input, #bl-seznam textarea');
-    if(prvni){ prvni.scrollIntoView({block:'center', behavior:'smooth'}); prvni.focus(); return; }
+    /* Bloky jsou sbalené, takže v nich není co zaměřit — otevře se první. */
+    const prvniBlok = vybrano && bloky.filter(b => b.clanek_id === vybrano.id)
+      .sort((a, b) => (a.poradi || 0) - (b.poradi || 0))[0];
+    if(prvniBlok){ zamerBlok(prvniBlok.id); return; }
   }
   if(pole){ pole.scrollIntoView({ block:'center', behavior:'smooth' }); pole.focus(); }
 }
@@ -3386,8 +3420,7 @@ function zamerSeznam(zn){
   const radek = document.querySelector('#sez-' + druh + ' .sez-radek[data-id="' + id + '"]')
              || document.querySelector('#sez-' + druh + ' .sez-radek');
   if(!radek){ hlaska('Tenhle seznam se upravuje jinde v administraci.'); return; }
-  const det = radek.closest('details');
-  if(det) det.open = true;
+  otevriSekci(radek.closest('details'));
   radek.scrollIntoView({ block: 'center', behavior: 'smooth' });
   const pole = radek.querySelector('textarea, input');
   if(pole) pole.focus();
@@ -3409,9 +3442,13 @@ function seznamyObrazovky(obrazovka){
 const NAZVY_KARET = {uvod:'Úvodní obrazovky', prehled:'Přehled', pruvodce:'Průvodce',
                     sluzby:'Služby', zpravy:'Zprávy', profil:'Profil', kalk:'Kalkulačka'};
 
+/* Texty, které aplikace už nepoužívá. V databázi zůstávají, ale v editoru by
+   jen mátly — úprava by se nikde neprojevila. */
+const VYRAZENE_KLICE = ['sluzby.odkazy.stitek'];
+
 function kresliTexty(karta){
   const sek = $('texty-'+karta) || $('sek-'+karta);
-  const polozky = texty.filter(t => t.karta === karta);
+  const polozky = texty.filter(t => t.karta === karta && !VYRAZENE_KLICE.includes(t.klic));
   if(!polozky.length){
     sek.innerHTML = texty.length ? '' :
       `<div class="panel"><h2>${NAZVY_KARET[karta]||karta}</h2>
@@ -3533,8 +3570,11 @@ function poleTextu(t){
      i hlídání změn zůstávají beze změny. */
   if(PREPINACE_PRISTUPU[t.klic]){
     const zap = jeZapnuto(t.hodnota);
+    /* data-sam-uklada: přepínač se ukládá sám, tlačítko Uložit sekce ho nesmí
+       počítat jako rozepsanou změnu (jinak po přepnutí nabízí Uložit a hlásí
+       „Nic se nezměnilo." — Nela 16. 9. 2026). */
     return `
-  <div class="pole">
+  <div class="pole" data-sam-uklada>
     <div class="prepinac pristup ${zap ? 'zap' : ''}" id="prep-${t.klic}"
          onclick="prepniPristupPrepinac(this, '${t.klic}')">
       <div class="txt"><b>${esc(t.popis)}</b>
@@ -3618,11 +3658,35 @@ function poleZmeneno(el){
    přístupu, výzva k přihlášení jen u nepřihlášeného. Náhled se proto přepne
    sám, jinak by se rozsvítilo prázdno. */
 function stavPole(klic){
-  if(/zamek/.test(klic)) return 'omezeny';
+  if(/^profil\.ucet\.(kod|overuji|vypadek|posledni)/.test(klic)) return 'neprihlasen';
+  if(/^sluzby\.(hrozi|pomoc)\./.test(klic)) return 'plny';
+  if(/zamek|zamceny|\.premium$/.test(klic)) return 'omezeny';
   if(/neprihlasen/.test(klic) || /^profil\.ucet\.(nepr|ph|btn)$/.test(klic)) return 'neprihlasen';
   if(/\.omezeny/.test(klic)) return 'omezeny';
   if(/\.plny/.test(klic) || /^profil\.ucet\.(zaloha|odhlasit)$/.test(klic)) return 'plny';
   return null;
+}
+
+/* Některé texty jsou vidět jen v určité chvíli. Náhled dostane popis situace
+   a nachystá ji sám — bez toho se na tyhle texty nedalo proklikat vůbec. */
+function situacePole(klic){
+  let m;
+  if((m = klic.match(/^kalk\.(OUT_\w+)\./))) return { kalkVysledek: m[1] };
+  if(/^formular\.odeslano\./.test(klic)) return { odeslano: true };
+  if((m = klic.match(/^profil\.ucet\.(kod|overuji|vypadek|posledni)/))) return { ucet: m[1] };
+  if((m = klic.match(/^upozorneni\.stav\.(\w+)$/))) return { push: { lze: false, duvod: m[1] } };
+  if(klic === 'upozorneni.push.prihlasit') return { push: { lze: false, duvod: 'neprihlasen' } };
+  if(klic === 'upozorneni.push.popis') return { push: { lze: true, zapnuto: false } };
+  if(klic === 'profil.upozorneni.vypnuto') return { notif: 'nic' };
+  if(/^profil\.upozorneni\./.test(klic)) return { notif: 'vse' };
+  if(klic === 'zpravy.prazdno') return { zpravy: 'prazdne' };
+  if(klic === 'zpravy.prazdno.smazane') return { zpravy: 'prazdne', smazane: true };
+  if(/^garaz\.(premium|zamek)/.test(klic)) return { zamek: 'garaz' };
+  if(/^kalk\.(premium|zamek)/.test(klic)) return { zamek: 'kalk' };
+  if(/^clanek\.blok\./.test(klic)) return { blokZamek: true };
+  if(/^clanek\.web\./.test(klic)) return { ukazat: 'odkaz' };
+  if(klic === 'clanek.zamceny.perex') return { rozbalZamcenou: true };
+  return {};
 }
 
 function naNahled(klic){
@@ -3630,24 +3694,32 @@ function naNahled(klic){
      Jakmile se přejde na běžné pole, náhled se vrátí k tomu, co si vybrala
      obsluha — nezůstane viset na „omezeném přístupu". */
   const stav = stavPole(klic) || nahledJakoRucni;
-  if(stav !== nahledJako) nahledJakoNastav(stav, true);
+  const zmenaStavu = stav !== nahledJako;
+  if(zmenaStavu) nahledJakoNastav(stav, true);
   /* Texty pro prázdný stav („zatím žádné vozidlo") se ukážou jen nad prázdnými
      daty; jinak náhled běží nad ukázkovým vozidlem, pokutou a nehodou. */
-  posliNahled({ prazdno: /\.prazdno$/.test(klic) });
+  posliNahled({ prazdno: /\.prazdno$|^upozorneni\.bez\.vozidla/.test(klic) });
   const kam = obrazovkaKlice(klic);
-  if(kam !== nahledObrazovkaAkt) nahledObrazovka(kam, true);
+  /* Po změně přístupu se obrazovka sestaví znovu — detail služby nebo článek
+     by jinak zůstal zamčený (nebo odemčený) z předchozího stavu. */
+  if(kam !== nahledObrazovkaAkt || zmenaStavu) nahledObrazovka(kam, true);
   /* Situace, ve které je text vidět: kolik bodů, otevřený formulář garáže,
      krok kalkulačky. Musí se nastavit až po přepnutí obrazovky — ta se totiž
      sestavuje znovu a předchozí nastavení by přemazala. */
+  const BODY = { 'prehled.stav.bezpecno': 2, 'prehled.stav.upozorneni': 5, 'prehled.stav.riziko': 7,
+                 'prehled.stav.kriticky': 10, 'prehled.stav.hranice': 12,
+                 'prehled.body.zadny': 12, 'prehled.body.varovani': 6, 'prehled.body.zbyva': 9 };
   if(/^prehled\.vyzva\./.test(klic)) posliNahled({ body: /12$/.test(klic) ? 12 : 9 });
+  else if(BODY[klic] !== undefined) posliNahled({ body: BODY[klic] });
   if(/^garaz\./.test(klic)){
     const g = klic.match(/^garaz\.(vozidlo|pokuta|nehoda)\.(ulozit|chyba|pridano|upraveno|pripsat|zprava)$/);
-    posliNahled({ garaz: g ? g[1] : (klic === 'garaz.zrusit' ? 'vozidlo' : '') });
+    posliNahled({ garaz: g ? g[1] : (/^garaz\.(zrusit|doklad\.)/.test(klic) ? 'vozidlo' : '') });
   }
   if(/^kalk\.btn\./.test(klic)) posliNahled({ kalk: klic.endsWith('sodhadem') ? 'sodhadem' : 'bezodhadu' });
   /* Úvodní obrazovky jsou pět samostatných obrazovek — náhled ukáže tu,
      ke které pole patří. O krok se postará aplikace podle jejího názvu. */
-  posliNahled({ zvyrazni: klic });
+  posliNahled({ situace: Object.assign({ jako: nahledJako }, situacePole(klic)) });
+  posliNahled({ zvyrazni: klic.replace(/\.premium$/, '.zamek') });
 }
 
 async function ulozTexty(karta, potichu, btn){
@@ -3721,6 +3793,7 @@ async function prepniPristupPrepinac(el, klic){
   const hodnota = zap ? '1' : '';
 
   el.classList.toggle('zap', zap);
+  naNahled(klic);
   const pole = $('tx-' + klic);
   if(pole) pole.value = hodnota;
   nahledTexty();
@@ -3744,7 +3817,7 @@ function upravBlok(klic){
   upravovane.add(klic); kresliTexty(t.karta);
   const pole = $('tx-'+klic);
   if(pole){
-    const det = pole.closest('details'); if(det) det.open = true;
+    otevriSekci(pole.closest('details'));
     pole.scrollIntoView({ block: 'center', behavior: 'smooth' });
     pole.focus();
   }
@@ -3794,7 +3867,7 @@ async function smazBlok(klic){
    jinak by hlásilo změnu u něčeho, co samo neuloží. */
 function stavFormulare(el, jenSve){
   const casti = [];
-  const vlastni = x => !jenSve || !x.closest('.podsekce, .blok-edit');
+  const vlastni = x => !x.closest('[data-sam-uklada]') && (!jenSve || !x.closest('.podsekce, .blok-edit'));
   el.querySelectorAll('input,textarea,select').forEach(x => { if(vlastni(x)) casti.push(x.value); });
   el.querySelectorAll('.prepinac').forEach(x => {
     if(vlastni(x)) casti.push(x.classList.contains('zap') ? '1' : '0');

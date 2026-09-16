@@ -204,6 +204,9 @@ h1,h2,h3,h4{margin:0;line-height:1.15;}
 .btn-outline{background:transparent;border:1.5px solid rgba(255,255,255,.35);color:#fff;}
 .btn-outline-dark{background:var(--card);border:1.5px solid var(--line);color:var(--ink);}
 .btn-ghost{background:var(--peach-100);color:#5c3a1e;}
+/* Náhled administrace: část, která je v aplikaci skrytá a ukazuje se jen při úpravě. */
+.nahled-skryte{opacity:.6;outline:1.5px dashed var(--muted);outline-offset:2px;}
+.nahled-skryte-pozn{display:block;font-size:0.6875rem;color:var(--muted);font-style:italic;margin-top:3px;}
 /* Pozadí je proměnná a v tmavém režimu se překlopí, barva textu ale byla
    napsaná natvrdo — zůstal tmavě hnědý text na tmavě modrém podkladu,
    kontrast 1,38 : 1 (norma žádá 4,5). Nahlášeno 14. 9. 2026 u tlačítka
@@ -1072,7 +1075,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.5 · build 156<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.5 · build 157<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1814,15 +1817,20 @@ function renderPoints(){
   /* Skloňování počítá aplikace a do textu vkládá už hotový kus („5 bodů").
      Nela tak mění větu, ne gramatiku — do jednoho pole se „1 bod / 2 body /
      5 bodů" zapsat nedá. */
-  znac('ptNote','prehled.body.zbyva');
+  /* Věta a varování jsou dva různé texty — každý má vlastní značku, jinak
+     by se v administraci dalo proklikat jen na jeden z nich. */
   const zbyva = remain + ' ' + plural(remain,'bod','body','bodů');
+  const klicVety = remain===0 ? 'prehled.body.zadny' : 'prehled.body.zbyva';
   const veta = remain===0
     ? txt('prehled.body.zadny','Nezbývá vám žádný bod do hranice 12 bodů.')
     : txt('prehled.body.zbyva','Zbývá vám {zbyva} do hranice 12 bodů.', {zbyva: zbyva});
   const varovani = (p>=6&&p<=7)
-    ? ' ' + txt('prehled.body.varovani','Pozor: jediný 6bodový přestupek může znamenat vybodování.')
+    ? ' <span data-text="prehled.body.varovani">' +
+      escT(txt('prehled.body.varovani','Pozor: jediný 6bodový přestupek může znamenat vybodování.')) + '</span>'
     : '';
-  document.getElementById('ptNote').textContent = veta + varovani;
+  const ptNote = document.getElementById('ptNote');
+  delete ptNote.dataset.text;
+  ptNote.innerHTML = '<span data-text="' + klicVety + '">' + escT(veta) + '</span>' + varovani;
   // progress + color
   const bar=document.getElementById('ptBar');
   bar.style.width=(p/12*100)+'%';
@@ -2084,12 +2092,18 @@ function openTopic(oblastId,title){
   /* Kategorie se ukáže jen tam, kde něco přidává. Když je stejná jako název,
      je to totéž velkými písmeny hned nad sebou. */
   const kategorie = [o.n, t.c].filter((x,i,p) => x && p.indexOf(x) === i).join(' · ');
-  const kategorieJinak = kategorie && kategorie.toLowerCase() !== String(t.t||'').toLowerCase();
-  const perex = (t.d && !t.zamceno) ? t.d : '';
+  /* V náhledu administrace se ukáže i část, která je v aplikaci skrytá — ale jen
+     když se zrovna upravuje, jinak by náhled přestal odpovídat telefonu. */
+  const ukaz = (window.__nahledStav || {}).ukazat || '';
+  const skryte = popis => `<span class="nahled-skryte-pozn">${popis}</span>`;
+  const kategorieJinak = (kategorie && kategorie.toLowerCase() !== String(t.t||'').toLowerCase())
+                         || ukaz === 'kategorie';
+  const perex = (t.d && !t.zamceno) ? t.d
+              : (ukaz === 'perex' ? skryte('Perex je prázdný — v aplikaci se neukáže.') : '');
   /* Karta nahoře se vykreslí jen tehdy, když má co říct — perex nebo zámek.
      U běžného odemčeného článku odpadá celá i s kategorií: ta je vidět
      v seznamu na Průvodci, odkud sem člověk přišel. */
-  const maUvod = !!perex || !!t.zamceno;
+  const maUvod = !!perex || !!t.zamceno || ukaz === 'kategorie';
   document.getElementById('topicBody').innerHTML=`
     ${maUvod ? `<div class="card" style="margin-bottom:12px;">
       ${kategorieJinak ? `<div class="cat" data-clanek="kategorie" style="font-size:0.6875rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink-2);margin-bottom:${(perex||t.zamceno) ? '6px' : '0'};">${kategorie}</div>` : ''}
@@ -2111,10 +2125,10 @@ function openTopic(oblastId,title){
              'Text tohoto článku se nepodařilo načíst. Zkuste aplikaci otevřít znovu s připojením k internetu.')}</span></div>`
         : `<div data-clanek="${(t.bloky && t.bloky.length) ? 'bloky' : 'telo'}">` +
           ((t.bloky && t.bloky.length) ? vykresliBloky(t.bloky) : vykresliTelo(t.b)) + '</div>')}
-    ${t.u ? `<div class="list-card">
+    ${(t.u || ukaz === 'odkaz') ? `<div class="list-card${t.u ? '' : ' nahled-skryte'}">
       <div class="list-item" data-clanek="odkaz" data-odkaz="${escT(t.u)}" onclick="openExt(this.dataset.odkaz)">
         <div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></div>
-        <div class="li-body"><h4 data-text="clanek.web.nadpis">${txt('clanek.web.nadpis','Celý článek na webu')}</h4><p data-text="clanek.web.popis">${txt('clanek.web.popis','pravaridice.cz — vždy aktuální znění')}</p></div>
+        <div class="li-body"><h4 data-text="clanek.web.nadpis">${txt('clanek.web.nadpis','Celý článek na webu')}</h4><p data-text="clanek.web.popis">${txt('clanek.web.popis','pravaridice.cz — vždy aktuální znění')}</p>${t.u ? '' : skryte('V aplikaci skryté — článek nemá vyplněný odkaz na web.')}</div>
         <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
       </div>
     </div>` : ''}
@@ -2567,7 +2581,9 @@ function oknoOdeslano(neprosly){
     document.body.appendChild(pozadi);
     requestAnimationFrame(() => {
       pozadi.classList.add('vidno');
-      const t = pozadi.querySelector('[data-ano]'); if(t) t.focus();
+      /* V náhledu administrace okno fokus nebere — jinak by ho vzalo poli,
+         do kterého obsluha zrovna píše. */
+      const t = pozadi.querySelector('[data-ano]'); if(t && !window.__nahledStav) t.focus();
     });
     const konec = (volat) => {
       document.removeEventListener('keydown', klavesa, true);
@@ -3582,7 +3598,7 @@ function renderAccount(){
         '</div>';
       return;
     }
-    let posledni=''; try{ posledni = localStorage.getItem('pr-ucet-email')||''; }catch(e){}
+    let posledni=''; try{ posledni = (window.__nahledStav && window.__nahledStav.posledni) || localStorage.getItem('pr-ucet-email')||''; }catch(e){}
     box.innerHTML='<div data-text="profil.ucet.stitek" class="eyebrow" style="margin-bottom:6px;">'+txt('profil.ucet.stitek','Účet')+'</div>'+
       '<div data-text="profil.ucet.neprihlasen" class="title-md" style="font-size:1rem;margin-bottom:4px;">'+txt('profil.ucet.neprihlasen','Nepřihlášeno')+'</div>'+
       '<div data-text="profil.ucet.nepr" class="small muted" style="margin-bottom:10px;">'+txt('profil.ucet.nepr','Přihlášením se vám vrátí body řidiče, nastavení i PREMIUM přístup — třeba po přechodu na nový telefon.')+'</div>'+
@@ -4053,6 +4069,7 @@ function klicNaBajty(zaklad){
 
 /* Stav odběru — z něj se skládá text na obrazovce Upozornění. */
 async function stavPush(){
+  if(window.__nahledStav && window.__nahledStav.push) return window.__nahledStav.push;   // náhled administrace
   /* iPhone pustí oznámení jen aplikaci přidané na plochu — v Safari chybí
      rovnou celé rozhraní. Bez téhle větve by aplikace hlásila „telefon to
      neumí", což zní jako konec cesty, přestože stačí ji přidat na plochu. */
@@ -4794,6 +4811,7 @@ function tiskniNehodu(id){
    obsah, který vede na konzultaci zdarma; zamčené je jen tlačítko sem
    dovnitř, do Garáže. */
 function garazPremium(){
+  if(window.__nahledStav && window.__nahledStav.zamek === 'garaz') return true;   // náhled administrace
   const v = String(TXT['garaz.premium'] || '').trim().toLowerCase();
   return v === '1' || v === 'ano' || v === 'true';
 }
@@ -4804,6 +4822,7 @@ function garazZamcena(){ return garazPremium() && !maPlnyPristup(); }
    karta v Průvodci zůstane vidět i se štítkem PREMIUM, aby bylo poznat,
    co za přístup člověk dostane. */
 function kalkPremium(){
+  if(window.__nahledStav && window.__nahledStav.zamek === 'kalk') return true;    // náhled administrace
   const v = String(TXT['kalk.premium'] || '').trim().toLowerCase();
   return v === '1' || v === 'ano' || v === 'true';
 }
@@ -5780,15 +5799,17 @@ renderVehSub();
    v administraci nefunguje. */
 function renderUpSub(){
   const c=getNotifCfg(); const el=document.getElementById('upSub'); if(!el) return;
-  const n=[c.body&&txt('profil.upozorneni.body','body'),
-           c.stk&&txt('profil.upozorneni.stk','STK'),
-           c.poj&&txt('profil.upozorneni.pojisteni','pojištění'),
-           c.znamka&&txt('profil.upozorneni.znamka','známka'),
-           c.zpravy&&txt('profil.upozorneni.zpravy','zprávy')].filter(Boolean);
+  const slovo = (k, v) => '<span data-text="' + k + '">' + escT(txt(k, v)) + '</span>';
+  const n=[c.body&&slovo('profil.upozorneni.body','body'),
+           c.stk&&slovo('profil.upozorneni.stk','STK'),
+           c.poj&&slovo('profil.upozorneni.pojisteni','pojištění'),
+           c.znamka&&slovo('profil.upozorneni.znamka','známka'),
+           c.zpravy&&slovo('profil.upozorneni.zpravy','zprávy')].filter(Boolean);
   znac('upSub', n.length ? 'profil.upozorneni.souhrn' : 'profil.upozorneni.vypnuto');
-  el.textContent = n.length
-    ? txt('profil.upozorneni.souhrn','{co} · práh {prah} bodů', {co:n.join(', '), prah:c.prah})
-    : txt('profil.upozorneni.vypnuto','Vše vypnuto');
+  /* Každé slovo je v administraci samostatný text, proto má vlastní značku. */
+  el.innerHTML = n.length
+    ? escT(txt('profil.upozorneni.souhrn','{co} · práh {prah} bodů', {prah:c.prah})).split('{co}').join(n.join(', '))
+    : escT(txt('profil.upozorneni.vypnuto','Vše vypnuto'));
 }
 renderUpSub();
 updateChromeBg();
@@ -5922,6 +5943,70 @@ if(NAHLED){
                popis:'Náraz zezadu na semaforu, druhý řidič uznal zavinění.'}]
   };
   let nahledPrazdno = false;   // přepíná se z administrace u textů pro prázdný stav
+
+  /* ---- situace ----
+     Některé texty jsou vidět jen v určité chvíli: výsledek kalkulačky, odeslaný
+     formulář, stav účtu, zamčená Garáž… Administrace při úpravě takového textu
+     pošle, jakou situaci má náhled nachystat. Každá nová situace tu předchozí ruší. */
+  window.__nahledStav = {};
+  var nahledPosledniTema = null;
+  const puvZpravy = vsechnyZpravy, puvSmazane = smazaneZpravy, puvNotif = getNotifCfg;
+  vsechnyZpravy = () => window.__nahledStav.zpravy === 'prazdne' ? [] : puvZpravy();
+  smazaneZpravy = () => window.__nahledStav.smazane ? ['nahled'] : puvSmazane();
+  getNotifCfg = () => window.__nahledStav.notif === 'vse'
+      ? Object.assign({}, puvNotif(), {body:true, stk:true, poj:true, znamka:true, zpravy:true})
+    : window.__nahledStav.notif === 'nic'
+      ? Object.assign({}, puvNotif(), {body:false, stk:false, poj:false, znamka:false, zpravy:false})
+    : puvNotif();
+  var nahledSituace = sit => {
+    /* Okno odeslaného formuláře zůstává, dokud se upravují jeho texty —
+       zavírat a otevírat ho při každém poli by blikalo. */
+    if(!sit.odeslano) document.querySelectorAll('.okno-pozadi').forEach(e => e.remove());
+    const predtim = window.__nahledStav;
+    window.__nahledStav = Object.assign({}, sit);
+    /* Výchozí stav účtu podle toho, komu se náhled ukazuje — jinak by v něm
+       zůstala předchozí ukázka (čekání na kód, výpadek…). */
+    if(sit.jako){
+      authUser = sit.jako === 'neprihlasen' ? null : {email:'nahled@pravaridice.cz'};
+      authStav = authUser ? 'prihlasen' : 'neprihlasen';
+      ucetCeka = '';
+    }
+    if(sit.ucet){
+      authUser = null;
+      authStav = sit.ucet === 'overuji' ? 'zjistuje' : sit.ucet === 'vypadek' ? 'nedostupne' : 'neprihlasen';
+      ucetCeka = sit.ucet === 'kod' ? 'jmeno@firma.cz' : '';
+      if(sit.ucet === 'posledni') window.__nahledStav.posledni = 'jmeno@firma.cz';
+    }
+    renderAccount(); renderUpSub(); renderZpravy(); renderUnread(); renderPoints();
+    if(sit.push || predtim.push){ try { kresliPushKartu(); } catch(e) {} }
+    if(sit.zamek || predtim.zamek){
+      if(state.screen === 'vozidla') renderVozidla();
+      if(state.screen === 'calc') renderCalcG();
+    }
+    if(sit.kalkVysledek){
+      openCalc();
+      cg.mode = /^OUT_D/.test(sit.kalkVysledek) ? 'drogy' : 'alko';
+      cg.node = sit.kalkVysledek;
+      renderCalcG();
+    }
+    if(sit.odeslano && !document.querySelector('.okno-odeslano')){
+      go('konzultace'); try { oknoOdeslano([]); } catch(e) {}
+    }
+    if(sit.rozbalZamcenou){
+      const i = GUIDE.findIndex(o => (o.topics||[]).some(t => t.vip ?? t.zamceno));
+      otevrenaOblast = i >= 0 ? i : 0;
+      renderGuideOblasti();
+    }
+    if(sit.blokZamek){
+      nahledClanku({ oblast: 'Ukázka', nadpis: 'Ukázka článku', zamceno: false, bloky: [
+        { id: 'nahled-1', poradi: 10, typ: 'odstavec', text: 'Volná část článku.', zamceno: false },
+        { id: 'nahled-2', poradi: 20, typ: 'mezinadpis', nadpis: 'Placená část článku', zamceno: true },
+        { id: 'nahled-3', poradi: 30, typ: 'odstavec', text: 'Další zamčený odstavec.', zamceno: true } ] });
+    }
+    /* Skrytá část rozepsaného článku — překreslit hned, ať se ukáže. */
+    if((sit.ukazat || predtim.ukazat) && state.screen === 'topic' && nahledPosledniTema)
+      openTopic(nahledPosledniTema[0], nahledPosledniTema[1]);
+  };
   /* Ukázka konkrétního kroku úvodu. E-mail se doplní, ať poslední krok
      nevypadá rozbitě — v náhledu se nikam neposílá. */
   const uvodKrok = krok => {
@@ -5956,9 +6041,21 @@ if(NAHLED){
       if(typeof z.body === 'number'){ state.points = z.body; renderPoints(); }
       if(typeof z.prihlasen === 'boolean'){
         authUser = z.prihlasen ? {email:'nahled@pravaridice.cz'} : null;
+        /* Bez stavu přihlášení se přístup vyhodnocoval jako „ještě se zjišťuje"
+           — náhled pak nikdy neukázal plný přístup. */
+        authStav = z.prihlasen ? 'prihlasen' : 'neprihlasen';
+        ucetCeka = '';
         renderAccount(); renderStavPristupu(); renderPlan();
       }
-      if(typeof z.pristup === 'boolean'){ pristupZeServeru = z.pristup; renderStavPristupu(); renderPlan(); renderServices(); }
+      if('situace' in z) nahledSituace(z.situace || {});
+      if(typeof z.pristup === 'boolean'){
+        pristupZeServeru = z.pristup;
+        GUIDE.forEach(o => (o.topics||[]).forEach(t => {
+          if(t.vip === undefined) t.vip = !!t.zamceno;
+          t.zamceno = !z.pristup && t.vip;
+        }));
+        renderStavPristupu(); renderPlan(); renderServices(); renderGuideOblasti();
+      }
       if(z.tema){ nastavTema(z.tema); }
       /* Odchod z úvodních obrazovek je zase schová. */
       if(z.obrazovka && !/^uvod/.test(z.obrazovka)){
@@ -5983,12 +6080,13 @@ if(NAHLED){
           /* Článek a detail služby: ukáže se první, který je po ruce —
              jde o společné texty (zámek, tlačítka), ne o konkrétní obsah. */
           topic: () => {
+            nahledPosledniTema = null;
             /* Když se náhled ukazuje jako omezený přístup, otevře se zamčený
                článek — jinak by nebyl vidět text zámku, který se právě upravuje. */
             /* Zamčení se v náhledu jen předstírá. Původní stav se vrací,
                jinak by článek zůstal zamčený i po přepnutí na plný přístup. */
             GUIDE.forEach(oblast => (oblast.topics||[]).forEach(x => {
-              if(x._zamcenoPuv === undefined) x._zamcenoPuv = !!x.zamceno;
+              if(x._zamcenoPuv === undefined) x._zamcenoPuv = !!(x.vip ?? x.zamceno);
               x.zamceno = x._zamcenoPuv;
             }));
             let o = GUIDE[0], t = o && o.topics && o.topics[0];
@@ -6001,7 +6099,7 @@ if(NAHLED){
                  — jde o náhled, jak zámek vypadá, ne o skutečný obsah. */
               if(t) t.zamceno = true;
             }
-            if(o && t) openTopic(o.id, t.t);
+            if(o && t){ nahledPosledniTema = [o.id, t.t]; openTopic(o.id, t.t); }
           },
           'service-detail': () => {
             SERVICES.forEach(x => {
@@ -6060,6 +6158,7 @@ if(NAHLED){
         renderVehSub(); renderZpravy(); renderUnread();
         if(state.screen === 'vozidla') openVozidla();
         if(state.screen === 'nehoda') openNehoda();
+        if(state.screen === 'upozorneni') renderUpozorneni();
       }
     } catch(e){ console.warn('[náhled]', e); }
     try { parent.postMessage({ pr: 'nahled', hotovo: true }, '*'); } catch(e) {}
