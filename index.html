@@ -580,7 +580,11 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 .pole-input::placeholder{color:var(--muted);opacity:.75;}
 .pole-input:focus{border-color:var(--turq-deep);box-shadow:0 0 0 3px rgba(0,212,212,.16);}
 .ob-chyba{display:none;background:rgba(229,72,77,.16);border:1px solid rgba(229,72,77,.4);color:#FFD9DA;border-radius:11px;padding:10px 13px;font-size:0.8125rem;margin-top:12px;line-height:1.4;}
-.ob-code{flex:1;text-align:left;}
+/* `flex:1` tu bylo z doby, kdy pole stálo v řádku vedle tlačítka (.ob-coderow).
+   Ten řádek se v aplikaci nikde nepoužívá, zato pole visí přímo v .ob-step,
+   což je sloupcový flex — pravidlo tak roztahovalo vstupní pole do výšky
+   a na iPhonu měla 145 px místo ~50 px. `flex:0 0 auto` je nechá v klidu. */
+.ob-code{flex:0 0 auto;}
 .ob-coderow button{flex:0 0 auto;padding:0 18px;border-radius:14px;border:none;background:var(--peach);color:var(--accent-ink);font-family:inherit;font-weight:800;font-size:0.9375rem;cursor:pointer;}
 .ob-free{background:none;border:none;color:rgba(255,255,255,.85);font-family:inherit;font-size:0.9375rem;font-weight:700;text-decoration:underline;padding:12px;cursor:pointer;width:100%;}
 #obBody .ob-fill{flex:1;}
@@ -1160,7 +1164,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.6 · build 159<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.6 · build 160<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
