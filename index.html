@@ -654,6 +654,9 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 .gsekce .gtelo{padding:0 15px 15px;}
 .g-polozka{border:1px solid var(--line);border-radius:13px;padding:12px 13px;margin-bottom:9px;}
 .g-polozka .g-hlava{display:flex;align-items:flex-start;gap:10px;}
+/* Hlavička karty pokuty se otevírá klepnutím, proto vypadá klikatelně. */
+.g-polozka .g-hlava.klikaci{cursor:pointer;}
+.g-polozka .g-sipka{flex:0 0 auto;margin-left:auto;opacity:.45;align-self:center;}
 .g-polozka .g-hlava b{flex:1;min-width:0;font-size:0.9375rem;font-weight:800;}
 .g-polozka .g-smaz{background:none;border:0;color:var(--muted);font-size:1rem;cursor:pointer;padding:0 0 0 6px;line-height:1;}
 .g-polozka .g-upr{flex:0 0 auto;background:var(--bg);border:1px solid var(--line);color:var(--ink);
@@ -696,6 +699,10 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
   border-radius:16px;padding:15px 14px;font-family:inherit;font-size:0.9375rem;font-weight:700;
   color:var(--ink);cursor:pointer;margin-bottom:12px;}
 .btn-pridat:active{background:var(--bg);}
+/* Nela 29. 9.: na obrazovce Pokuty přebíjela ruční přidání karta služby
+   kanceláře. Plná varianta vypadá jako ostatní hlavní tlačítka. */
+.btn-pridat.plne{background:var(--peach);border:none;color:var(--accent-ink);}
+.btn-pridat.plne:active{filter:brightness(.95);}
 
 /* Placená služba kanceláře — tmavá karta na obrazovce Pokuty. */
 .provereni{background:var(--teal-800);color:#fff;border-radius:20px;padding:18px 17px;margin-top:14px;}
@@ -705,7 +712,15 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 .provereni .pv-pod{margin:0 0 14px;font-size:0.8125rem;color:rgba(255,255,255,.78);}
 .provereni label{display:block;font-size:0.8125rem;font-weight:700;margin:12px 0 5px;}
 .provereni label i{font-style:normal;color:var(--peach);}
+/* Nákres adresního řádku v návodu na instalaci — kreslí se z barvy textu,
+   takže funguje ve světlém i tmavém režimu. */
+.step-row .nakres{display:block;width:100%;max-width:260px;height:auto;margin:8px 0 2px;color:var(--ink);}
 .provereni .pv-hint{display:block;font-size:0.7188rem;color:rgba(255,255,255,.66);margin:-4px 0 5px;}
+/* Varování u pokuty, která se blíží šestiměsíční lhůtě. Světlý podklad
+   uvnitř tmavé karty, aby se nedalo přehlédnout. */
+.provereni .pv-stare{background:#FCE9E9;border:1px solid #F3B9B9;border-radius:12px;
+  padding:11px 13px;margin:2px 0 10px;color:#7A1F22;font-size:0.8125rem;line-height:1.45;}
+.provereni .pv-stare a{color:#7A1F22;font-weight:700;text-decoration:underline;}
 /* Pole jsou vždycky bílá, i v tmavém režimu — proto tu barva textu nesmí být
    proměnná. S var(--ink) by v tmavém režimu psal bílý text do bílého pole. */
 .provereni input[type=text],.provereni input[type=tel],.provereni textarea{
@@ -1164,7 +1179,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.6 · build 160<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.6 · build 161<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1702,7 +1717,10 @@ window.addEventListener('popstate', ()=>{
 });
 try{ history.replaceState({pr: 0}, ''); }catch(e){}
 function enterApp(){ try{ stavPlochaKarty(); }catch(e){}
-  document.getElementById('onboard').style.display='none'; fitScreen(); requestAnimationFrame(fitScreen); updateChromeBg(); }
+  document.getElementById('onboard').style.display='none'; fitScreen(); requestAnimationFrame(fitScreen); updateChromeBg();
+  /* Po návratu z fotoaparátu Android stránku načte znovu — rozepsaná pokuta
+     se vrátí sem, ne do prázdna. Nic nedělá, když není co vracet. */
+  try{ obnovRozepsanouPokutu(); }catch(e){} }
 
 /* ============ SAZBY A HRANICE ============
    Čísla a částky, které se mění se zákonem, nejsou v kódu natvrdo — jdou
@@ -4765,15 +4783,44 @@ const stavPokuty = s => STAVY_POKUT.find(x => x[0] === s) ||
 
 /* Typ pokuty rozhoduje, jestli ji lze nechat prověřit — služba kanceláře
    se týká jen příkazu na místě (blokové pokuty). */
-const TYPY_POKUT = [
-  ['prikaz', 'Příkaz na místě'],
-  ['rizeni', 'Správní řízení']
+/* Nela 29. 9.: „příkaz na místě" spousta lidí nezná, proto je v závorce
+   i lidové označení. Obě jména jdou měnit v administraci — proto funkce
+   a ne pole: texty z databáze dorazí až po načtení stránky. */
+const typyPokut = () => [
+  ['prikaz', txt('garaz.pokuta.typ.prikaz', 'Příkaz na místě (bloková pokuta)')],
+  ['rizeni', txt('garaz.pokuta.typ.rizeni', 'Správní řízení')]
 ];
-const typPokuty = t => (TYPY_POKUT.find(x => x[0] === t) || [])[1] || '';
+const typPokuty = t => (typyPokut().find(x => x[0] === t) || [])[1] || '';
 
 /* Prověřit jde jen pokuta, která není starší než půl roku. Lhůta se počítá
    od data udělení — potvrzeno 18. 9. 2026. */
 const PROVERENI_DNU = 183;
+/* Nela 29. 9.: pokutu starší pěti měsíců už kancelář přes formulář nestihne —
+   než na ni dojde řada, uplyne půlroční prekluzivní lhůta. Hranice je záměrně
+   textem v administraci, aby se dala posunout bez zásahu do kódu. */
+function provereniVarujeDnu(){
+  const v = parseInt(String(txt('provereni.varovani.dnu', '150')).replace(/[^0-9]/g, ''), 10);
+  return (v > 0 && v < PROVERENI_DNU) ? v : 150;
+}
+
+/* Varování se dokresluje pod pole s datem — formulář zůstane odeslatelný,
+   protože o tom, jestli se to ještě stihne, rozhoduje kancelář, ne aplikace. */
+function hlidejStariPokuty(){
+  const box = document.getElementById('pvStare');
+  if(!box) return;
+  const iso = hodnotaData('pvDatum');
+  const stari = iso ? -dnu(iso) : null;
+  const varuj = stari !== null && stari >= provereniVarujeDnu() && stari <= PROVERENI_DNU;
+  box.hidden = !varuj;
+  if(varuj){
+    box.innerHTML = '<b data-text="provereni.varovani.nadpis">' +
+      escT(txt('provereni.varovani.nadpis','Zavolejte nám prosím.')) + '</b> ' +
+      '<span data-text="provereni.varovani">' +
+      escT(txt('provereni.varovani',
+        'Tahle pokuta se blíží šestiměsíční lhůtě a přes formulář ji už nestihneme prověřit.')) +
+      '</span> <a href="tel:+420739662266">+420 739 662 266</a>';
+  }
+}
 function lzeProverit(p){
   if(!p || !p.datum) return true;           // bez data se nedá vyloučit
   const stari = -dnu(p.datum);
@@ -4813,6 +4860,59 @@ function garazPrepni(druh, id){
   prekresliGaraz();
 }
 const garazOtevreno = druh => garazForm && garazForm.druh === druh;
+
+/* ---------- ZÁCHRANA ROZEPSANÉ POKUTY (Nela 29. 9.) ----------
+   Android při přepnutí do fotoaparátu aplikaci na pozadí zavře, aby uvolnil
+   paměť; po návratu se stránka načte znovu a rozepsaný formulář je pryč.
+   Před otevřením fotoaparátu se proto obsah polí odloží do telefonu a po
+   načtení se vrátí zpátky. Ukládá se jen to, co uživatel napsal — žádná
+   fotka, ta zůstává v úložišti dokladů. */
+const KLIC_ROZEPSANE = 'pr-pokuta-rozepsana';
+const POLE_POKUTY = ['pDuvod','pTyp','pSpz','pCastka','pDatum','pSplatnost','pBody','pStav'];
+
+function odlozRozepsanouPokutu(){
+  if(!garazOtevreno('pokuta')) return;
+  const data = {};
+  POLE_POKUTY.forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    data[id] = el.value;
+    if(el.dataset && el.dataset.iso) data[id + ':iso'] = el.dataset.iso;
+  });
+  try{
+    localStorage.setItem(KLIC_ROZEPSANE, JSON.stringify({
+      id: garazForm.id, novyId: garazForm.novyId || null, kdy: Date.now(), data
+    }));
+  }catch(e){}
+}
+
+function zapomenRozepsanouPokutu(){
+  try{ localStorage.removeItem(KLIC_ROZEPSANE); }catch(e){}
+}
+
+/* Vrátit se má jen čerstvý rozpis — po hodině je to spíš zapomenutý zbytek
+   než něco, k čemu se člověk vrací. */
+function obnovRozepsanouPokutu(){
+  let z = null;
+  try{ z = JSON.parse(localStorage.getItem(KLIC_ROZEPSANE) || 'null'); }catch(e){}
+  if(!z || !z.data) return;
+  if(Date.now() - (z.kdy || 0) > 3600000){ zapomenRozepsanouPokutu(); return; }
+  const psal = POLE_POKUTY.some(id => (z.data[id] || '').trim() &&
+                                      !['pTyp','pStav'].includes(id));
+  if(!psal){ zapomenRozepsanouPokutu(); return; }
+  garazForm = {druh: 'pokuta', id: z.id, novyId: z.novyId || undefined};
+  garazOtevrene.pokuta = true;
+  prekresliGaraz();
+  setTimeout(() => {
+    POLE_POKUTY.forEach(id => {
+      const el = document.getElementById(id);
+      if(!el || z.data[id] === undefined) return;
+      el.value = z.data[id];
+      if(z.data[id + ':iso'] && el.dataset) el.dataset.iso = z.data[id + ':iso'];
+    });
+    toast(txt('garaz.pokuta.obnoveno','Vrátili jsme vám rozepsanou pokutu.'));
+  }, 60);
+}
 const garazUpravuje = (druh, id) => garazOtevreno(druh) && String(garazForm.id) === String(id);
 
 function dnu(datum){
@@ -4854,13 +4954,20 @@ function ulozPokutu(){
   const stary = garazForm && garazForm.id ? p.findIndex(x => x.id === garazForm.id) : -1;
   if(stary >= 0){ z.id = p[stary].id; p[stary] = z; } else { p.unshift(z); }
   setPokuty(p);
+  zapomenRozepsanouPokutu();
   garazForm = null; prekresliGaraz(); renderZpravy(); renderUnread();
   if(body > 0 && stary < 0){
     setTimeout(async () => {
+      /* Nela 29. 9.: u příkazu na místě je pokuta pravomocná podpisem, takže
+         varování o právní moci tam nepatří — jen mate. Hlídat se musí až
+         u správního řízení, kde body opravdu ještě nejsou jisté. */
       const ok = await okno({
         nadpis: txt('garaz.pokuta.pripsat.nadpis','Připsat body řidiče?'),
-        text: txt('garaz.pokuta.pripsat',
-          'Připsat {body} bodů řidiče? Body se připisují až po nabytí právní moci — pokud řízení běží, počkejte.', {body: body}),
+        text: z.typ === 'rizeni'
+          ? txt('garaz.pokuta.pripsat.rizeni',
+              'Připsat {body} bodů řidiče? Body se připisují až po nabytí právní moci — pokud řízení běží, počkejte.', {body: body})
+          : txt('garaz.pokuta.pripsat',
+              'Připsat {body} bodů řidiče?', {body: body}),
         potvrdit: 'Připsat', zrusit: 'Zatím ne' });
       if(ok){
         state.points = Math.min(12, state.points + body);
@@ -5011,10 +5118,15 @@ function renderPrehledGaraz(){
             escT(txt('prehled.terminy.vyresit','Vyřešit')) + '</button>'
           : '') +
       '</div>').join('')
-      : '<div class="prazdno" data-text="prehled.terminy.prazdno">' +
-        escT(txt('prehled.terminy.prazdno','Zatím tu nic nehlídáme. Přidejte si vozidlo a termíny STK, pojištění i známky vám připomeneme.')) + '</div>' +
-        '<button class="btn-pridat" style="margin:10px 0 0" data-text="garaz.vozidla.pridat" onclick="openVozidla()">' +
-        escT(txt('garaz.vozidla.pridat','+ Přidat vozidlo')) + '</button>') +
+      /* Nela 29. 9.: z prázdného stavu nebylo poznat, že se jím dá projít dál.
+         Teď je to řádek se šipkou, stejný vzor jako „Stala se vám nehoda". */
+      : '<div class="list-item" onclick="openVozidla()">' +
+        '<div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17l1-5h10l1 5M7 12l1.2-4h7.6L17 12"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></div>' +
+        '<div class="li-body"><h4 data-text="prehled.terminy.prazdno.nadpis">' +
+          escT(txt('prehled.terminy.prazdno.nadpis','Přidejte si vozidlo')) + '</h4>' +
+        '<p data-text="prehled.terminy.prazdno">' +
+          escT(txt('prehled.terminy.prazdno','STK, pojištění i dálniční známku vám pak připomeneme.')) + '</p></div>' +
+        '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></div>') +
     '</div>';
 
   /* --- pokuty --- */
@@ -5131,7 +5243,7 @@ function renderPokuty(){
   if(garazZamcena()){ el.innerHTML = zamekGaraze(); return; }
 
   const pridat = (garazOtevreno('pokuta') ? '' :
-    '<button data-text="garaz.pokuty.pridat" class="btn-pridat" onclick="garazPrepni(\'pokuta\')">' +
+    '<button data-text="garaz.pokuty.pridat" class="btn-pridat plne" onclick="garazPrepni(\'pokuta\')">' +
     txt('garaz.pokuty.pridat','+ Přidat pokutu ručně') + '</button>');
 
   const seznamPokut = pk.length ? pk.map(p => kartaPokuty(p)).join('')
@@ -5150,11 +5262,15 @@ function kartaPokuty(p){
   const s = stavPokuty(p.stav);
   const doSplatnosti = dnu(p.splatnost);
   const popis = [typPokuty(p.typ), castka(p.castka), cesky(p.datum)].filter(Boolean).join(' · ');
-  return '<div class="g-polozka"><div class="g-hlava"><b>' + escT(p.duvod || 'Pokuta') + '</b>' +
+  /* Nela 29. 9.: lidé na kartu klepali a nic se nedělo — čekali, že se otevře.
+     Klepnutí do hlavičky ji teď rozbalí; tlačítka uvnitř si kliknutí zastaví,
+     aby se „Smazat" nezměnilo v otevření formuláře. */
+  return '<div class="g-polozka"><div class="g-hlava klikaci" ' +
+    'onclick="garazPrepni(\'pokuta\', \'' + p.id + '\')">' +
+    '<b>' + escT(p.duvod || 'Pokuta') + '</b>' +
     '<span class="g-stitek" style="margin:0;background:' + s[3] + ';color:' + s[2] + '">' + s[1] + '</span>' +
-    '<button data-text="garaz.upravit" class="g-upr" onclick="garazPrepni(\'pokuta\', \'' + p.id + '\')">' +
-      txt('garaz.upravit','Upravit') + '</button>' +
-    '<button class="g-smaz" onclick="smazPokutu(\'' + p.id + '\')" title="Smazat">✕</button></div>' +
+    '<svg class="chev g-sipka" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>' +
+    '<button class="g-smaz" onclick="event.stopPropagation();smazPokutu(\'' + p.id + '\')" title="Smazat">✕</button></div>' +
     '<div class="g-radka">' + escT(popis) + '</div>' +
     (p.splatnost ? '<div class="g-radka">Splatnost ' + cesky(p.splatnost) +
       (!zaplaceno && doSplatnosti !== null
@@ -5200,7 +5316,9 @@ function kartaProvereni(){
 
     '<label data-text="provereni.datum">' + txt('provereni.datum','Datum udělení pokuty') + ' <i>*</i></label>' +
     '<input type="text" id="pvDatum" inputmode="numeric" placeholder="dd. mm. rrrr" data-iso="" ' +
-      'onclick="otevriKalendar(\'pvDatum\',\'Datum udělení pokuty\')" onchange="srovnejDatum(this)"/>' +
+      'onclick="otevriKalendar(\'pvDatum\',\'Datum udělení pokuty\')" ' +
+      'onchange="srovnejDatum(this); hlidejStariPokuty()"/>' +
+    '<div id="pvStare" class="pv-stare" hidden></div>' +
 
     '<label data-text="provereni.jmeno">' + txt('provereni.jmeno','Jméno') + ' <i>*</i></label>' +
     '<input type="text" id="pvJmeno" autocapitalize="words" data-ph="provereni.ph.jmeno" placeholder="Jan Novák"/>' +
@@ -5591,7 +5709,7 @@ function formPokuty(p){
   return '<div class="g-form" style="margin-top:10px;border-top:1px solid var(--line);padding-top:13px;">' +
     '<div class="field"><label>Za co</label><input type="text" id="pDuvod"' + h(p.duvod) + ' placeholder="například překročení rychlosti v obci"/></div>' +
     '<div class="field"><label>Typ pokuty</label><select id="pTyp">' +
-      TYPY_POKUT.map(x => '<option value="' + x[0] + '"' + ((p.typ || 'prikaz') === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select></div>' +
+      typyPokut().map(x => '<option value="' + x[0] + '"' + ((p.typ || 'prikaz') === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select></div>' +
     '<div class="field"><label>Vozidlo</label><select id="pSpz"><option value="">Neuvedeno</option>' +
       vs.map(v => '<option' + (p.spz === v.spz ? ' selected' : '') + '>' + escT(v.spz) + '</option>').join('') + '</select></div>' +
     '<div class="field"><label>Částka (Kč)</label><input type="text" id="pCastka" inputmode="numeric"' + h(p.castka) + ' placeholder="2500"/></div>' +
@@ -5611,7 +5729,8 @@ function formPokuty(p){
         .map(x => '<option value="' + x[0] + '"' + (p.stav === x[0] ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select></div>' +
     '<label class="attach" style="margin-bottom:6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> ' +
       txt('garaz.pokuta.vyfotit','Vyfotit složenku nebo příkaz') +
-      '<input type="file" accept="image/*,application/pdf,.pdf" hidden onchange="dokladPokutyPridan(this)"/></label>' +
+      '<input type="file" accept="image/*,application/pdf,.pdf" hidden ' +
+      'onclick="odlozRozepsanouPokutu()" onchange="dokladPokutyPridan(this)"/></label>' +
     '<div id="pokutaDoklady"></div>' +
     '<p class="napoveda" style="margin:2px 0 11px">' +
       txt('garaz.pokuta.doklad.pozn','Zůstane jen ve vašem telefonu — nikam ji neposíláme. Z PDF přečteme částku a splatnost, z fotky zatím ne.') + '</p>' +
@@ -5626,6 +5745,7 @@ function formPokuty(p){
    potřeba uklidit i to, co se mezitím přiložilo. */
 function zrusPokutu(){
   const novy = garazForm && garazForm.id === null && garazForm.novyId;
+  zapomenRozepsanouPokutu();
   garazForm = null; prekresliGaraz();
   if(novy) smazDokladyKlice(klicPokuty(novy));
 }
@@ -5805,6 +5925,16 @@ function jeSamsung(){ return /SamsungBrowser/i.test(navigator.userAgent); }
    není tam, kde píšeme (nahlášeno 14. 9. 2026). Přidat na plochu ale umí,
    jen vlastní cestou. */
 function jeFirefoxAndroid(){ return /android/i.test(navigator.userAgent) && /firefox/i.test(navigator.userAgent); }
+/* Nela 29. 9.: na počítači jsme všem ukazovali návod pro Chrome. Firefox
+   instalaci webových aplikací nemá vůbec, Safari na Macu ji má jinde.
+   Pořadí testů není libovolné: Edge i Chrome mají v hlavičce „Chrome",
+   Chrome i Edge mají „Safari" — od nejužšího k nejširšímu. */
+function jeEdge(){ return /Edg\//i.test(navigator.userAgent); }
+function jeFirefoxPocitac(){ return /firefox/i.test(navigator.userAgent) && !isAndroid() && !isIOS(); }
+function jeSafariMac(){
+  return /Macintosh/i.test(navigator.userAgent) && /Safari/i.test(navigator.userAgent) &&
+         !/Chrome|Chromium|Edg\//i.test(navigator.userAgent);
+}
 function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true; }
 function hideInstallUI(){ const b=document.getElementById('obInstallBtn'); if(b)b.style.display='none'; }
 
@@ -5852,11 +5982,46 @@ function installSteps(){
     'Zvolte <b>Přidat na plochu</b> (nebo <b>Instalovat aplikaci</b>).',
     'Potvrďte <b>Přidat / Instalovat</b>.'
   ];
+  /* Počítač. Dřív tu byl jeden návod pro všechny a mluvil o Chromu — ve
+     Firefoxu, který instalaci webových aplikací nemá vůbec, posílal lidi
+     hledat položku, která tam není (Nela 29. 9.). */
+  if(jeFirefoxPocitac()) return [
+    'Klepněte na <b>Zkopírovat odkaz</b> níže.',
+    'Vložte ho do webového prohlížeče <b>Chrome</b> nebo <b>Edge</b>.',
+    'Tam vpravo v adresním řádku klepněte na ikonu <b>instalace</b>.' + NAKRES_ADRESNI_RADEK
+  ];
+  if(jeSafariMac()) return [
+    'V liště nahoře klepněte na <b>Sdílet</b> ' + SHARE_ICON + '.',
+    'Zvolte <b>Přidat do Docku</b>.',
+    'Potvrďte <b>Přidat</b>.'
+  ];
+  if(jeEdge()) return [
+    'Vpravo v adresním řádku klepněte na ikonu <b>instalace</b>.' + NAKRES_ADRESNI_RADEK,
+    'Nebo menu <b>…</b> → <b>Aplikace</b> → <b>Nainstalovat tento web jako aplikaci</b>.',
+    'Potvrďte <b>Instalovat</b>.'
+  ];
   return [
-    'V Chromu klepněte na ikonu <b>instalace</b> vpravo v adresním řádku (monitor se šipkou).',
-    'Nebo menu <b>⋮</b> → <b>Uložit a sdílet</b> → <b>Instalovat stránku jako aplikaci</b>.'
+    'V Chromu klepněte vpravo v adresním řádku na ikonu <b>instalace</b>.' + NAKRES_ADRESNI_RADEK,
+    'Nebo menu <b>⋮</b> → <b>Uložit a sdílet</b> → <b>Instalovat stránku jako aplikaci</b>.',
+    'Potvrďte <b>Instalovat</b>.'
   ];
 }
+
+/* Nela 29. 9.: „lidi úplně neví, co je adresní řádek ani ikona instalace."
+   Malý nákres: pruh adresního řádku s vyznačenou ikonou vpravo. Kreslí se
+   z barev motivu, aby seděl ve světlém i tmavém režimu. */
+const NAKRES_ADRESNI_RADEK =
+  '<svg class="nakres" viewBox="0 0 260 46" role="img" ' +
+  'aria-label="Adresní řádek prohlížeče s ikonou instalace vpravo">' +
+  '<rect x="1" y="1" width="258" height="44" rx="9" fill="none" ' +
+    'stroke="currentColor" stroke-opacity=".28"/>' +
+  '<rect x="12" y="13" width="196" height="20" rx="10" fill="currentColor" fill-opacity=".07"/>' +
+  '<text x="24" y="27" font-size="10" fill="currentColor" fill-opacity=".55">app.pravaridice.cz</text>' +
+  '<circle cx="228" cy="23" r="15" fill="none" stroke="#E5484D" stroke-width="1.6"/>' +
+  '<g stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect x="221" y="17" width="14" height="10" rx="1.6"/>' +
+    '<path d="M228 20v4M226 22.4l2 2 2-2"/><path d="M225 30h6"/></g>' +
+  '</svg>';
 function renderSteps(steps){
   document.getElementById('sheetSteps').innerHTML=steps.map((s,i)=>
     `<div class="step-row"><div class="step-num">${i+1}</div><div class="tx">${s}</div></div>`).join('');
@@ -5936,6 +6101,16 @@ function openInstallSheet(){
        „Přidat na plochu" by nic neudělalo a spadlo by na návod pro Chrome.
        Místo toho rovnou správné kroky pro Firefox a možnost přejít do Chromu. */
     if(sub) sub.textContent = 'Ve Firefoxu se appka přidává z menu — vypadá to trochu jinak než v Chromu. Kdyby to nešlo, můžete stránku přenést do Chromu a přidat ji tam.';
+    renderSteps(installSteps());
+    action.textContent='Rozumím';
+    action.onclick=closeInstallSheet;
+    if(kopie) kopie.style.display = 'block';
+  } else if(jeFirefoxPocitac()){
+    /* Firefox na počítači instalaci webových aplikací nemá — nemá smysl
+       posílat lidi hledat položku v menu, která tam není. */
+    if(sub) sub.textContent = txt('instal.firefox.pc',
+      'Firefox na počítači aplikaci na plochu přidat neumí — nabídku Instalovat nemá. '
+      + 'Jde to ale v Chromu, v Edge nebo rovnou v telefonu.');
     renderSteps(installSteps());
     action.textContent='Rozumím';
     action.onclick=closeInstallSheet;

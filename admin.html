@@ -1166,6 +1166,34 @@ function zamerSluzbu(zn){
   posliNahled({ zvyrazniSluzbu: zn });
 }
 
+/* Nela 29. 9.: propojení služby s článkem si chce spravovat sama, včetně
+   možnosti nedat tam nic. Hodnota se skládá ze slugu oblasti a názvu článku,
+   protože aplikace článek hledá přesně podle nich. */
+function volbyClanku(s){
+  const ted = (s.clanek_slug || '') + '||' + (s.clanek_titulek || '');
+  const zvoleno = (s.clanek_slug && s.clanek_titulek) ? ted : '';
+  let ven = '<option value=""' + (zvoleno ? '' : ' selected') + '>— bez odkazu —</option>';
+  oblasti.forEach(o => {
+    const vnem = clanky.filter(c => c.oblast_id === o.id && c.publikovano)
+      .sort((a, b) => (a.poradi || 0) - (b.poradi || 0));
+    if(!vnem.length) return;
+    ven += '<optgroup label="' + esc(o.nazev) + '">';
+    vnem.forEach(c => {
+      const hod = (o.slug || '') + '||' + c.nadpis;
+      ven += '<option value="' + esc(hod) + '"' + (hod === zvoleno ? ' selected' : '') + '>' +
+             esc(c.nadpis) + '</option>';
+    });
+    ven += '</optgroup>';
+  });
+  /* Kdyby v databázi zůstalo propojení na článek, který už neexistuje,
+     ať to je vidět, a ne aby se tiše přepnulo na „bez odkazu". */
+  if(zvoleno && ven.indexOf('value="' + esc(zvoleno) + '"') === -1){
+    ven = '<option value="' + esc(zvoleno) + '" selected>' +
+          esc(s.clanek_titulek) + ' — článek nenalezen</option>' + ven;
+  }
+  return ven;
+}
+
 function editorSluzby(){
   const s = sluzby.find(x => x.id === vybranaSluzba);
   if(!s) return;
@@ -1181,6 +1209,10 @@ function editorSluzby(){
     <div class="pole"><label>Jak pomůžeme</label>
       <textarea id="s-pomoc" style="min-height:130px" onfocus="naNahledSluzby('pomoc')">${esc((s.pomoc||[]).join('\n'))}</textarea>
       <p class="napoveda">Každý bod na samostatný řádek.</p></div>
+    <div class="pole"><label>Odkaz do Průvodce</label>
+      <select id="s-clanek">${volbyClanku(s)}</select>
+      <p class="napoveda">Karta <b>Podrobnosti v Průvodci</b> na konci detailu služby.
+        Vyberte článek, na který má vést. Volba <b>bez odkazu</b> kartu schová úplně.</p></div>
     <div class="pole"><label>Pořadí</label><input type="text" id="s-poradi" value="${s.poradi||0}"></div>
     <div class="prepinac pristup ${s.placeny?'zap':''}" onclick="prepniPristup(this)" id="s-placeny">
       <div class="txt"><b>Úroveň přístupu</b>
@@ -1221,6 +1253,9 @@ async function ulozSluzbu(){
     placeny: $('s-placeny').classList.contains('zap'),
     publikovano: $('s-publ').classList.contains('zap')
   };
+  const vybrano = ($('s-clanek') || {}).value || '';
+  zmeny.clanek_slug = vybrano ? vybrano.split('||')[0] : null;
+  zmeny.clanek_titulek = vybrano ? vybrano.split('||').slice(1).join('||') : null;
   const { error } = await db.from('sluzby').update(zmeny).eq('id', vybranaSluzba);
   if(error){ hlaska('Uložení selhalo: '+error.message, true); return; }
   Object.assign(sluzby.find(s => s.id === vybranaSluzba), zmeny);
