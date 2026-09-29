@@ -1179,7 +1179,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.6 · build 161<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.6 · build 162<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -4810,7 +4810,9 @@ function hlidejStariPokuty(){
   if(!box) return;
   const iso = hodnotaData('pvDatum');
   const stari = iso ? -dnu(iso) : null;
-  const varuj = stari !== null && stari >= provereniVarujeDnu() && stari <= PROVERENI_DNU;
+  /* Horní hranice tu schválně není: Nela 29. 9. říkala „pět měsíců a déle",
+     takže u pokuty starší půl roku musí výzva zavolat platit tím spíš. */
+  const varuj = stari !== null && stari >= provereniVarujeDnu();
   box.hidden = !varuj;
   if(varuj){
     box.innerHTML = '<b data-text="provereni.varovani.nadpis">' +
