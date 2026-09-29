@@ -699,6 +699,12 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
   border-radius:16px;padding:15px 14px;font-family:inherit;font-size:0.9375rem;font-weight:700;
   color:var(--ink);cursor:pointer;margin-bottom:12px;}
 .btn-pridat:active{background:var(--bg);}
+/* Souhlas s okamžitým dodáním na obrazovce Předplatné. */
+.souhlas-nakup{display:flex;gap:10px;align-items:flex-start;text-align:left;
+  background:var(--bg);border:1px solid var(--line);border-radius:14px;
+  padding:12px 14px;margin:0 0 12px;font-size:0.8125rem;line-height:1.45;cursor:pointer;}
+.souhlas-nakup input{flex:0 0 auto;width:20px;height:20px;margin:1px 0 0;accent-color:var(--turq-deep);}
+.souhlas-nakup .link{text-decoration:underline;font-weight:700;}
 /* Nela 29. 9.: na obrazovce Pokuty přebíjela ruční přidání karta služby
    kanceláře. Plná varianta vypadá jako ostatní hlavní tlačítka. */
 .btn-pridat.plne{background:var(--peach);border:none;color:var(--accent-ink);}
@@ -1179,7 +1185,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.6 · build 162<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.6 · build 163<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1318,8 +1324,17 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           <div class="hint" data-text="predplatne.kod.hint">S platným promo kódem je aplikace zdarma.</div>
         </div>
         <button class="btn btn-ghost" style="margin-bottom:10px;" onclick="applyPromo()" data-text="predplatne.btn.kod">Uplatnit promo kód</button>
-        <button class="btn btn-peach" id="koupitBtn" onclick="koupitPristup()" data-text="predplatne.btn.koupit">Koupit PREMIUM přístup</button>
+        <!-- Nela 29. 9. + právní revize: u digitálního obsahu na dálku musí
+             spotřebitel před nákupem výslovně potvrdit, že chce plnění hned
+             a že tím ztrácí právo na odstoupení. Bez zaškrtnutí nákup nepustí. -->
+        <label class="souhlas-nakup" for="souhlasDodani">
+          <input type="checkbox" id="souhlasDodani" onchange="prepniKoupit()">
+          <span><span data-text="predplatne.souhlas">Žádám, aby mi byl plný přístup zpřístupněn ihned po zaplacení. Beru na vědomí, že tím ztrácím právo odstoupit od smlouvy do 14 dnů.</span>
+            <span class="link" id="odkazPodminky" onclick="event.preventDefault();otevriPodminky()" data-text="predplatne.podminky">Obchodní podmínky</span></span>
+        </label>
+        <button class="btn btn-peach" id="koupitBtn" onclick="koupitPristup()" data-text="predplatne.btn.koupit">Objednat a zaplatit 999 Kč</button>
         <p class="hint" style="margin-top:10px;text-align:center;" data-text="predplatne.btn.pozn">Platbu vyřizuje Stripe. Číslo karty se k nám nedostane.</p>
+        <p class="hint" style="margin-top:6px;text-align:center;" data-text="predplatne.vraceni">Nevyhovuje vám aplikace? Napište do 14 dnů na info@pravaridice.cz a peníze vám vrátíme, pokud jste placený obsah ještě neotevřeli.</p>
       </div>
     </div>
 
@@ -1542,6 +1557,13 @@ function guideKategorie(){
    na sebe. */
 const PROFILE_LINKS = [
   {k:'sluzby',  t:'Přehled služeb',   s:'S čím vám pomůžeme',              a:"tab('sluzby')"},
+  /* Dokumenty musí být dostupné kdykoli, ne jen ve chvíli odsouhlasení.
+     Řádek se ukáže, až bude vyplněná adresa — dokud stránka na webu není,
+     nemá smysl na ni posílat. */
+  {k:'podminky', t:'Obchodní podmínky', s:'Co platí pro placený přístup',
+   a:"otevriPodminky()", ext:true, jen:'odkaz.podminky'},
+  {k:'zasady',   t:'Zásady zpracování osobních údajů', s:'Jak nakládáme s vašimi údaji',
+   a:"openExt(odk('odkaz.zasady',''))", ext:true, jen:'odkaz.zasady'},
 ];
 
 /* Odkazy na kartě Služby — stejný tvar řádku, jen jiné místo. Texty se dál
@@ -2393,6 +2415,8 @@ function renderProfileLinks(){
 
 function vykresliOdkazy(kam, rada){
   const cil = document.getElementById(kam); if(!cil) return;
+  /* `jen` = klíč s adresou. Bez vyplněné adresy se řádek vynechá. */
+  rada = rada.filter(l => !l.jen || String(txt(l.jen, '')).trim());
   cil.innerHTML = rada.map(l=>`
     <div class="list-item" onclick="${l.a}">
       <div class="li-icon">${l.ext
@@ -2410,8 +2434,40 @@ function vykresliOdkazy(kam, rada){
 /* ---------- nákup PREMIUM přístupu ----------
    Platba se zakládá na serveru (funkce `koupit`) — cena i produkt jsou mimo
    dosah prohlížeče. Sem se vrací jen adresa, kam poslat člověka. */
+/* Obchodní podmínky se otevřou, jen když je na co odkázat. Dokud Nela
+   stránku nevystaví, klíč `odkaz.podminky` zůstane prázdný a odkaz se
+   vůbec neukáže — lepší než poslat člověka na chybovou stránku. */
+function adresaPodminek(){ return String(txt('odkaz.podminky', '')).trim(); }
+
+/* Podtržený odkaz na právní dokument. Když adresa není vyplněná, nevrátí nic —
+   radši žádný odkaz než odkaz na neexistující stránku. */
+function odkazDokumentu(klicAdresy, klicTextu, vychozi){
+  const adresa = String(txt(klicAdresy, '')).trim();
+  if(!adresa) return '';
+  return '<span class="link" style="text-decoration:underline;" data-text="' + klicTextu +
+    '" onclick="openExt(' + JSON.stringify(adresa).replace(/"/g, '&quot;') + ')">' +
+    escT(txt(klicTextu, vychozi)) + '</span>';
+}
+function otevriPodminky(){
+  const a = adresaPodminek();
+  if(a) openExt(a);
+}
+
+/* Bez zaškrtnutého souhlasu se nedá objednat. */
+function prepniKoupit(){
+  const z = document.getElementById('souhlasDodani');
+  const tl = document.getElementById('koupitBtn');
+  if(tl) tl.disabled = !(z && z.checked);
+}
+
 async function koupitPristup(){
   const tl = document.getElementById('koupitBtn');
+  const souhlas = document.getElementById('souhlasDodani');
+  if(souhlas && !souhlas.checked){
+    toast(txt('predplatne.chyba.souhlas',
+      'Zaškrtněte prosím souhlas s okamžitým zpřístupněním.'));
+    return;
+  }
   await pripravSb();
   if(!sb){ toast(txt('predplatne.chyba.spojeni','Platba je dočasně nedostupná. Zkuste to prosím za chvíli.')); return; }
   if(!authUser){
@@ -2515,6 +2571,15 @@ async function applyPromo(){
 
 /* Popis tarifu na kartě Profil i na obrazovce Předplatné podle skutečného stavu. */
 function renderPlan(){
+  /* Stav zaškrtnutí i viditelnost odkazu se musí srovnat pokaždé, co se
+     obrazovka překreslí — třeba po načtení textů z administrace. */
+  setTimeout(() => {
+    try{
+      prepniKoupit();
+      const o = document.getElementById('odkazPodminky');
+      if(o) o.hidden = !adresaPodminek();
+    }catch(e){}
+  }, 0);
   const el = document.getElementById('planTitle'); if(!el) return;
   znac('planTitle', maPlnyPristup() ? 'profil.plan.plny' : 'profil.plan.omezeny');
   el.textContent = maPlnyPristup() ? txt('profil.plan.plny','PREMIUM přístup') : txt('profil.plan.omezeny','Standardní přístup');
@@ -4137,8 +4202,15 @@ function renderOb(){
       txt('onboard.reg.kod.zqr','Kód jsme doplnili z vaší kartičky. Stačí zadat e-mail.')+'</p>'+
     '<div id="obChyba" class="ob-chyba"></div>'+
     '<button class="btn btn-peach" data-text="onboard.reg.btn" style="margin-top:14px;" id="obOdeslat" onclick="obRegistrace()">'+txt('onboard.reg.btn','Pokračovat')+'</button>'+
-    '<p data-text="onboard.reg.souhlas" style="font-size:0.7188rem;opacity:.72;margin-top:9px;text-align:center;">'+
-      txt('onboard.reg.souhlas','Odesláním souhlasíte se zpracováním osobních údajů.')+'</p></div>';
+    /* Pro založení účtu se souhlas nepotřebuje — zpracovává se kvůli plnění
+       smlouvy. Proto potvrzení, ne souhlas, a odkazy na oba dokumenty.
+       Odkaz se ukáže, jen když je vyplněná adresa (Nela 29. 9.). */
+    '<p data-text="onboard.reg.souhlas" style="font-size:0.7188rem;opacity:.72;margin-top:9px;text-align:center;line-height:1.5;">'+
+      txt('onboard.reg.souhlas','Založením účtu berete na vědomí')+' '+
+      odkazDokumentu('odkaz.podminky', 'onboard.reg.podminky', 'Obchodní podmínky')+
+      (adresaPodminek() && String(txt('odkaz.zasady','')).trim() ? ' a ' : '')+
+      odkazDokumentu('odkaz.zasady', 'onboard.reg.zasady', 'Zásady zpracování osobních údajů')+
+      '.</p></div>';
 
 }
 
