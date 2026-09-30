@@ -656,8 +656,10 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 .g-polozka .g-hlava{display:flex;align-items:flex-start;gap:10px;}
 /* Hlavička karty pokuty se otevírá klepnutím, proto vypadá klikatelně. */
 .g-polozka .g-hlava.klikaci{cursor:pointer;}
-/* Řádek pokuty na Přehledu — otevře tu konkrétní pokutu. */
+/* Řádky a hlavičky, které se otevírají klepnutím — všude stejně (Nela 30. 9.). */
 .termin-radek.klikaci{cursor:pointer;}
+.v-karta .v-hlava.klikaci{cursor:pointer;}
+.v-karta .v-hlava .g-sipka{flex:0 0 auto;margin-left:auto;opacity:.45;align-self:center;}
 .g-polozka .g-sipka{flex:0 0 auto;margin-left:auto;opacity:.45;align-self:center;}
 .g-polozka .g-hlava b{flex:1;min-width:0;font-size:0.9375rem;font-weight:800;}
 .g-polozka .g-smaz{background:none;border:0;color:var(--muted);font-size:1rem;cursor:pointer;padding:0 0 0 6px;line-height:1;}
@@ -1187,7 +1189,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.6 · build 164<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.6 · build 165<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -4794,6 +4796,13 @@ function prekresliGaraz(){
 function openVozidla(){ renderVozidla(); go('vozidla'); }
 function openPokuty(){ renderPokuty(); go('pokuty'); }
 
+/* Nela 30. 9.: „když na to kliknu, ať se to otevře." Platí to všude, kde
+   aplikace vypisuje položky — u vozidel, pokut i nehod. */
+function otevriVozidlo(i){
+  openVozidla();
+  setTimeout(() => { try{ garazPrepni('vozidlo', i); }catch(e){} }, 0);
+}
+
 /* Nela 30. 9.: „když kliknu na ten telefon, tak se mi to neotevře." Řádek
    pokuty na Přehledu vedl jen do seznamu přes „Vše". Teď se z něj rovnou
    rozbalí ta konkrétní pokuta. */
@@ -5194,13 +5203,15 @@ function renderPrehledGaraz(){
         escT(txt('prehled.vse','Vše')) + ' (' + vs.length + ')</span>' : '') +
     '<div class="card">' +
     (terminy.length ? terminy.map(t =>
-      '<div class="termin-radek' + (t.stav.propadle ? ' propadle' : '') + '">' +
+      '<div class="termin-radek klikaci' + (t.stav.propadle ? ' propadle' : '') + '" ' +
+        'onclick="otevriVozidlo(' + t.index + ')">' +
         '<span class="tecka" style="background:' + t.stav.barva + '"></span>' +
         '<span class="tx"><b>' + escT(t.nazev + ' · ' + t.vozidlo) + '</b><span>' + escT(t.stav.popis) + '</span></span>' +
         (t.stav.propadle && t.znamka
-          ? '<button class="akce" data-text="prehled.terminy.vyresit" onclick="openExt(odk(\'odkaz.edalnice\',\'' + EDALNICE + '\'))">' +
+          ? '<button class="akce" data-text="prehled.terminy.vyresit" onclick="event.stopPropagation();openExt(odk(\'odkaz.edalnice\',\'' + EDALNICE + '\'))">' +
             escT(txt('prehled.terminy.vyresit','Vyřešit')) + '</button>'
           : '') +
+        '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex:0 0 auto;opacity:.45;"><path d="M9 6l6 6-6 6"/></svg>' +
       '</div>').join('')
       /* Nela 29. 9.: z prázdného stavu nebylo poznat, že se jím dá projít dál.
          Teď je to řádek se šipkou, stejný vzor jako „Stala se vám nehoda". */
@@ -5544,9 +5555,11 @@ function seznamNehod(){
   return '<div class="section-label" data-text="garaz.nehody.nadpis" style="margin-top:18px;">' +
       txt('garaz.nehody.nadpis','Nehody') + '</div>' +
     (nh.length ? nh.map(z =>
-      '<div class="g-polozka"><div class="g-hlava"><b>' + (cesky(z.datum) || 'Bez data') + '</b>' +
-        '<button data-text="garaz.upravit" class="g-upr" onclick="garazPrepni(\'nehoda\', \'' + z.id + '\')">' + txt('garaz.upravit','Upravit') + '</button>' +
-        '<button class="g-smaz" onclick="smazNehodu(\'' + z.id + '\')" title="Smazat">✕</button></div>' +
+      '<div class="g-polozka"><div class="g-hlava klikaci" ' +
+        'onclick="garazPrepni(\'nehoda\', \'' + z.id + '\')">' +
+        '<b>' + (cesky(z.datum) || 'Bez data') + '</b>' +
+        '<svg class="chev g-sipka" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>' +
+        '<button class="g-smaz" onclick="event.stopPropagation();smazNehodu(\'' + z.id + '\')" title="Smazat">✕</button></div>' +
       (z.misto ? '<div class="g-radka">' + escT(z.misto) + '</div>' : '') +
       (z.ucastnik || z.spzDruhy ? '<div class="g-radka">Druhý účastník: ' + escT([z.ucastnik, z.spzDruhy].filter(Boolean).join(' · ')) + '</div>' : '') +
       '<button data-text="garaz.nehoda.tisk" class="btn btn-outline-dark btn-sm" style="margin-top:9px" onclick="tiskniNehodu(\'' + z.id + '\')">' +
@@ -5578,11 +5591,11 @@ function kartaVozidla(v, i){
   };
   const propadle = [v.stk, v.poj, v.znamka].some(d => { const s = terminStav(d); return s && s.propadle; });
   return '<div class="g-polozka v-karta' + (propadle ? ' pozor' : '') + '">' +
-    '<div class="v-hlava"><div class="v-jmeno"><b>' + escT(vehJmeno(v)) + '</b>' +
+    '<div class="v-hlava klikaci" onclick="garazPrepni(\'vozidlo\', ' + i + ')">' +
+      '<div class="v-jmeno"><b>' + escT(vehJmeno(v)) + '</b>' +
       (v.spz && v.nazev ? '<span>SPZ ' + escT(v.spz) + '</span>' : '') + '</div>' +
-      '<button data-text="garaz.upravit" class="g-upr" onclick="garazPrepni(\'vozidlo\', ' + i + ')">' +
-        txt('garaz.upravit','Upravit') + '</button>' +
-      '<button class="g-smaz" onclick="rmVehicle(' + i + ')" title="Smazat">✕</button></div>' +
+      '<svg class="chev g-sipka" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>' +
+      '<button class="g-smaz" onclick="event.stopPropagation();rmVehicle(' + i + ')" title="Smazat">✕</button></div>' +
     radka('STK', v.stk) + radka('Pojištění', v.poj) + radka('Dálniční známka', v.znamka, true) +
     (v.ins || v.asist ? '<div class="g-radka">' + escT(v.ins || '') +
       (v.asist ? ' · <a href="tel:' + v.asist.replace(/\s/g,'') + '" style="color:var(--turq-deep);font-weight:700;">☎ ' +
