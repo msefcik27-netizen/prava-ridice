@@ -656,6 +656,8 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 .g-polozka .g-hlava{display:flex;align-items:flex-start;gap:10px;}
 /* Hlavička karty pokuty se otevírá klepnutím, proto vypadá klikatelně. */
 .g-polozka .g-hlava.klikaci{cursor:pointer;}
+/* Řádek pokuty na Přehledu — otevře tu konkrétní pokutu. */
+.termin-radek.klikaci{cursor:pointer;}
 .g-polozka .g-sipka{flex:0 0 auto;margin-left:auto;opacity:.45;align-self:center;}
 .g-polozka .g-hlava b{flex:1;min-width:0;font-size:0.9375rem;font-weight:800;}
 .g-polozka .g-smaz{background:none;border:0;color:var(--muted);font-size:1rem;cursor:pointer;padding:0 0 0 6px;line-height:1;}
@@ -1185,7 +1187,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.6 · build 163<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.6 · build 164<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -4791,6 +4793,14 @@ function prekresliGaraz(){
 }
 function openVozidla(){ renderVozidla(); go('vozidla'); }
 function openPokuty(){ renderPokuty(); go('pokuty'); }
+
+/* Nela 30. 9.: „když kliknu na ten telefon, tak se mi to neotevře." Řádek
+   pokuty na Přehledu vedl jen do seznamu přes „Vše". Teď se z něj rovnou
+   rozbalí ta konkrétní pokuta. */
+function otevriPokutu(id){
+  openPokuty();
+  setTimeout(() => { try{ garazPrepni('pokuta', id); }catch(e){} }, 0);
+}
 function openNehoda(){
   const vs=getVehicles().filter(v=>v.ins||v.asist);
   const kontakty = vs.length
@@ -5211,11 +5221,12 @@ function renderPrehledGaraz(){
     '<div class="card">' +
     (pk.length ? pk.map(p => {
         const s2 = stavPokuty(p.stav);
-        return '<div class="termin-radek">' +
+        return '<div class="termin-radek klikaci" onclick="otevriPokutu(\'' + p.id + '\')">' +
           '<span class="tx"><b>' + escT(p.duvod || 'Pokuta') + '</b><span>' +
           escT([typPokuty(p.typ), p.splatnost ? 'splatnost ' + cesky(p.splatnost) : ''].filter(Boolean).join(' · ')) +
           '</span></span>' +
           '<span class="g-stitek" style="margin:0;background:' + s2[3] + ';color:' + s2[2] + '">' + s2[1] + '</span>' +
+          '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex:0 0 auto;opacity:.45;"><path d="M9 6l6 6-6 6"/></svg>' +
         '</div>';
       }).join('')
       : '<div class="prazdno" data-text="prehled.pokuty.prazdno">' +
