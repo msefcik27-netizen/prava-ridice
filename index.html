@@ -1189,7 +1189,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.6 · build 165<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.6 · build 166<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1328,6 +1328,40 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
           <div class="hint" data-text="predplatne.kod.hint">S platným promo kódem je aplikace zdarma.</div>
         </div>
         <button class="btn btn-ghost" style="margin-bottom:10px;" onclick="applyPromo()" data-text="predplatne.btn.kod">Uplatnit promo kód</button>
+        <!-- Firemní nákup. Zapíná se zaškrtnutím schválně: kdo kupuje sám
+             na sebe, nemá před sebou vidět o políčko navíc. Název a sídlo
+             se dotáhnou z ARESu podle IČO, takže zákazník nic nepřepisuje
+             a na faktuře nejsou překlepy. Když ARES neodpoví, vyplní se
+             ručně — nákup to nesmí zastavit. -->
+        <label class="souhlas-nakup" for="naFirmu">
+          <input type="checkbox" id="naFirmu" onchange="prepniFirmu()">
+          <span data-text="predplatne.firma.prepinac">Kupuji na firmu — potřebuji fakturu</span>
+        </label>
+        <div id="firmaPole" style="display:none;">
+          <div class="field">
+            <label data-text="predplatne.firma.ico">IČO</label>
+            <input type="text" id="fIco" inputmode="numeric" autocomplete="off" maxlength="8"
+                   oninput="icoZmena()" data-ph="predplatne.firma.ico.ph" placeholder="osm číslic" />
+            <div class="hint" id="fIcoStav" data-text="predplatne.firma.hint">Název a sídlo doplníme z obchodního rejstříku.</div>
+          </div>
+          <div class="field">
+            <label data-text="predplatne.firma.nazev">Název firmy</label>
+            <input type="text" id="fNazev" autocomplete="organization" oninput="prepniKoupit()" />
+          </div>
+          <div class="field">
+            <label data-text="predplatne.firma.ulice">Ulice a číslo</label>
+            <input type="text" id="fUlice" autocomplete="street-address" oninput="prepniKoupit()" />
+          </div>
+          <div class="field">
+            <label data-text="predplatne.firma.mesto">PSČ a obec</label>
+            <input type="text" id="fMesto" oninput="prepniKoupit()" />
+          </div>
+          <div class="field">
+            <label data-text="predplatne.firma.dic">DIČ</label>
+            <input type="text" id="fDic" autocapitalize="characters" oninput="prepniKoupit()" />
+            <div class="hint" id="fDicStav" data-text="predplatne.firma.dic.hint">Nepovinné. Vyplňte, jste-li plátce DPH.</div>
+          </div>
+        </div>
         <!-- Nela 29. 9. + právní revize: u digitálního obsahu na dálku musí
              spotřebitel před nákupem výslovně potvrdit, že chce plnění hned
              a že tím ztrácí právo na odstoupení. Bez zaškrtnutí nákup nepustí. -->
@@ -2457,11 +2491,121 @@ function otevriPodminky(){
   if(a) openExt(a);
 }
 
-/* Bez zaškrtnutého souhlasu se nedá objednat. */
+/* ---------------------------------------------------- firemní nákup */
+
+/* IČO má kontrolní číslici — překlep se pozná dřív, než se zbytečně
+   ptáme ARESu, a hlavně dřív, než se vystaví faktura na neexistující
+   firmu. Váhy 8 až 2, zbytek po dělení jedenácti. */
+function platneIco(s){
+  const c = String(s || '').replace(/\D/g, '');
+  if(c.length !== 8) return false;
+  let soucet = 0;
+  for(let i = 0; i < 7; i++) soucet += Number(c[i]) * (8 - i);
+  const zbytek = soucet % 11;
+  const kontrolni = zbytek === 0 ? 1 : (zbytek === 1 ? 0 : 11 - zbytek);
+  return Number(c[7]) === kontrolni;
+}
+
+function vypln(id, hodnota){
+  const p = document.getElementById(id);
+  if(p) p.value = hodnota;
+}
+
+function prepniFirmu(){
+  const z = document.getElementById('naFirmu');
+  const pole = document.getElementById('firmaPole');
+  if(pole) pole.style.display = (z && z.checked) ? '' : 'none';
+  prepniKoupit();
+}
+
+/** Údaje pro fakturu, nebo null, když se nekupuje na firmu. */
+function udajeFirmy(){
+  const z = document.getElementById('naFirmu');
+  if(!z || !z.checked) return null;
+  const h = id => ((document.getElementById(id) || {}).value || '');
+  return {
+    ico: h('fIco').replace(/\D/g, ''),
+    nazev: h('fNazev').trim(),
+    ulice: h('fUlice').trim(),
+    mesto: h('fMesto').trim(),
+    dic: h('fDic').trim().toUpperCase()
+  };
+}
+
+/* ARES odpovídá i přímo z prohlížeče — posílá `Access-Control-Allow-Origin: *`,
+   ověřeno 1. 10. 2026 — takže se kvůli němu nemusí chodit přes server.
+   Když se neozve, pole zůstanou na zákazníkovi. */
+let aresCas = null, aresPosledni = '';
+
+function icoZmena(){
+  const stav = document.getElementById('fIcoStav');
+  const ico = (((document.getElementById('fIco') || {}).value) || '').replace(/\D/g, '');
+  prepniKoupit();
+  if(aresCas) clearTimeout(aresCas);
+  if(ico.length < 8){
+    if(stav) stav.textContent = txt('predplatne.firma.hint',
+      'Název a sídlo doplníme z obchodního rejstříku.');
+    return;
+  }
+  if(!platneIco(ico)){
+    if(stav) stav.textContent = txt('predplatne.firma.chyba.ico',
+      'Takové IČO neexistuje, zkontrolujte ho prosím.');
+    return;
+  }
+  if(ico === aresPosledni) return;
+  aresCas = setTimeout(() => nactiZAresu(ico), 250);
+}
+
+async function nactiZAresu(ico){
+  const stav = document.getElementById('fIcoStav');
+  if(stav) stav.textContent = txt('predplatne.firma.hledam', 'Hledám v rejstříku…');
+  try{
+    const r = await fetch(
+      'https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty/' + ico,
+      { headers: { Accept: 'application/json' } });
+    if(!r.ok) throw new Error('stav ' + r.status);
+    const d = await r.json();
+    const s = d.sidlo || {};
+    const cislo = [s.cisloDomovni, s.cisloOrientacni].filter(Boolean).join('/');
+    const ulice = [s.nazevUlice, cislo].filter(Boolean).join(' ');
+    const psc = String(s.psc || '');
+    /* U velkých měst je na dokladu správně obvod, ne jen „Praha" —
+       rejstřík ho dává v nazevMestskehoObvodu a ten už město obsahuje. */
+    const mesto = [psc.length === 5 ? psc.slice(0, 3) + ' ' + psc.slice(3) : psc,
+                   s.nazevMestskehoObvodu || s.nazevObce].filter(Boolean).join(' ');
+    vypln('fNazev', d.obchodniJmeno || '');
+    vypln('fUlice', ulice || (s.textovaAdresa || ''));
+    vypln('fMesto', mesto);
+    /* DIČ rejstřík vrací jen někdy — u advokátní kanceláře ano, u Trasku ne,
+       ověřeno 1. 10. 2026. Dopočítat ho z IČO **nejde**: u živnostníka se
+       odvozuje od rodného čísla a ne každá firma je plátce. Když chybí,
+       řekneme to a necháme ho na zákazníkovi. */
+    vypln('fDic', d.dic || '');
+    const dicStav = document.getElementById('fDicStav');
+    if(dicStav) dicStav.textContent = d.dic
+      ? txt('predplatne.firma.dic.hint', 'Nepovinné. Vyplňte, jste-li plátce DPH.')
+      : txt('predplatne.firma.dic.chybi',
+            'Rejstřík DIČ nevrátil — doplňte ho prosím, jste-li plátce DPH.');
+    aresPosledni = ico;
+    if(stav) stav.textContent = txt('predplatne.firma.nalezeno',
+      'Údaje jsme doplnili z rejstříku. Můžete je upravit.');
+  }catch(e){
+    console.warn('ares', e);
+    if(stav) stav.textContent = txt('predplatne.firma.rucne',
+      'Rejstřík se neozval — vyplňte prosím údaje ručně.');
+  }
+  prepniKoupit();
+}
+
+/* Bez zaškrtnutého souhlasu se nedá objednat. A u firemního nákupu ani
+   bez údajů pro fakturu — doplňovat je zpětně po zaplacení znamená
+   přepisovat už vystavený daňový doklad. */
 function prepniKoupit(){
   const z = document.getElementById('souhlasDodani');
   const tl = document.getElementById('koupitBtn');
-  if(tl) tl.disabled = !(z && z.checked);
+  const f = udajeFirmy();
+  const firmaOk = !f || (platneIco(f.ico) && f.nazev && f.ulice && f.mesto);
+  if(tl) tl.disabled = !(z && z.checked && firmaOk);
 }
 
 async function koupitPristup(){
@@ -2478,6 +2622,12 @@ async function koupitPristup(){
     toast(txt('predplatne.chyba.prihlaseni','Nejdřív se přihlaste e-mailem — přístup se váže na váš účet.'));
     go('profil'); return;
   }
+  const firma = udajeFirmy();
+  if(firma && !(platneIco(firma.ico) && firma.nazev && firma.ulice && firma.mesto)){
+    toast(txt('predplatne.chyba.firma',
+      'Doplňte prosím IČO, název a sídlo firmy — bez nich nelze vystavit fakturu.'));
+    return;
+  }
   if(tl){ tl.disabled = true; tl.textContent = txt('predplatne.btn.pripravuji','Připravuji platbu…'); }
   try{
     const { data } = await sb.auth.getSession();
@@ -2486,7 +2636,7 @@ async function koupitPristup(){
       method: 'POST',
       headers: { apikey: PR_CFG.SUPABASE_ANON, Authorization: 'Bearer ' + token,
                  'Content-Type': 'application/json' },
-      body: '{}'
+      body: JSON.stringify(firma ? { firma } : {})
     });
     const odpoved = await r.json().catch(() => ({}));
     if(!r.ok || !odpoved.url) throw new Error(odpoved.error || ('stav ' + r.status));
