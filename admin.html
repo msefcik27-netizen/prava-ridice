@@ -421,7 +421,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 165</span><span class="verze" id="verzeApp"></span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 169</span><span class="verze" id="verzeApp"></span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -1405,6 +1405,20 @@ const POLE_OBRAZOVKA = {
   'garaz.vozidlo.upraveno':'vozidla',
   'garaz.zrusit':'vozidla',
   'garaz.pokuta.advokat':'pokuty',
+  /* Přibylo v buildech 161–163 (připomínky Nely z 29. 9.). Bez tohohle
+     zařazení by se texty seskupily pod syrovým „garaz" a „provereni"
+     místo k obrazovce Pokuty, kam patří. */
+  'garaz.pokuta.typ.prikaz':'pokuty',
+  'garaz.pokuta.typ.rizeni':'pokuty',
+  'garaz.pokuta.pripsat.rizeni':'pokuty',
+  'garaz.pokuta.obnoveno':'pokuty',
+  'provereni.varovani.nadpis':'pokuty',
+  'provereni.varovani':'pokuty',
+  'provereni.varovani.dnu':'pokuty',
+  /* Adresa obchodních podmínek patří vedle textu odkazu, který ji
+     používá — tedy k obrazovce Předplatné. Do 1. 10. ležela na kartě
+     `sprava`, kterou editor nekreslí, takže ji nikdo nemohl vyplnit. */
+  'odkaz.podminky':'predplatne',
   'garaz.pokuty.pridat':'pokuty',
   'garaz.pokuta.ulozit':'pokuty',
   'garaz.pokuta.chyba':'pokuty',
