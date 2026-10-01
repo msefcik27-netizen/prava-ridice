@@ -1,5 +1,5 @@
 /* Práva řidiče — service worker (offline cache + push) */
-const CACHE = 'pravaridice-v109';
+const CACHE = 'pravaridice-v110';
 const ASSETS = [
   './',
   './index.html',
