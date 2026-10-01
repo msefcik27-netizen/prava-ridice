@@ -421,7 +421,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 170</span><span class="verze" id="verzeApp"></span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 171</span><span class="verze" id="verzeApp"></span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -3588,7 +3588,14 @@ const NAZVY_KARET = {uvod:'Úvodní obrazovky', prehled:'Přehled', pruvodce:'Pr
    nikdo neruší bez pokynu), jen se tu neukazují — jinak by Nela upravovala
    text, který nikde není vidět. Build 158 vyřadil texty kolem starého
    Řidičského přehledu, který se rozdělil na Vozidla a Pokuty. */
-const VYRAZENE_KLICE = ['sluzby.odkazy.stitek',
+/* 1. 10. 2026 zrušila kancelář slib o vrácení peněz — zákazník nad
+   objednávkou potvrzuje, že chce přístup ihned a ztrácí právo odstoupit,
+   takže nabízet vedle toho vrácení si protiřečilo. Texty v databázi
+   zůstávají, aplikace je nepoužívá. */
+const VYRAZENE_KLICE = ['predplatne.vraceni', 'predplatne.btn.vraceni',
+  'predplatne.vraceni.adresa', 'predplatne.vraceni.predmet',
+  'predplatne.vraceni.telo', 'predplatne.vraceni.toast',
+  'sluzby.odkazy.stitek',
   'prehled.pdf.nadpis', 'prehled.pdf.popis',
   'prehled.vozidla.nadpis', 'prehled.vozidla.popis',
   'garaz.vozidla.nadpis', 'garaz.pokuty.nadpis',
