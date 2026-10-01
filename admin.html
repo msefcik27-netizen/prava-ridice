@@ -421,7 +421,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 169</span><span class="verze" id="verzeApp"></span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 170</span><span class="verze" id="verzeApp"></span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -4261,6 +4261,7 @@ function vykresliSpravu(){
     </div>` : ''}
     <div class="lista" style="margin-top:14px">
       <button class="btn btn-vedl" onclick="exportVsechRegistrovanych()">Uložit registrované do CSV</button>
+      <button class="btn btn-vedl" onclick="exportPoptavek()">Uložit poptávky do CSV</button>
     </div>
     <p class="napoveda">Seznam e-mailů se nikde nezobrazuje, stáhne se rovnou do souboru.
        Obsahuje datum registrace, potvrzení e-mailu, úroveň přístupu a případný promo kód.
@@ -4429,6 +4430,41 @@ async function exportVsechRegistrovanych(){
       .concat(data.map(u => [u.email||'', den(u.registrace), den(u.potvrzeno),
         u.ma_pristup ? 'plný' : 'omezený', u.zdroj || '', u.kod || '', u.klient || ''])));
   hlaska('Staženo — ' + data.length + ' ' + mnozne(data.length,'registrace','registrace','registrací') + '.');
+}
+
+/* ---------- všechny poptávky ----------
+   V paměti drží administrace jen ty **nedoručené** (`jira_klic is null`),
+   protože jen ty je potřeba vidět na obrazovce. Do exportu ale patří
+   všechny — kancelář si ho bere kvůli přehledu, ne kvůli reklamacím. */
+async function exportPoptavek(){
+  const { data, error } = await db.from('poptavky').select('*')
+    .order('vytvoreno', { ascending: false });
+  if(error){ hlaska('Poptávky se nepodařilo načíst: ' + error.message, true); return; }
+  if(!data || !data.length){ hlaska('Zatím nepřišla žádná poptávka.'); return; }
+
+  /* Sloupce v pořadí, v jakém se čtou; co přibude v databázi později,
+     se připojí na konec, aby export tiše nezahodil nový údaj. */
+  const POPISKY = {
+    vytvoreno:'Kdy', jmeno:'Jméno', telefon:'Telefon', email:'E-mail',
+    zprava:'Zpráva', stav:'Stav', jira_klic:'JIRA', id:'ID'
+  };
+  const poradi = Object.keys(POPISKY);
+  const sloupce = poradi.filter(s => s in data[0])
+    .concat(Object.keys(data[0]).filter(s => !poradi.includes(s)));
+
+  const hodnota = (p, s) => {
+    const v = p[s];
+    if(v === null || v === undefined) return '';
+    if(s === 'vytvoreno') return new Date(v).toLocaleString('cs-CZ');
+    if(s === 'stav') return STAVY_POPTAVKY[v] || v;
+    return typeof v === 'object' ? JSON.stringify(v) : String(v);
+  };
+
+  stahniCsv('poptavky-prava-ridice.csv',
+    [sloupce.map(s => POPISKY[s] || s)]
+      .concat(data.map(p => sloupce.map(s => hodnota(p, s)))));
+  hlaska('Staženo — ' + data.length + ' ' +
+         mnozne(data.length,'poptávka','poptávky','poptávek') + '.');
 }
 
 /* Středník a BOM kvůli Excelu v češtině — jinak rozhodí diakritiku i sloupce. */
