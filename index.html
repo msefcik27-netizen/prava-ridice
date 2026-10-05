@@ -1189,7 +1189,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.6 · build 169<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.6 · build 170<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -2545,6 +2545,14 @@ function prepniFirmu(){
   prepniKoupit();
 }
 
+/** Doslovné znění souhlasu tak, jak ho zákazník vidí na obrazovce.
+    Bere se z vykresleného prvku, ne z `txt()` — kdyby se texty nestihly
+    načíst z administrace, uloží se aspoň to, co tam opravdu bylo. */
+function zneniSouhlasu(){
+  const e = document.querySelector('[data-text="predplatne.souhlas"]');
+  return ((e && e.textContent) || txt('predplatne.souhlas', '')).trim();
+}
+
 /** Údaje pro fakturu, nebo null, když se nekupuje na firmu. */
 function udajeFirmy(){
   const z = document.getElementById('naFirmu');
@@ -2665,8 +2673,14 @@ async function koupitPristup(){
                  'Content-Type': 'application/json' },
       /* Souhlas s okamžitým dodáním se posílá na server, ne jen hlídá tady.
          Je to jediné, co kancelář ochrání, kdyby někdo přesto trval na
-         odstoupení do 14 dnů — a zaškrtnutí v prohlížeči se nikam neuloží. */
-      body: JSON.stringify(Object.assign({ souhlas: true }, firma ? { firma } : {}))
+         odstoupení do 14 dnů — a zaškrtnutí v prohlížeči se nikam neuloží.
+
+         Posílá se i **doslovné znění**, které měl zákazník na obrazovce.
+         Text je v administraci a kancelář ho může kdykoli přepsat; samotný
+         klíč by tedy po čase nedokazoval nic. Slibují to zásady v čl. 3.4. */
+      body: JSON.stringify(Object.assign(
+        { souhlas: true, souhlasZneni: zneniSouhlasu() },
+        firma ? { firma } : {}))
     });
     const odpoved = await r.json().catch(() => ({}));
     if(!r.ok || !odpoved.url) throw new Error(odpoved.error || ('stav ' + r.status));
