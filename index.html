@@ -25,6 +25,11 @@ if(/SamsungBrowser/i.test(navigator.userAgent)){
 }
 </script>
 <link rel="apple-touch-icon" href="icon-192.png" />
+<!-- Firefox na Androidu dal 13. 10. 2026 na plochu obecného robota místo
+     našeho loga. `apple-touch-icon` si nevšímá a vlastní ikonu stránky
+     jsme nedeklarovali vůbec — nezbylo mu než sáhnout po náhradní. -->
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
 <title>Práva řidiče</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1006,8 +1011,8 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
              nezjistí, že na plochu přidaná není — a odložitelné. -->
         <div class="card" style="margin-top:10px;display:none;" id="plochaCard">
           <div class="eyebrow" style="margin-bottom:4px;" data-text="prehled.plocha.stitek">Běží v prohlížeči</div>
-          <div class="title-md" style="font-size:1.0625rem;" data-text="prehled.plocha.nadpis">Přidejte si appku na plochu</div>
-          <p class="small muted" style="margin:5px 0 0;line-height:1.45;" data-text="prehled.plocha.popis">Otevře se jedním klepnutím, funguje i bez signálu a teprve pak vám můžou chodit upozornění.</p>
+          <div class="title-md" style="font-size:1.0625rem;" data-text="prehled.plocha.nadpis">Přidejte si aplikaci na plochu</div>
+          <p class="small muted" style="margin:5px 0 0;line-height:1.45;" data-text="prehled.plocha.popis">Otevře se jedním klepnutím, funguje i bez signálu a teprve pak vám mohou chodit upozornění.</p>
           <div class="ob-actions" style="margin-top:11px;">
             <button class="btn btn-peach btn-sm" data-text="prehled.plocha.btn" onclick="openInstallSheet()">Přidat na plochu</button>
             <button class="ob-free" style="color:var(--ink);opacity:.7;padding:8px;" data-text="prehled.plocha.pozdeji" onclick="odlozPlochu()">Teď ne</button>
@@ -1189,7 +1194,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.6 · build 170<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.6 · build 171<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -6232,7 +6237,7 @@ async function pdfPicked(inp){
 
 /* ============ PWA INSTALL ============ */
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredPrompt=e; });
-window.addEventListener('appinstalled',()=>{ closeInstallSheet(); toast('Hotovo! Appku najdete na ploše.'); hideInstallUI(); });
+window.addEventListener('appinstalled',()=>{ closeInstallSheet(); toast('Hotovo. Aplikaci najdete na ploše.'); hideInstallUI(); });
 function isIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent); }
 function isIOSChrome(){ return isIOS() && /crios/i.test(navigator.userAgent); }
 function isAndroid(){ return /android/i.test(navigator.userAgent); }
@@ -6291,10 +6296,15 @@ function installSteps(){
     'Sjeďte dolů a klepněte na '+PLUS_ICON+' <b>Přidat na plochu</b>.',
     'Vpravo nahoře potvrďte <b>Přidat</b>.'
   ];
+  /* Nela 13. 10.: položka se ve Firefoxu jmenuje jinak, než jsme psali,
+     je hluboko v nabídce a hned nad ní je „Přidat do zkratek", což je
+     něco úplně jiného. Posílali jsme lidi hledat text, který tam není. */
   if(jeFirefoxAndroid()) return [
     'Klepněte na menu '+MENU_ICON+' <b>⋮</b> ve Firefoxu — podle nastavení je '+
-      '<b>dole vpravo</b>, nebo nahoře vpravo.',
-    'Zvolte <b>Přidat na plochu</b> (v novějším Firefoxu <b>Instalovat</b>).',
+      '<b>vpravo nahoře</b>, nebo dole vpravo.',
+    '<b>Sjeďte v nabídce dolů</b> a zvolte '+
+      '<b>Přidat aplikaci na domovskou obrazovku</b>. '+
+      'Pozor, o kousek výš je <b>Přidat do zkratek</b> — to je něco jiného.',
     'Potvrďte <b>Přidat</b>.'
   ];
   if(isAndroid()) return [
@@ -6398,7 +6408,7 @@ function zaloznaKopie(text, hotovo){
 }
 
 function openInstallSheet(){
-  if(isStandalone()){ toast('Appka už je nainstalovaná — spouštíte ji z plochy. ✓'); return; }
+  if(isStandalone()){ toast('Aplikace je nainstalovaná — spouštíte ji z plochy. ✓'); return; }
   const action=document.getElementById('sheetAction');
   const sub=document.getElementById('sheetSub');
   const kopie=document.getElementById('sheetKopie');
@@ -6407,7 +6417,9 @@ function openInstallSheet(){
   if(jeSamsung()){
     /* Samsung prohlížeč instalaci nabídnout nemůže, aniž by Android ukázal
        varování — nabídne se tedy přechod do Chromu, kde proběhne normálně. */
-    if(sub) sub.textContent = 'Samsung prohlížeč zatím appku na plochu přidat neumí — Android by u ní ukázal varování. V Chromu to proběhne normálně a aplikace bude úplně stejná.';
+    if(sub) sub.textContent = 'Samsung prohlížeč aplikaci na plochu přidat '
+      + 'neumí — Android by u ní ukázal varování. V prohlížeči Chrome '
+      + 'přidání proběhne bez potíží a aplikace bude úplně stejná.';
     renderSteps([
       'Klepněte na <b>Otevřít v Chromu</b> — stránka se tam přenese.',
       'Tam klepněte na menu '+MENU_ICON+' vpravo nahoře a zvolte <b>Přidat na plochu</b>.',
@@ -6420,7 +6432,13 @@ function openInstallSheet(){
     /* Firefox nikdy neohlásí `beforeinstallprompt`, takže velké tlačítko
        „Přidat na plochu" by nic neudělalo a spadlo by na návod pro Chrome.
        Místo toho rovnou správné kroky pro Firefox a možnost přejít do Chromu. */
-    if(sub) sub.textContent = 'Ve Firefoxu se appka přidává z menu — vypadá to trochu jinak než v Chromu. Kdyby to nešlo, můžete stránku přenést do Chromu a přidat ji tam.';
+    /* Nela 13. 10.: text byl hovorový („appka") a odkazoval na Chrome dřív,
+       než člověk vůbec zkusil Firefox. Pořadí je teď obrácené — napřed co
+       udělat tady, až potom náhradní cesta. */
+    if(sub) sub.textContent = 'Ve Firefoxu se aplikace přidává z nabídky '
+      + 'prohlížeče, ne tlačítkem na stránce. Postupujte podle kroků níž. '
+      + 'Pokud by se položka v nabídce neobjevila, otevřete tuto stránku '
+      + 'v prohlížeči Chrome a přidejte aplikaci odtud.';
     renderSteps(installSteps());
     action.textContent='Rozumím';
     action.onclick=closeInstallSheet;
