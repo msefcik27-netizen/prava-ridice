@@ -421,7 +421,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 171</span><span class="verze" id="verzeApp"></span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 173</span><span class="verze" id="verzeApp"></span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -4891,11 +4891,24 @@ function qrSvg(text, velikost){
 const ADRESA_APLIKACE = 'https://app.pravaridice.cz/';
 const odkazSKodem = (kod) => ADRESA_APLIKACE + '?kod=' + encodeURIComponent(kod);
 
+/* Kódů může být u jednoho klienta deset tisíc, ale databáze vrátí v jedné
+   odpovědi nejvýš tisíc řádků — a **mlčky**, bez chyby. Bez stránkování by
+   se tedy u velkého klienta tisícím kódem seznam i export tiše zastavil.
+   Proto se čte po tisícovkách, dokud přichází plná dávka. */
+const DAVKA_KODU = 1000;
+
 async function nactiKody(klientId){
-  const { data, error } = await db.from('v_kody').select('*')
-    .eq('klient_id', klientId).order('vytvoreno');
-  kodyKlienta[klientId] = error ? [] : (data || []);
-  return kodyKlienta[klientId];
+  const vse = [];
+  for(let od = 0; od < 100000; od += DAVKA_KODU){
+    const { data, error } = await db.from('v_kody').select('*')
+      .eq('klient_id', klientId).order('vytvoreno')
+      .range(od, od + DAVKA_KODU - 1);
+    if(error){ kodyKlienta[klientId] = []; return []; }
+    vse.push(...(data || []));
+    if((data || []).length < DAVKA_KODU) break;
+  }
+  kodyKlienta[klientId] = vse;
+  return vse;
 }
 
 function stavKodu(k){
@@ -4913,12 +4926,18 @@ function kresliKody(klientId){
   if(pocet) pocet.textContent = rada.length
     ? rada.length + ' ' + mnozne(rada.length,'kód','kódy','kódů') : 'zatím žádné';
   if(!rada.length){ el.innerHTML = '<div class="prazdno">Klient zatím nemá žádné kódy.</div>'; return; }
+  /* Každý řádek obsahuje vykreslený QR kód, což není zdarma. U klienta
+     s deseti tisíci kódy by se administrace na dlouhé sekundy zasekla,
+     proto se vypisuje jen začátek seznamu a na zbytek se odkáže exportem.
+     Počet nad seznamem i export pracují s celým seznamem. */
+  const STROP_VYPISU = 200;
+  const vypis = rada.slice(0, STROP_VYPISU);
   /* Jeden kód = jeden řádek, ať se jich vejde co nejvíc. Pevná tabulka to
      nezvládla (tlačítka přetékala za okraj), proto pružné rozvržení: QR, kód,
      stav a tlačítka mají pevnou šířku, a **zbytek se scvrkne** — údaj o tom,
      kdo kód uplatnil, se v úzkém sloupci ořízne třemi tečkami. Tlačítka tak
      zůstanou celá vždycky. */
-  el.innerHTML = rada.map(k => {
+  el.innerHTML = vypis.map(k => {
       const [popis, barva] = stavKodu(k);
       const kdo = k.uplatnil_email
         ? esc(k.uplatnil_email) + (k.ma_zarizeni ? ' · zařízení' : ' · bez zařízení') +
@@ -4942,6 +4961,11 @@ function kresliKody(klientId){
         </div>
       </div>`;
     }).join('');
+  if(rada.length > vypis.length){
+    el.innerHTML += '<div class="prazdno" style="text-align:left">Zobrazeno prvních '+
+      vypis.length + ' kódů z ' + rada.length +
+      '. Celý seznam získáte tlačítkem <b>Export kódů</b> — vypíše všechny kódy do tabulky.</div>';
+  }
 }
 
 async function rozbalKody(det, klientId){
@@ -4957,13 +4981,17 @@ async function vydejKody(klientId){
   const k = klienti.find(x => x.id === klientId); if(!k) return;
   /* Návrh vychází z toho, kolik kódů klientovi chybí do počtu zaměstnanců —
      nejčastější případ je „vydej mi je všechny". */
-  const navrh = Math.max(1, (k.zamestnancu || 0) - (k.kodu || 0));
+  const navrh = Math.min(10000, Math.max(1, (k.zamestnancu || 0) - (k.kodu || 0)));
   const odpoved = prompt('Kolik kódů vydat klientovi „'+k.nazev+'"?\n\n'+
-    'Každý kód platí pro jednoho člověka a jedno zařízení.', String(navrh));
+    'Každý kód platí pro jednoho člověka a jedno zařízení. Najednou lze '+
+    'vydat nejvýš 10 000 kódů.', String(navrh));
   if(odpoved === null) return;
   const pocet = parseInt(odpoved, 10);
-  if(!pocet || pocet < 1 || pocet > 500){ hlaska('Zadejte číslo od 1 do 500.', true); return; }
+  if(!pocet || pocet < 1 || pocet > 10000){ hlaska('Zadejte číslo od 1 do 10 000.', true); return; }
 
+  /* Deset tisíc kódů se vyrábí několik sekund. Bez téhle hlášky to vypadá,
+     že se nic nestalo, a člověk klikne znovu. */
+  if(pocet > 500) hlaska('Vyrábím ' + pocet + ' kódů, chvíli to potrvá…');
   const { data, error } = await db.rpc('vyrob_kody', { p_klient: klientId, p_pocet: pocet });
   if(error){ hlaska('Kódy se nepodařilo vydat: '+error.message, true); return; }
   const vydano = Array.isArray(data) ? data.length : pocet;
@@ -5026,7 +5054,25 @@ async function vytiskniKody(klientId, nazev){
   }
   if(proslych) hlaska(proslych + ' kódů s prošlou platností se netiskne.');
 
-  const karty = rada.map(k => `
+  /* Každá kartička nese vykreslený QR kód o 150 px. Deset tisíc kartiček je
+     přes tisíc stránek a prohlížeč na nich zamrzne, proto se tisknou po
+     tisícovkách a Nela si vybere, kterou dávku chce. */
+  const STROP_TISKU = 1000;
+  let od = 0;
+  if(rada.length > STROP_TISKU){
+    const davek = Math.ceil(rada.length / STROP_TISKU);
+    const odp = prompt('Volných kódů je ' + rada.length + '. Najednou se jich dá '+
+      'vytisknout ' + STROP_TISKU + ' — víc prohlížeč nevykreslí.\n\n'+
+      'Zadejte číslo dávky 1 až ' + davek + ' (dávka 1 jsou kódy 1 až ' + STROP_TISKU + ').', '1');
+    if(odp === null) return;
+    const davka = parseInt(odp, 10);
+    if(!davka || davka < 1 || davka > davek){
+      hlaska('Zadejte číslo dávky od 1 do ' + davek + '.', true); return; }
+    od = (davka - 1) * STROP_TISKU;
+  }
+  const tisknute = rada.slice(od, od + STROP_TISKU);
+
+  const karty = tisknute.map(k => `
     <div class="karta">
       <div class="hlava">Práva řidiče</div>
       <div class="qr">${qrSvg(odkazSKodem(k.kod), 150)}</div>
@@ -5061,7 +5107,8 @@ async function vytiskniKody(klientId, nazev){
               border:none; border-radius:8px; background:#0E4A53; color:#fff; cursor:pointer; }
     </style></head><body>
     <button class="tisk" onclick="window.print()">Vytisknout</button>
-    <h1>${esc(nazev)} — ${rada.length} ${mnozne(rada.length,'volný kód','volné kódy','volných kódů')}</h1>
+    <h1>${esc(nazev)} — ${tisknute.length} ${mnozne(tisknute.length,'volný kód','volné kódy','volných kódů')}${
+      rada.length > tisknute.length ? ' (kódy ' + (od+1) + ' až ' + (od+tisknute.length) + ' z ' + rada.length + ')' : ''}</h1>
     <div class="list">${karty}</div>
     </body></html>`);
   okno.document.close();
