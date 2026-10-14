@@ -421,7 +421,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,396px);gap:22
 
 <div id="app" style="display:none">
   <header>
-    <h1>Práva řidiče — správa obsahu <span class="verze">build 173</span><span class="verze" id="verzeApp"></span></h1>
+    <h1>Práva řidiče — správa obsahu <span class="verze">build 174</span><span class="verze" id="verzeApp"></span></h1>
     <span class="kdo" id="kdo"></span>
     <button onclick="odhlas()">Odhlásit</button>
   </header>
@@ -4896,17 +4896,27 @@ const odkazSKodem = (kod) => ADRESA_APLIKACE + '?kod=' + encodeURIComponent(kod)
    se tedy u velkého klienta tisícím kódem seznam i export tiše zastavil.
    Proto se čte po tisícovkách, dokud přichází plná dávka. */
 const DAVKA_KODU = 1000;
+/* Pojistka proti nekonečnému čtení. Nesmí ale dopadnout jako chyba, kterou
+   tenhle kód opravuje: kdyby se o strop opřela, **řekne to**, místo aby
+   vrátila zkrácený seznam jako úplný. */
+const MAX_DAVEK = 200;
 
 async function nactiKody(klientId){
   const vse = [];
-  for(let od = 0; od < 100000; od += DAVKA_KODU){
+  let davek = 0, uplne = true;
+  for(;;){
+    const od = davek * DAVKA_KODU;
     const { data, error } = await db.from('v_kody').select('*')
       .eq('klient_id', klientId).order('vytvoreno')
       .range(od, od + DAVKA_KODU - 1);
     if(error){ kodyKlienta[klientId] = []; return []; }
     vse.push(...(data || []));
+    davek++;
     if((data || []).length < DAVKA_KODU) break;
+    if(davek >= MAX_DAVEK){ uplne = false; break; }
   }
+  if(!uplne) hlaska('Kódů je přes ' + (MAX_DAVEK * DAVKA_KODU) +
+    ' a seznam je proto neúplný. Celý přehled dá Export kódů.', true);
   kodyKlienta[klientId] = vse;
   return vse;
 }
