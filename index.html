@@ -611,8 +611,14 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 /* Install sheet (bottom sheet with guide) */
 #sheetOverlay{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:50;display:none;}
 #sheetOverlay.show{display:block;animation:fade .2s;}
+/* Panel je přilepený ke spodku, takže delší obsah roste nahoru — a bez
+   stropu vyroste i nad okraj obrazovky, kde ho není vidět a nejde se k němu
+   dostat. Nela to 14. 10. 2026 nahlásila z Firefoxu: viděla jen krok 2 a 3,
+   nadpis ani krok 1 na obrazovku nezbyly. Při větším písmu to nastane vždy.
+   Proto strop a rolování uvnitř panelu. */
 #sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-radius:24px 24px 0 0;z-index:51;
-  padding:10px 20px calc(env(safe-area-inset-bottom) + 22px);transform:translateY(105%);transition:transform .28s cubic-bezier(.32,.72,.33,1);display:none;}
+  padding:10px 20px calc(env(safe-area-inset-bottom) + 22px);transform:translateY(105%);transition:transform .28s cubic-bezier(.32,.72,.33,1);display:none;
+  max-height:calc(100% - 12px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
 #sheet.show{transform:none;}
 #sheet .grab{width:44px;height:5px;border-radius:99px;background:var(--line);margin:6px auto 14px;}
 #sheet h3{font-size:1.1875rem;font-weight:800;margin-bottom:4px;}
@@ -877,8 +883,11 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
   display:flex;align-items:center;justify-content:center;padding:22px;
   opacity:0;transition:opacity .16s}
 .okno-pozadi.vidno{opacity:1}
+/* Totéž co u #sheet: vystředěné okno s delším textem přeteče nahoru
+   i dolů a konce se nedají dorolovat. */
 .okno{background:var(--card,#fff);color:var(--ink);border-radius:18px;padding:20px 20px 16px;
   width:100%;max-width:340px;box-shadow:0 18px 48px rgba(13,20,36,.32);
+  max-height:100%;overflow-y:auto;overscroll-behavior:contain;
   transform:translateY(8px) scale(.98);transition:transform .16s}
 .okno-pozadi.vidno .okno{transform:none}
 .okno h3{margin:0 0 8px;font-size:1.0312rem;font-weight:800}
@@ -1194,7 +1203,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.6 · build 172<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.6 · build 173<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
