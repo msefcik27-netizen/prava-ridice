@@ -609,20 +609,20 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
 .ob-code::placeholder{color:rgba(255,255,255,.45);letter-spacing:0;}
 
 /* Install sheet (bottom sheet with guide) */
-#sheetOverlay{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:50;display:none;}
-#sheetOverlay.show{display:block;animation:fade .2s;}
+#sheetOverlay,#pushOverlay{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:50;display:none;}
+#sheetOverlay.show,#pushOverlay.show{display:block;animation:fade .2s;}
 /* Panel je přilepený ke spodku, takže delší obsah roste nahoru — a bez
    stropu vyroste i nad okraj obrazovky, kde ho není vidět a nejde se k němu
    dostat. Nela to 14. 10. 2026 nahlásila z Firefoxu: viděla jen krok 2 a 3,
    nadpis ani krok 1 na obrazovku nezbyly. Při větším písmu to nastane vždy.
    Proto strop a rolování uvnitř panelu. */
-#sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-radius:24px 24px 0 0;z-index:51;
+#sheet,#pushVyzva{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-radius:24px 24px 0 0;z-index:51;
   padding:10px 20px calc(env(safe-area-inset-bottom) + 22px);transform:translateY(105%);transition:transform .28s cubic-bezier(.32,.72,.33,1);display:none;
   max-height:calc(100% - 12px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
-#sheet.show{transform:none;}
-#sheet .grab{width:44px;height:5px;border-radius:99px;background:var(--line);margin:6px auto 14px;}
-#sheet h3{font-size:1.1875rem;font-weight:800;margin-bottom:4px;}
-#sheet .sheet-sub{font-size:0.8438rem;color:var(--muted);margin:0 0 16px;line-height:1.45;}
+#sheet.show,#pushVyzva.show{transform:none;}
+#sheet .grab,#pushVyzva .grab{width:44px;height:5px;border-radius:99px;background:var(--line);margin:6px auto 14px;}
+#sheet h3,#pushVyzva h3{font-size:1.1875rem;font-weight:800;margin-bottom:4px;}
+#sheet .sheet-sub,#pushVyzva .sheet-sub{font-size:0.8438rem;color:var(--muted);margin:0 0 16px;line-height:1.45;}
 .step-row{display:flex;gap:13px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);}
 .step-row:last-of-type{border-bottom:none;}
 .step-num{width:30px;height:30px;border-radius:50%;background:var(--peach-100);color:var(--accent-ink);font-weight:800;font-size:0.875rem;
@@ -1203,7 +1203,7 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
         <div class="section-label" data-text="profil.odkazy.stitek" style="margin-top:8px;">Odkazy</div>
         <div class="list-card" id="profileLinks"></div>
         <div id="bloky-profil"></div>
-        <div class="ver">Verze 2.6 · build 173<span id="zdrojObsahu"></span></div>
+        <div class="ver">Verze 2.6 · build 174<span id="zdrojObsahu"></span></div>
       </div>
     </div>
 
@@ -1458,6 +1458,16 @@ html.standalone #onboard{padding-top:max(calc(env(safe-area-inset-top) + 24px), 
     <button class="btn btn-dark sheet-close" id="sheetAction" onclick="closeInstallSheet()">Rozumím</button>
     <button class="btn btn-outline-dark" style="margin-top:8px;display:none;" id="sheetKopie" onclick="zkopirujOdkaz()">Zkopírovat odkaz</button>
     <button class="btn btn-outline-dark" style="margin-top:8px;" onclick="closeInstallSheet()">Později</button>
+  </div>
+
+  <!-- VÝZVA K ZAPNUTÍ UPOZORNĚNÍ -->
+  <div id="pushOverlay" onclick="pushVyzvaPozdeji()"></div>
+  <div id="pushVyzva">
+    <div class="grab"></div>
+    <h3 id="pushVyzvaNadpis">Zapnout upozornění?</h3>
+    <p class="sheet-sub" id="pushVyzvaText"></p>
+    <button class="btn btn-dark sheet-close" onclick="pushVyzvaAno()">Zapnout upozornění</button>
+    <button class="btn btn-outline-dark" style="margin-top:8px;" onclick="pushVyzvaPozdeji()">Teď ne</button>
   </div>
 
   <div id="toast"></div>
@@ -1752,6 +1762,9 @@ if(isIOS()){
 }
 function tab(name){
   if(name==='prehled') try{ stavPlochaKarty(); }catch(e){}
+  /* Kdo si Zprávy otevírá sám, o zprávy z kanceláře státí — to je nejlepší
+     chvíle nabídnout, ať mu je telefon ohlásí i bez otevření aplikace. */
+  if(name==='zpravy') try{ naplanujNabidkuPush('zpravy', 900); }catch(e){}
   const prev=TABS.indexOf(state.screen), next=TABS.indexOf(name);
   state.tab=name; state.screen=name; state.history=[];
   showScreen(name);
@@ -3394,6 +3407,7 @@ async function authInit(){
            se nový telefon odhlásil dřív, než by se stihl zapsat. */
         await prihlasZarizeni();
         await nactiSouhlasy();
+        naplanujNabidkuPush('ucet', 8000);
         let ceka=null; try{ ceka=JSON.parse(localStorage.getItem('pr-cekam-na-potvrzeni')||'null'); }catch(e){}
         if(ceka) await poPotvrzeni();
         /* Odkaz z e-mailu se může projevit až tady — knihovna adresu čte až
@@ -3408,6 +3422,7 @@ async function authInit(){
       authUser=data.session.user; nastavAuthStav('prihlasen');
       await afterLogin(); await zjistiPristup();
       await hlidejZarizeni(); await nactiSouhlasy();
+      naplanujNabidkuPush('ucet', 8000);
       let ceka=null; try{ ceka=JSON.parse(localStorage.getItem('pr-cekam-na-potvrzeni')||'null'); }catch(e){}
       if(ceka) await poPotvrzeni();
       else dovnitrPoPrihlaseni();
@@ -4679,6 +4694,106 @@ async function kresliPushKartu(){
       ? '<button class="btn btn-outline-dark btn-sm" style="margin-top:10px" onclick="openInstallSheet()">Přidat na plochu</button>' : '');
 }
 
+/* ============ VÝZVA K ZAPNUTÍ UPOZORNĚNÍ ============
+   Do 20. 11. 2026 se aplikace na upozornění nikdy sama nezeptávala.
+   Přepínač byl jen v Profilu → Upozornění a kdo tam nezašel, odběr neměl:
+   z 88 účtů ho měly dva. Zprávy z kanceláře ani připomínky STK a pojistek
+   tedy 86 lidem nemohly dojít — nebylo kam je poslat.
+
+   Výzva nic nezapíná sama. Jen se zeptá v okamžiku, kdy je vidět, k čemu
+   to je, a systémový dialog telefonu spustí teprve po klepnutí na Zapnout.
+   To pořadí je důležitější, než vypadá: odmítnutí systémového dialogu web
+   už nikdy vzít zpátky neumí — povolení by pak šlo jen v nastavení telefonu. */
+const PUSH_VYZVA_KLIC = 'pr-push-vyzva';
+const PUSH_VYZVA_ODKLAD = 14 * 86400000;   // po „Teď ne“ čtrnáct dní klid
+const PUSH_VYZVA_MAX = 2;                  // dvakrát se zeptáme, pak už ne
+
+function pushVyzvaStav(){
+  try{ return JSON.parse(localStorage.getItem(PUSH_VYZVA_KLIC) || '{}') || {}; }
+  catch(e){ return {}; }
+}
+function pushVyzvaZapis(z){
+  try{ localStorage.setItem(PUSH_VYZVA_KLIC, JSON.stringify(z)); }catch(e){}
+}
+
+/* Pro každý okamžik jiná věta — člověk právě teď něco dělal a nabídka
+   na to má navázat, ne spustit obecnou řeč o nastavení. */
+const PUSH_VYZVA_TEXTY = {
+  zpravy: ['Ať vám zpráva neuteče',
+    'Zprávy jste si teď otevřeli sami. Se zapnutými upozorněními vám telefon novou zprávu od advokáta ohlásí sám, i když budete mít aplikaci zavřenou.'],
+  vozidlo: ['Ať vám termín neuteče',
+    'Termín máte uložený. Se zapnutými upozorněními vám telefon konec STK, pojistky i dálniční známky připomene sám, i když aplikaci zrovna neotevřete.'],
+  ucet: ['Zapnout upozornění?',
+    'Telefon vám ohlásí zprávu od advokáta i blížící se konec STK nebo pojistky, i když budete mít aplikaci zavřenou. Vypnout je jde kdykoli v Profilu.']
+};
+
+/* Ptáme se jen tam, kde to k něčemu je: přihlášený člověk, telefon
+   upozornění umí (na iPhonu tedy aplikace přidaná na plochu) a odběr ještě
+   nemá. Jinak se panel neukáže — nabízet něco, co se výsledkem nemůže
+   projít, je horší než neptat se. */
+async function nabidniPush(duvod){
+  const panel = document.getElementById('pushVyzva');
+  if(!panel || panel.classList.contains('show')) return;
+  if(!authUser) return;
+  const z = pushVyzvaStav();
+  if(z.hotovo) return;
+  if((z.pocet || 0) >= PUSH_VYZVA_MAX) return;
+  if(z.kdy && Date.now() - z.kdy < PUSH_VYZVA_ODKLAD) return;
+  /* Dva panely přes sebe nejdou. Přidání na plochu má přednost — bez něj
+     na iPhonu upozornění stejně nefungují. */
+  const instal = document.getElementById('sheet');
+  if(instal && instal.classList.contains('show')) return;
+  let stav;
+  try{ stav = await stavPush(); }catch(e){ return; }
+  if(!stav.lze || stav.zapnuto) return;
+  const sada = PUSH_VYZVA_TEXTY[duvod] || PUSH_VYZVA_TEXTY.ucet;
+  document.getElementById('pushVyzvaNadpis').textContent = sada[0];
+  document.getElementById('pushVyzvaText').textContent = sada[1];
+  z.pocet = (z.pocet || 0) + 1; z.kdy = Date.now(); z.duvod = duvod;
+  pushVyzvaZapis(z);
+  document.getElementById('pushOverlay').classList.add('show');
+  panel.style.display = 'block';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    panel.classList.add('show');
+    try{ updateChromeBg(); }catch(e){}
+  }));
+}
+
+function zavriPushVyzvu(){
+  const panel = document.getElementById('pushVyzva'); if(!panel) return;
+  const ov = document.getElementById('pushOverlay'); if(ov) ov.classList.remove('show');
+  panel.classList.remove('show');
+  setTimeout(()=>{
+    if(!panel.classList.contains('show')){
+      panel.style.display = 'none';
+      try{ updateChromeBg(); }catch(e){}
+    }
+  }, 320);
+}
+function pushVyzvaPozdeji(){ zavriPushVyzvu(); }
+
+async function pushVyzvaAno(){
+  zavriPushVyzvu();
+  /* Panel musí být z cesty dřív, než telefon ukáže svůj dialog — jinak se
+     systémové okno objeví nad naším a není poznát, čeho se vlastně ptá. */
+  await new Promise(r => setTimeout(r, 260));
+  await zapniPush();
+  try{
+    const stav = await stavPush();
+    const z = pushVyzvaStav();
+    /* Zapnuto → už se neozveme. Odmítnuto v telefonu taky ne: web povolení
+       znovu vyvolat neumí, opakovaná nabídka by jen otravovala. */
+    if(stav.zapnuto || stav.duvod === 'odmitnuto') z.hotovo = true;
+    pushVyzvaZapis(z);
+  }catch(e){}
+}
+
+/* Odloženě: hned po příchodu na obrazovku je ještě rušno (překreslování,
+   případná instalační výzva) a nabídka by zapadla. */
+function naplanujNabidkuPush(duvod, prodleva){
+  setTimeout(()=>{ try{ nabidniPush(duvod).catch(()=>{}); }catch(e){} }, prodleva || 1200);
+}
+
 function renderUpozorneni(){
   const c=getNotifCfg();
   const vs=getVehicles();
@@ -4720,7 +4835,6 @@ function renderUpozorneni(){
         (maZalohu() ? '<b>Se zapnutou zálohou</b> dorazí do telefonu i se zavřenou aplikací.'
                     : '<span data-text="upozorneni.bez.zalohy">'+
                       escT(txt('upozorneni.bez.zalohy','Bez zálohy se ukáže až ve Zprávách, jakmile aplikaci otevřete.'))+'</span>')+'</div></div>'+
-    '<div id="pushKarta"></div>'+
     (vs.length? '<div class="list-card" style="margin-top:8px;"><div class="list-item" onclick="openVozidla()">'+
         '<div class="li-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14l-1.5-5a2 2 0 0 0-2-1.5h-7a2 2 0 0 0-2 1.5z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></div>'+
         '<div class="li-body"><h4>Spravovat vozidla</h4><p>'+vs.length+' '+plural(vs.length,'vozidlo','vozidla','vozidel')+' · termíny a asistence</p></div>'+
@@ -4728,7 +4842,7 @@ function renderUpozorneni(){
       : '<div class="alert-line warn" style="margin-top:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a3a26" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span><span data-text="upozorneni.bez.vozidla">' + escT(txt('upozorneni.bez.vozidla','Zatím nemáte přidané vozidlo — bez něj termíny hlídat neumíme.')) + '</span> <b onclick="openVozidla()" style="text-decoration:underline;" data-text="upozorneni.bez.vozidla.odkaz">' + escT(txt('upozorneni.bez.vozidla.odkaz','Přidat vozidlo')) + '</b></span></div>')+
     '<div data-text="upozorneni.zpravy.stitek" class="section-label" style="margin-top:14px;">'+txt('upozorneni.zpravy.stitek','Zprávy a kontakt')+'</div>'+
     sw('zpravy',txt('upozorneni.zpravy.nadpis','Zprávy od advokáta'),
-               txt('upozorneni.zpravy.popis','Novinky a oznámení z kanceláře'),c.zpravy,'upozorneni.zpravy.nadpis','upozorneni.zpravy.popis')+
+               txt('upozorneni.zpravy.popis','Ukazovat novinky z kanceláře na kartě Zprávy. Do telefonu je pošle až přepínač Upozornění do telefonu níž.'),c.zpravy,'upozorneni.zpravy.nadpis','upozorneni.zpravy.popis')+
     /* Přihlášený člověk už svůj e-mail jednou zadal — nemá důvod psát ho znovu.
        Předvyplní se z účtu; přepsat ho jde, když chce upozornění jinam. */
     (function(){
@@ -4745,7 +4859,8 @@ function renderUpozorneni(){
           : '')+
         '<button data-text="upozorneni.email.btn" class="btn btn-outline-dark btn-sm" onclick="saveNotifMail()">'+txt('upozorneni.email.btn','Uložit e-mail')+'</button></div>';
     })()+
-    '<div class="disclaimer" style="margin-top:12px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#77837f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span data-text="upozorneni.pozn">'+txt('upozorneni.pozn','Nastavení zůstává ve vašem telefonu. Když jste přihlášení, uloží se i k účtu, takže se vám po přechodu na nový telefon vrátí. Upozornění se dnes ukazují v aplikaci na kartě Zprávy — posílání do telefonu a na e-mail připravujeme.')+'</span></div>';
+    '<div id="pushKarta"></div>'+
+    '<div class="disclaimer" style="margin-top:12px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#77837f" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><span data-text="upozorneni.pozn">'+txt('upozorneni.pozn','Nastavení zůstává ve vašem telefonu. Když jste přihlášení, uloží se i k účtu, takže se vám po přechodu na nový telefon vrátí. Se zapnutými upozorněními do telefonu dorazí zpráva i připomínka termínu se zavřenou aplikací; bez nich se obojí ukáže až na kartě Zprávy.')+'</span></div>';
 }
 
 /* ============ VOZIDLA A STK (082/093/101) ============ */
@@ -6160,6 +6275,9 @@ function addVehicle(){
   setVehicles(vs);
   garazForm = null; prekresliGaraz(); renderZpravy(); renderUnread();
   toast(uprava ? txt('garaz.vozidlo.upraveno','Vozidlo upraveno.') : txt('garaz.vozidlo.pridano','Vozidlo přidáno.'));
+  /* Termín bez upozornění je jen zápis v telefonu. Nabídka se ukáže až tady,
+     když už je co připomínat — a jen když nějaké datum opravdu padlo. */
+  if(zaznam.stk || zaznam.poj || zaznam.znamka) naplanujNabidkuPush('vozidlo', 1500);
 }
 async function rmVehicle(i){
   const vs=getVehicles();
